@@ -3,25 +3,50 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "dev": "npm run lint && next dev --turbopack",
+    "build": "npm run lint && next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint src --ext .ts,.tsx",
+    "prepare": "husky"
   },
   "dependencies": {
+    "@emotion/cache": "^11.11.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/server": "^11.11.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^7.0.1",
+    "@mui/lab": "^7.0.0-beta.10",
+    "@mui/material": "^7.0.1",
+    "@tabler/icons-react": "^3.33.0",
+    "@types/node": "^20.2.3",
+    "apexcharts": "4.7.0",
+    "next": "15.5.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.3"
+    "react-apexcharts": "1.7.0",
+    "react-syntax-highlighter": "^15.6.1",
+    "react-mui-sidebar": "^1.6.3"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
+    "@typescript-eslint/eslint-plugin": "^8.44.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
-    "@eslint/eslintrc": "^3"
+    "eslint-plugin-unused-imports": "^4.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.6",
+    "sass": "^1.92.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx}": "npm run lint"
   }
 }
