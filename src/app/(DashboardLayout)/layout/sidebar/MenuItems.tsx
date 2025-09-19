@@ -1,11 +1,12 @@
 import {
-  IconAperture,
   IconCopy,
   IconLayoutDashboard,
   IconLogin,
   IconMoodHappy,
   IconTypography,
   IconUserPlus,
+  IconUserCheck,
+  IconCalendarCheck
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -66,9 +67,15 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Sample Page",
-    icon: IconAperture,
-    href: "/sample-page",
+    title: "Client Types",
+    icon: IconUserCheck,
+    href: "/client-types",
+  },
+  {
+    id: uniqueId(),
+    title: "Event Types",
+    icon: IconCalendarCheck,
+    href: "/event-types",
   },
 
 ];
