@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, Typography, Button, Stack } from "@mui/material";
+import { Box, Typography, Button, Stack, Select, MenuItem } from "@mui/material";
 import CustomTextField from "@/app/(DashboardLayout)/components/forms/theme-elements/CustomTextField";
 import Swal from "sweetalert2";
 
@@ -19,6 +19,7 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
     birthdate: "",
     phone: "",
     password: "",
+    userType: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,6 +91,21 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
             Phone
           </Typography>
           <CustomTextField id="phone" variant="outlined" fullWidth value={formData.phone} onChange={handleChange} />
+
+          <Typography fontWeight={600} component="label" htmlFor="userType" mb="5px" mt="25px">
+            User Type
+          </Typography>
+          <Select id="userType" fullWidth value={formData.userType} onChange={(e) =>
+                setFormData({
+                ...formData,
+                userType: e.target.value,
+                })
+            }
+            >
+                <MenuItem value="">Select a user type</MenuItem>
+                <MenuItem value="proveedor">Supplier</MenuItem>
+                <MenuItem value="organizador">Organizer</MenuItem>
+          </Select>
 
           <Typography fontWeight={600} component="label" htmlFor="password" mb="5px" mt="25px">
             Password
