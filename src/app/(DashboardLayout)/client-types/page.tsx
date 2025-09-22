@@ -66,8 +66,8 @@ const ClientTypesPage = () => {
   };
 
   return (
-    <PageContainer title='Client Types' description='Client Types Page'>
-      <DashboardCard title='Client Types'>
+    <PageContainer title='Tipos de cliente' description='Client Types Page'>
+      <DashboardCard title='Tipos de cliente'>
         <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
           <Table aria-label='client table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
             <TableHead>
@@ -87,7 +87,7 @@ const ClientTypesPage = () => {
             <TableBody>
               {products.map((type) => (
                 <TableRow
-                  key={type.name}
+                  key={type.id}
                   className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
                   onClick={() => {
                     handleRowClick(type);

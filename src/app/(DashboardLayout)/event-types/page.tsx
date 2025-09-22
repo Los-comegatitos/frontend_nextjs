@@ -6,7 +6,7 @@ import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCa
 import CircularProgress from '@mui/material/CircularProgress';
 import { showSucessAlert } from "@/lib/swal";
 
-const ClientTypesPage = () => {
+const EventTypesPage = () => {
   const products = [
     {
       id: '1',
@@ -66,8 +66,8 @@ const ClientTypesPage = () => {
   };
 
   return (
-    <PageContainer title='Event Types' description='Event Types Page'>
-      <DashboardCard title='Event Types'>
+    <PageContainer title='Tipos de evento' description='Event Types Page'>
+      <DashboardCard title='Tipos de evento'>
         <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
           <Table aria-label='event table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
             <TableHead>
@@ -87,7 +87,7 @@ const ClientTypesPage = () => {
             <TableBody>
               {products.map((type) => (
                 <TableRow
-                  key={type.name}
+                  key={type.id}
                   className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
                   onClick={() => {
                     handleRowClick(type);
@@ -132,4 +132,4 @@ const ClientTypesPage = () => {
   );
 };
 
-export default ClientTypesPage;
+export default EventTypesPage;
