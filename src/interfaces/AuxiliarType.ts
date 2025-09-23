@@ -1,4 +1,4 @@
-export interface ServiceType {
+export interface AuxiliarType {
   id: string;
   name: string;
   description: string;

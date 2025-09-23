@@ -1,90 +1,24 @@
 'use client';
 import * as React from 'react';
-import {
-  Box,
-  Collapse,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-  Paper,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Button,
-  TextField,
-  CircularProgress,
-  Select,
-  MenuItem,
-} from '@mui/material';
-import {
-  KeyboardArrowDown as KeyboardArrowDownIcon,
-  KeyboardArrowUp as KeyboardArrowUpIcon,
-} from '@mui/icons-material';
+import { Box, Collapse, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Paper, Dialog, DialogTitle, DialogContent, Button, TextField, CircularProgress, Select, MenuItem } from '@mui/material';
+import { KeyboardArrowDown as KeyboardArrowDownIcon, KeyboardArrowUp as KeyboardArrowUpIcon } from '@mui/icons-material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
-import { showSucessAlert } from '@/lib/swal';
-import { ServiceType } from '@/interfaces/ServiceType';
+import { showErrorAlert, showSucessAlert } from '@/lib/swal';
+import { AuxiliarType } from '@/interfaces/AuxiliarType';
 import { Service } from '@/interfaces/Service';
-
-// implementar un método en el back que me traiga los tipos de servicio que tiene un catalogo
-const serviceTypes: ServiceType[] = [
-  { id: '1', name: 'Tipo de servicio 1', description: 'Descripcion tipo 1' },
-  { id: '2', name: 'Tipo de servicio 2', description: 'Descripcion tipo 2' },
-  { id: '3', name: 'Tipo de servicio 3', description: 'Descripcion tipo 3' },
-
-];
-
-const catalog = {
-  id: 'c1',
-  description: 'Catálogo de servicios del proveedor',
-  services: [
-    {
-      serviceTypeId: '1',
-      name: 'Servicio A',
-      description: 'Descripción servicio A',
-      quantity: 5,
-    },
-    {
-      serviceTypeId: '1',
-      name: 'Servicio B',
-      description: 'Descripción servicio B',
-      quantity: null,
-    },
-    {
-      serviceTypeId: '2',
-      name: 'Servicio C',
-      description: 'Descripción servicio C',
-      quantity: 10,
-    },
-  ] as Service[],
-};
+import { Catalog } from '@/interfaces/Catalog';
+import { useEffect, useState } from 'react';
 
 // tooda la lógica rara para rows expandibles (según la doc de mui)
-function Row({
-  type,
-  services,
-  onServiceClick,
-}: {
-  type: ServiceType;
-  services: Service[];
-  onServiceClick: (service: Service) => void;
-}) {
+function Row({ type, services, onServiceClick }: { type: AuxiliarType; services: Service[]; onServiceClick: (service: Service) => void }) {
   const [open, setOpen] = React.useState(false);
 
   return (
     <React.Fragment>
       <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
         <TableCell>
-          <IconButton
-            aria-label='expand row'
-            size='small'
-            onClick={() => setOpen(!open)}
-          >
+          <IconButton aria-label='expand row' size='small' onClick={() => setOpen(!open)}>
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
@@ -109,11 +43,7 @@ function Row({
                 </TableHead>
                 <TableBody>
                   {services.map((service) => (
-                    <TableRow
-                      key={service.name}
-                      className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
-                      onClick={() => onServiceClick(service)}
-                    >
+                    <TableRow key={service.name} className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200' onClick={() => onServiceClick(service)}>
                       <TableCell>{service.name}</TableCell>
                       <TableCell>{service.description}</TableCell>
                       <TableCell>{service.quantity ?? 'N/A'}</TableCell>
@@ -130,43 +60,171 @@ function Row({
 }
 
 export default function CatalogPage() {
-  const [openModal, setOpenModal] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
-  const [selectedService, setSelectedService] = React.useState<Service | null>(
-    null
-  );
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  // Por ahora esta data fixed así pero nao nao hay que quitarla y acomodar todo después de que haya autenticación
+  const USUARIO_ID = 1;
+
+  const [serviceTypes, setServiceTypes] = useState<AuxiliarType[]>([]);
+  const [serviceTypesSelect, setServiceTypesSelect] = useState<AuxiliarType[]>([]);
+
+  const [catalog, setCatalog] = useState<Catalog | null>(null);
+  const [modalMode, setModalMode] = useState<'add' | 'modify'>('modify');
+  const [loadingTable, setLoadingTable] = useState(true);
+
+  const [openDescModal, setOpenDescModal] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+
+  const fetchServiceTypes = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/service-type`);
+      const data = await res.json();
+
+      if (data.message.code === '000') {
+        setServiceTypesSelect(data.data);
+      } else {
+        showErrorAlert(data.message.description);
+      }
+    } catch (err) {
+      console.error('error:', err);
+    }
+  };
+
+  const fetchData = async () => {
+    try {
+      setLoadingTable(true);
+      const res = await fetch(`${API_BASE_URL}/catalog/${USUARIO_ID}`);
+      const data = await res.json();
+      if (data.message.code === '000') {
+        setCatalog(data.data.catalog);
+        setServiceTypes(data.data.serviceTypes);
+      } else {
+        showErrorAlert(data.message.description);
+      }
+      setLoadingTable(false);
+    } catch (err) {
+      setLoadingTable(false);
+      console.error('Error', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    fetchServiceTypes();
+  }, []);
+
+  const handleModifyDescription = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoading(true);
+
+    const formData = new FormData(event.currentTarget);
+    const newDescription = formData.get('description') as string;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/catalog/${USUARIO_ID}/description`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: newDescription }),
+      });
+
+      const data = await res.json();
+      if (data.message.code === '000') {
+        showSucessAlert('Descripción modificada exitosamente');
+        setOpenDescModal(false);
+      } else {
+        showErrorAlert(data.message.description);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+      fetchData();
+    }
+  };
 
   const handleRowClick = (service: Service) => {
     setSelectedService(service);
+    setModalMode('modify');
     setOpenModal(true);
   };
 
-  const handleClose = () => {
-    setOpenModal(false);
+  const handleAdd = () => {
+    setSelectedService({
+      serviceTypeId: '',
+      name: '',
+      description: '',
+      quantity: null,
+    } as Service);
+    setModalMode('add');
+    setOpenModal(true);
   };
 
-  const handleModify = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
 
     const formData = new FormData(event.currentTarget);
 
-    const updated = {
+    const payload = {
       serviceTypeId: formData.get('serviceTypeId') as string,
       name: formData.get('name') as string,
       description: formData.get('description') as string,
-      quantity:
-        formData.get('quantity') === ''
-          ? null
-          : Number(formData.get('quantity')),
+      quantity: formData.get('quantity') === '' ? null : Number(formData.get('quantity')),
     };
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      let url = `${API_BASE_URL}/catalog/${USUARIO_ID}/services`;
+      let method = 'POST';
 
-    console.log('modified info:', updated);
-    showSucessAlert('Service modified successfully');
+      if (modalMode === 'modify') {
+        url = `${API_BASE_URL}/catalog/${USUARIO_ID}/services/${selectedService.name}`;
+        method = 'PATCH';
+      }
 
-    setLoading(false);
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (data.message.code === '000') {
+        showSucessAlert(modalMode === 'add' ? 'Service added successfully' : 'Service modified successfully');
+        fetchData();
+      } else {
+        showErrorAlert(data.message.description);
+      }
+    } catch (err) {
+      console.error('Error saving service:', err);
+    } finally {
+      setLoading(false);
+      setOpenModal(false);
+    }
+  };
+
+  const handleDelete = async (serviceName: string | undefined) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/catalog/${USUARIO_ID}/services/${serviceName}`, { method: 'DELETE' });
+      const data = await res.json();
+
+      if (data.message.code === '000') {
+        showSucessAlert('Service eliminado exitosamente ');
+        fetchData();
+      } else {
+        showErrorAlert(data.message.description);
+      }
+    } catch (err) {
+      console.error('Error', err);
+    } finally {
+      setLoading(false);
+      setOpenModal(false);
+    }
+  };
+
+  const handleClose = () => {
     setOpenModal(false);
   };
 
@@ -177,99 +235,95 @@ export default function CatalogPage() {
           <Typography variant='h6' fontWeight={600} mb={2}>
             Descripción
           </Typography>
-          <Typography mb={3}>{catalog.description}</Typography>
+          {catalog && <Typography mb={3}>{catalog.description}</Typography>}
 
-          <TableContainer component={Paper}>
-            <Table aria-label='collapsible table'>
-              <TableHead>
-                <TableRow>
-                  <TableCell />
-                  <TableCell>Tipo de servicio</TableCell>
-                  <TableCell>Descripción</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {serviceTypes.map((type) => (
-                  <Row
-                    key={type.id}
-                    type={type}
-                    services={catalog.services.filter(
-                      (s) => s.serviceTypeId === type.id
-                    )}
-                    onServiceClick={handleRowClick}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2, mb: 4, columnGap: 2 }}>
+            <Button variant='contained' color='primary' onClick={handleAdd}>
+              Añadir servicio
+            </Button>
+
+            <Button variant='outlined' onClick={() => setOpenDescModal(true)}>
+              Modificar descripción
+            </Button>
+          </Box>
+
+          {loadingTable ? (
+            <Box sx={{ overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <CircularProgress size='55px' className='mb-2' />
+            </Box>
+          ) : (
+            <TableContainer component={Paper}>
+              <Table aria-label='collapsible table'>
+                <TableHead>
+                  <TableRow>
+                    <TableCell />
+                    <TableCell>Tipo de servicio</TableCell>
+                    <TableCell>Descripción</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {serviceTypes.map((type) => (
+                    <Row key={type.id} type={type} services={catalog.services.filter((s) => parseInt(s.serviceTypeId) === parseInt(type.id))} onServiceClick={handleRowClick} />
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </Box>
       </DashboardCard>
 
-      {/* Modal */}
       <Dialog open={openModal} onClose={handleClose} maxWidth='sm' fullWidth>
-        <DialogTitle>Modificar servicio</DialogTitle>
+        <DialogTitle>{modalMode === 'add' ? 'Agregar servicio' : 'Modificar servicio'}</DialogTitle>
         <DialogContent dividers>
           {selectedService && (
-            <Box
-              component='form'
-              onSubmit={handleModify}
-              display='flex'
-              flexDirection='column'
-              gap={2}
-              mt={1}
-            >
+            <Box component='form' onSubmit={handleSubmit} display='flex' flexDirection='column' gap={2} mt={1}>
               <p>Tipo de servicio</p>
-              <Select
-                name='serviceTypeId'
-                defaultValue={selectedService.serviceTypeId}
-                required
-              >
-                {serviceTypes.map((t) => (
+              <Select name='serviceTypeId' defaultValue={selectedService.serviceTypeId || ''} required>
+                {serviceTypesSelect.map((t) => (
                   <MenuItem key={t.id} value={t.id}>
                     {t.name}
                   </MenuItem>
                 ))}
               </Select>
-              <TextField
-                label='Nombre'
-                name='name'
-                defaultValue={selectedService.name}
-                required
-              />
-              <TextField
-                label='Descripción'
-                name='description'
-                defaultValue={selectedService.description}
-                required
-              />
-              <TextField
-                label='Cantidad'
-                name='quantity'
-                type='number'
-                defaultValue={selectedService.quantity ?? ''}
-              />
+              <TextField label='Nombre' name='name' defaultValue={selectedService.name} required />
+              <TextField label='Descripción' name='description' defaultValue={selectedService.description} required />
+              <TextField label='Cantidad' name='quantity' type='number' defaultValue={selectedService.quantity ?? ''} />
+
               <Box display='flex' justifyContent='center' gap={2}>
-                <Button
-                  variant='contained'
-                  type='submit'
-                  color='primary'
-                  disabled={loading}
-                >
-                  Modificar
-                  {loading && (
-                    <CircularProgress size='15px' className={'ml-2'} />
-                  )}
+                {modalMode === 'modify' && (
+                  <Button variant='outlined' color='error' onClick={() => handleDelete(selectedService.name)} disabled={loading}>
+                    Eliminar
+                  </Button>
+                )}
+                <Button variant='contained' type='submit' color='primary' disabled={loading}>
+                  {modalMode === 'add' ? 'Agregar' : 'Modificar'}
+                  {loading && <CircularProgress size='15px' className={'ml-2'} />}
                 </Button>
-                <Button
-                  onClick={handleClose}
-                  color='secondary'
-                  disabled={loading}
-                >
+                <Button onClick={handleClose} color='secondary' disabled={loading}>
                   Cancelar
                 </Button>
               </Box>
             </Box>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* modal para descripcion */}
+      <Dialog open={openDescModal} onClose={() => setOpenDescModal(false)} maxWidth='sm' fullWidth>
+        <DialogTitle>Modificar descripción</DialogTitle>
+        <DialogContent dividers>
+          <Box component='form' onSubmit={handleModifyDescription} display='flex' flexDirection='column' gap={2} mt={1}>
+            <TextField label='Descripción' name='description' defaultValue={catalog?.description ?? ''} required multiline />
+            <Box display='flex' justifyContent='center' gap={2}>
+              <Button variant='contained' type='submit' color='primary' disabled={loading}>
+                Guardar
+                {loading && <CircularProgress size='15px' className='ml-2' />}
+              </Button>
+              <Button onClick={() => setOpenDescModal(false)} color='secondary' disabled={loading}>
+                Cancelar
+              </Button>
+            </Box>
+          </Box>
         </DialogContent>
       </Dialog>
     </PageContainer>

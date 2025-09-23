@@ -7,7 +7,8 @@ import {
   IconUserPlus,
   IconUserCheck,
   IconCalendarCheck,
-  IconBook
+  IconBook,
+  IconCakeRoll,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -71,6 +72,12 @@ const Menuitems = [
     title: "Catálogo",
     icon: IconBook,
     href: "/catalog",
+  },
+  {
+    id: uniqueId(),
+    title: "Tipos de servicio",
+    icon: IconCakeRoll,
+    href: "/service-types",
   },
   {
     id: uniqueId(),
