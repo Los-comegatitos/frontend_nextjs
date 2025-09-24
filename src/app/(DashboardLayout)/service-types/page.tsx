@@ -7,26 +7,27 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { showErrorAlert, showSucessAlert } from '@/lib/swal';
 import { AuxiliarType } from '@/interfaces/AuxiliarType';
 
-const EventTypesPage = () => {
+const ServiceTypesPage = () => {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-  type ModalMode = 'add' | 'modify';
-  const [eventTypes, setEventTypes] = useState<AuxiliarType[]>([]);
+  type ModalMode = 'add' | 'modify'; // dependiendo de para qué vayamos a abrir el modal, hay que setear la variable a una de estas (o añadir más valores de ser necesario)
+  const [serviceTypes, setServiceTypes] = useState<AuxiliarType[]>([]);
   const [modalMode, setModalMode] = useState<ModalMode>('add');
   const [openModal, setOpenModal] = useState(false);
   const [loadingTable, setLoadingTable] = useState(true);
   const [loading, setLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<AuxiliarType | null>(null);
 
-  // Traer los tipos de evento de la API para mostrarlos en la tabla.
-  const fetchEventTypes = async () => {
+  // fetch service types (to table)
+  const fetchServiceTypes = async () => {
     try {
       setLoadingTable(true);
-      const res = await fetch(`${API_BASE_URL}/event-type`);
+      const res = await fetch(`${API_BASE_URL}/service-type`);
       const data = await res.json();
 
       if (data.message.code === '000') {
-        setEventTypes(data.data);
-      } else {
+        setServiceTypes(data.data);
+      }
+      else {
         showErrorAlert(data.message.description);
       }
       setLoadingTable(false);
@@ -37,7 +38,7 @@ const EventTypesPage = () => {
   };
 
   useEffect(() => {
-    fetchEventTypes();
+    fetchServiceTypes();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -61,7 +62,7 @@ const EventTypesPage = () => {
     try {
       let res;
       if (modalMode === 'modify') {
-        res = await fetch(`${API_BASE_URL}/event-type/${formData.get('id')}`, {
+        res = await fetch(`${API_BASE_URL}/service-type/${formData.get('id')}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -69,7 +70,7 @@ const EventTypesPage = () => {
       }
 
       if (modalMode === 'add') {
-        res = await fetch(`${API_BASE_URL}/event-type`, {
+        res = await fetch(`${API_BASE_URL}/service-type`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -78,36 +79,39 @@ const EventTypesPage = () => {
 
       const data = await res.json();
       if (data.message.code === '000') {
-        showSucessAlert(modalMode === 'add' ? 'Tipo de evento añadido exitosamente.' : 'Tipo de evento modificado exitosamente.');
-      } else {
+        showSucessAlert(modalMode === 'add' ? 'Tipo de servicio añadido exitosamente.' : 'Tipo de servicio modificado exitosamente.');
+      }
+      else {
         showErrorAlert(data.message.description);
       }
     } catch (err) {
       console.error('Error', err);
     } finally {
-      fetchEventTypes();
+      fetchServiceTypes();
       setLoading(false);
       setOpenModal(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string ) => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/event-type/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/service-type/${id}`, {
         method: 'DELETE',
       });
       const data = await res.json();
 
       if (data.message.code === '000') {
-        showSucessAlert('Tipo de evento eliminado exitosamente');
-      } else {
+        showSucessAlert('Tipo de servicio eliminado exitosamente');
+      }
+      else {
         showErrorAlert(data.message.description);
       }
+
     } catch (err) {
       console.error('Error', err);
     } finally {
-      fetchEventTypes();
+      fetchServiceTypes();
       setLoading(false);
       setOpenModal(false);
     }
@@ -125,8 +129,8 @@ const EventTypesPage = () => {
   };
 
   return (
-    <PageContainer title='Tipos de evento' description='Event Types Page'>
-      <DashboardCard title='Tipos de evento'>
+    <PageContainer title='Tipos de servicio' description='Service Types Page'>
+      <DashboardCard title='Tipos de servicio'>
         <Box display='flex' justifyContent='flex-end' mb={2}>
           <Button variant='contained' color='primary' onClick={handleAdd}>
             Añadir
@@ -138,7 +142,7 @@ const EventTypesPage = () => {
               <CircularProgress size='55px' className='mb-2' />
             </Box>
           ) : (
-            <Table aria-label='event table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
+            <Table aria-label='service table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
               <TableHead>
                 <TableRow>
                   <TableCell>
@@ -155,7 +159,7 @@ const EventTypesPage = () => {
               </TableHead>
 
               <TableBody>
-                {eventTypes.map((type) => (
+                {serviceTypes.map((type) => (
                   <TableRow
                     key={type.id}
                     className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
@@ -179,7 +183,7 @@ const EventTypesPage = () => {
 
       {/* modal */}
       <Dialog open={openModal} onClose={handleClose} maxWidth='sm' fullWidth>
-        <DialogTitle>{modalMode === 'add' ? 'Añadir tipo de evento' : 'Modificar tipo de evento'}</DialogTitle>
+        <DialogTitle>{modalMode === 'add' ? 'Añadir tipo de servicio' : 'Modificar tipo de servicio'}</DialogTitle>
         <DialogContent dividers>
           {selectedType && (
             <Box component='form' onSubmit={handleSubmit} display='flex' flexDirection='column' gap={2} mt={1}>
@@ -209,4 +213,4 @@ const EventTypesPage = () => {
   );
 };
 
-export default EventTypesPage;
+export default ServiceTypesPage;
