@@ -17,7 +17,7 @@ import {
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import CircularProgress from '@mui/material/CircularProgress';
-import { showErrorAlert, showSucessAlert } from '@/lib/swal';
+import { showErrorAlert, showSucessAlert } from '@/app/lib/swal'
 import { Event } from '@/interfaces/Events';
 
 const EventsPage = () => {
