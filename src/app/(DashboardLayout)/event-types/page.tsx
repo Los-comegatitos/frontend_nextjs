@@ -4,7 +4,7 @@ import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dial
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import CircularProgress from '@mui/material/CircularProgress';
-import { showSucessAlert } from "@/lib/swal";
+import { showSucessAlert } from "@/app/lib/swal";
 
 const ClientTypesPage = () => {
   const products = [
@@ -58,7 +58,7 @@ const ClientTypesPage = () => {
     await new Promise((resolve) => setTimeout(resolve, 2000)); // para que se awaitee correctamente
 
     console.log("modified info:", updated);
-    showSucessAlert("event type modified successfully");
+    showSucessAlert("¡Tipo de evento modificado exitosamente!");
     //
 
     setLoading(false);
@@ -66,8 +66,8 @@ const ClientTypesPage = () => {
   };
 
   return (
-    <PageContainer title='Event Types' description='Event Types Page'>
-      <DashboardCard title='Event Types'>
+    <PageContainer title='Tipos de eventos' description='Página de tipos de eventos'>
+      <DashboardCard title='Tipos de eventos'>
         <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
           <Table aria-label='event table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
             <TableHead>
@@ -108,7 +108,7 @@ const ClientTypesPage = () => {
 
       {/* modal */}
       <Dialog open={openModal} onClose={handleClose} maxWidth='sm' fullWidth>
-        <DialogTitle>Modify client type</DialogTitle>
+        <DialogTitle>Modifica tipo de cliente</DialogTitle>
         <DialogContent dividers>
           {selectedType && (
             <Box component='form' onSubmit={handleModify} display='flex' flexDirection='column' gap={2} mt={1}>

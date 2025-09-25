@@ -8,10 +8,20 @@ import RecentTransactions from '@/app/(DashboardLayout)/components/dashboard/Rec
 import ProductPerformance from '@/app/(DashboardLayout)/components/dashboard/ProductPerformance';
 import Blog from '@/app/(DashboardLayout)/components/dashboard/Blog';
 import MonthlyEarnings from '@/app/(DashboardLayout)/components/dashboard/MonthlyEarnings';
+// import { useState } from 'react';
+import { useAppContext } from '@/context/AppContext';
 
 const Dashboard = () => {
+  const { user } = useAppContext();
+  // const [user, setUser] = useState()
+  console.log('en el principal es así');
+  
+  console.log(user);
+  
   return (
     <PageContainer title="Dashboard" description="this is Dashboard">
+      {/* <p>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</p>
+      <p>este es el email{ user?.email }</p> */}
       <Box>
         <Grid container spacing={3}>
           <Grid

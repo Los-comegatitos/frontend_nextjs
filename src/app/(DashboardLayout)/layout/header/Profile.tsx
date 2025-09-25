@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Link from "next/link";
+// import Link from "next/link";
 import {
   Avatar,
   Box,
@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 
 import { IconListCheck, IconMail, IconUser } from "@tabler/icons-react";
+import { logout } from "@/app/actions/auth";
 
 const Profile = () => {
   const [anchorEl2, setAnchorEl2] = useState(null);
@@ -21,6 +22,10 @@ const Profile = () => {
   };
   const handleClose2 = () => {
     setAnchorEl2(null);
+  };
+
+  const handlelogout = async () => {
+    await logout()
   };
 
   return (
@@ -84,11 +89,13 @@ const Profile = () => {
         </MenuItem>
         <Box mt={1} py={1} px={2}>
           <Button
-            href="/authentication/login"
+            // href="/authentication/login"
             variant="outlined"
             color="primary"
-            component={Link}
+            type="button"
+            // component={Link}
             fullWidth
+            onClick={handlelogout}
           >
             Logout
           </Button>

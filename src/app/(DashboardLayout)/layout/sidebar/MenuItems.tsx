@@ -45,13 +45,13 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Login",
+    title: "Iniciar sesión",
     icon: IconLogin,
     href: "/authentication/login",
   },
   {
     id: uniqueId(),
-    title: "Register",
+    title: "Registrarte",
     icon: IconUserPlus,
     href: "/authentication/register",
   },
@@ -67,13 +67,13 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Client Types",
+    title: "Tipos de clientes",
     icon: IconUserCheck,
     href: "/client-types",
   },
   {
     id: uniqueId(),
-    title: "Event Types",
+    title: "Tipos de eventos",
     icon: IconCalendarCheck,
     href: "/event-types",
   },
