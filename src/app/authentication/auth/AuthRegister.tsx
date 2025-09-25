@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { Box, Typography, Button, Stack, Select, MenuItem } from "@mui/material";
 import CustomTextField from "@/app/(DashboardLayout)/components/forms/theme-elements/CustomTextField";
 import Swal from "sweetalert2";
-import { signin } from "@/app/actions/auth";
 import { redirect } from "next/navigation";
 
 interface registerType {
@@ -50,18 +49,20 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
       return;
     }
 
-    const info = new FormData()
-    info.set('firstName', formData.name)
-    info.set('lastName', formData.lastname)
-    info.set('email', formData.email)
-    info.set('telephone', formData.phone)
-    info.set('birthDate', formData.birthdate)
-    info.set('password', formData.password)
-    info.set('user_Typeid', formData.userType)
+    const data = await fetch('/api/signin', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        firstName: formData.name, 
+        lastName: formData.lastname, 
+        email: formData.email, 
+        telephone: formData.phone, 
+        birthDate: formData.birthdate, 
+        password: formData.password, 
+        user_Typeid: formData.userType
+      }),
+    });
 
-    const real = await signin(info)
-
-    if (real) {
+    if (data.ok) {
       await Swal.fire({
         icon: "success",
         title: "Registro exitoso",
@@ -69,7 +70,7 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
         confirmButtonColor: "#1976d2",
       });
       console.log("Datos enviados:", formData);
-      redirect('/login')
+      redirect('/')
     } else {
       Swal.fire({
         icon: "error",

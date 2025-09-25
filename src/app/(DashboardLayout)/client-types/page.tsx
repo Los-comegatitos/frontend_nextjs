@@ -5,8 +5,17 @@ import PageContainer from '@/app/(DashboardLayout)/components/container/PageCont
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import CircularProgress from '@mui/material/CircularProgress';
 import { showSucessAlert } from "@/app/lib/swal";
+import { useAppContext } from '@/context/AppContext';
 
 const ClientTypesPage = () => {
+  const { user } = useAppContext()
+  console.log('este es tu usario');
+  console.log(user);
+  console.log(user?.role);
+  console.log(user?.email);
+  console.log(user?.id);
+  
+  
   const products = [
     {
       id: '1',

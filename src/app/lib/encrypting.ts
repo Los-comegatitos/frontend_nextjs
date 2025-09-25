@@ -9,8 +9,6 @@ if (!secretKey) {
 }
 
 export async function decrypt(session: string) {
-//   console.log(session);
-//   console.log('///////////////////////////////////////////');
   
   try {
     const payload = verify(session, secretKey)

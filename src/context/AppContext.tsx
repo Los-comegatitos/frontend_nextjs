@@ -2,7 +2,7 @@
 
 // import { obtainJwt, verifyJwt } from '@/app/actions/auth';
 import { User } from '@/app/lib/definitions';
-import { decrypt } from '@/app/lib/encypting';
+import { decrypt } from '@/app/lib/encrypting';
 import { checkJwt, getJwt } from '@/app/lib/session';
 import { JwtPayload } from 'jsonwebtoken';
 import { redirect, usePathname } from 'next/navigation';
@@ -23,26 +23,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!pathname) return
     async function obtain() {
-      // const truth = await verifyJwt()
       const truth = checkJwt()
       
-      // const truth = document.cookie.includes('username')
       console.log(truth);
-      // const router = useRouter();
-      // const { pathname } = router;
       
-      if (!truth || (!truth && !pathname.includes('/authentication'))) {
+      if (!truth && !pathname.includes('authentication')) {
+        console.log('ESTÁS AQUÍ')
         setUser(null)
         redirect('/authentication/login') 
-      } else if (truth && user?.role != 'provider' && pathname.includes('/event-types')) {
+      } else if (truth && user?.role != 'provider' && pathname.includes('event-types')) {
         redirect('/') 
-      } else {
-        // console.log(`Este es el dato: ${getJwt()}`);
+      } else if (truth) {
         
         const data = await decrypt(getJwt()) as JwtPayload
-        // console.log('la data es');
-        // console.log(data);
-        // console.log(data['role']);
 
         const newUser : User = {
           id: parseInt(data.sub!), 
@@ -50,11 +43,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
           role: data['role'] 
         }
 
-        // console.log('nuevo');
-        
-        // console.log(newUser);
-        
-        
         if (data) {
           setUser(newUser)
         } else setUser(null)

@@ -33,19 +33,12 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
       email: "",
       password: ""
   });
-  // const [finished, setFinished] = useState(false)
-  // const [data, setData] = useState([]);
   
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.id]: e.target.value,
     });
-
-    console.log(formData);
-
-    // const cookiehouse = await cookies()
-    // console.log(cookiehouse.getAll());
     
   };
 
@@ -64,20 +57,11 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
         });
         return;
       }
-  
-      const info = new FormData()
-      info.set('email', formData.email)
-      info.set('password', formData.password)
-  
-      // const real = await login(info)
+
       const data = await fetch('/api/login', {
         method: 'POST',
         body: JSON.stringify({ email: formData.email, password: formData.password }),
       });
-
-      // document.cookie = "username=John Doe; expires=Thu, 18 Dec 2025 12:00:00 UTC; path=/";
-      // console.log(document.cookie);
-      
   
       if (data.ok) {
         const body = await data.json()
