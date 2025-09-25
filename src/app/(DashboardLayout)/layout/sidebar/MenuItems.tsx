@@ -6,7 +6,9 @@ import {
   IconTypography,
   IconUserPlus,
   IconUserCheck,
-  IconCalendarCheck
+  IconCalendarCheck,
+  IconBook,
+  IconCakeRoll,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -67,13 +69,25 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Tipos de clientes",
+    title: "Catálogo",
+    icon: IconBook,
+    href: "/catalog",
+  },
+  {
+    id: uniqueId(),
+    title: "Tipos de servicio",
+    icon: IconCakeRoll,
+    href: "/service-types",
+  },
+  {
+    id: uniqueId(),
+    title: "Tipos de cliente",
     icon: IconUserCheck,
     href: "/client-types",
   },
   {
     id: uniqueId(),
-    title: "Tipos de eventos",
+    title: "Tipos de evento",
     icon: IconCalendarCheck,
     href: "/event-types",
   },
