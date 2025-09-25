@@ -13,7 +13,7 @@ export const Upgrade = () => {
             <>
                 <Box >
                     <Typography variant="h5" sx={{ width: "80px" }} fontSize='16px' mb={1}>Haven&apos;t account ?</Typography>
-                    <Button color="primary" target="_blank" disableElevation component={Link} href="/authentication/register" variant="contained" aria-label="logout" size="small">
+                    <Button color="primary" target="_blank" disableElevation component={Link} href="/authentication/register" variant="contained" size="small">
                         Sign Up
                     </Button>
                 </Box>

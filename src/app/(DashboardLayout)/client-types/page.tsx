@@ -112,7 +112,9 @@ const ClientTypesPage = () => {
       setOpenModal(false);
     }
   };
-
+  console.log("modified info:", updated);
+  showSucessAlert("¡Tipo de cliente modificado exitosamente!");
+    //
   const handleRowClick = (type: AuxiliarType) => {
     setSelectedType(type);
     setModalMode('modify');
@@ -125,7 +127,7 @@ const ClientTypesPage = () => {
   };
 
   return (
-    <PageContainer title='Tipos de cliente' description='Client Types Page'>
+    <PageContainer title='Tipos de cliente' description='Página de tipos de clientes'>
       <DashboardCard title='Tipos de cliente'>
         <Box display='flex' justifyContent='flex-end' mb={2}>
           <Button variant='contained' color='primary' onClick={handleAdd}>

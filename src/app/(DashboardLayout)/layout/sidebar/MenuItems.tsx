@@ -47,13 +47,13 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Login",
+    title: "Iniciar sesión",
     icon: IconLogin,
     href: "/authentication/login",
   },
   {
     id: uniqueId(),
-    title: "Register",
+    title: "Registrarte",
     icon: IconUserPlus,
     href: "/authentication/register",
   },
