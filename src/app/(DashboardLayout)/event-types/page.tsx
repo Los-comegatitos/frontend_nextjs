@@ -125,7 +125,7 @@ const EventTypesPage = () => {
   };
 
   return (
-    <PageContainer title='Tipos de evento' description='Event Types Page'>
+    <PageContainer title='Tipos de evento' description='Página de tipos de eventos'>
       <DashboardCard title='Tipos de evento'>
         <Box display='flex' justifyContent='flex-end' mb={2}>
           <Button variant='contained' color='primary' onClick={handleAdd}>
