@@ -61,7 +61,6 @@ function Row({ type, services, onServiceClick }: { type: AuxiliarType; services:
 }
 
 export default function CatalogPage() {
-
   const { token } = useAppContext();
   
 

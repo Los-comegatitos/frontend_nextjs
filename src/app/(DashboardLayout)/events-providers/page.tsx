@@ -1,4 +1,5 @@
 'use client';
+
 import { Fragment, useEffect, useState } from 'react';
 import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dialog, DialogTitle, DialogContent, Button, TextField, List, ListItemText, ListItem } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
@@ -55,7 +56,7 @@ const EventsProvidersPage = () => {
   };
 
   return (
-    <PageContainer title='Eventos' description='Event Page'>
+    <PageContainer title='Eventos' description='Página de eventos'>
       <DashboardCard title='Eventos'>
         <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
           {loadingTable ? (
