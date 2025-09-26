@@ -4,11 +4,11 @@ import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dial
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import CircularProgress from '@mui/material/CircularProgress';
-import { showErrorAlert, showSucessAlert } from '@/lib/swal';
+import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
 import { AuxiliarType } from '@/interfaces/AuxiliarType';
+import { useAppContext } from '@/context/AppContext';
 
 const ClientTypesPage = () => {
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
   type ModalMode = 'add' | 'modify';
   const [clientTypes, setClientTypes] = useState<AuxiliarType[]>([]);
   const [modalMode, setModalMode] = useState<ModalMode>('add');
@@ -16,14 +16,18 @@ const ClientTypesPage = () => {
   const [loadingTable, setLoadingTable] = useState(true);
   const [loading, setLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<AuxiliarType | null>(null);
+  const { token } = useAppContext();
 
   // fetch client types (to table)
   const fetchClientTypes = async () => {
     try {
       setLoadingTable(true);
-      const res = await fetch(`${API_BASE_URL}/client-type`);
-      const data = await res.json();
+      const res = await fetch('/api/client-type', {
+        headers: { 'token': token as string, },
+      });
 
+      const data = await res.json();
+      
       if (data.message.code === '000') {
         setClientTypes(data.data);
       } else {
@@ -37,9 +41,8 @@ const ClientTypesPage = () => {
   };
 
   useEffect(() => {
-    fetchClientTypes();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (token) fetchClientTypes()
+  }, [token]);
 
   const handleAdd = () => {
     setSelectedType({ id: '', name: '', description: '' });
@@ -61,17 +64,17 @@ const ClientTypesPage = () => {
     try {
       let res;
       if (modalMode === 'modify') {
-        res = await fetch(`${API_BASE_URL}/client-type/${formData.get('id')}`, {
+        res = await fetch(`/api/client-type/${formData.get('id')}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'token': token as string, },
           body: JSON.stringify(payload),
         });
       }
 
       if (modalMode === 'add') {
-        res = await fetch(`${API_BASE_URL}/client-type`, {
+        res = await fetch(`/api/client-type`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'token': token as string, },
           body: JSON.stringify(payload),
         });
       }
@@ -94,8 +97,9 @@ const ClientTypesPage = () => {
   const handleDelete = async (id: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/client-type/${id}`, {
+      const res = await fetch(`/api/client-type/${id}`, {
         method: 'DELETE',
+        headers: { 'token': token as string, },
       });
       const data = await res.json();
 
@@ -112,9 +116,7 @@ const ClientTypesPage = () => {
       setOpenModal(false);
     }
   };
-  console.log("modified info:", updated);
-  showSucessAlert("¡Tipo de cliente modificado exitosamente!");
-    //
+
   const handleRowClick = (type: AuxiliarType) => {
     setSelectedType(type);
     setModalMode('modify');

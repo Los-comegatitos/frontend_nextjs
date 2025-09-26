@@ -4,11 +4,10 @@ import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dial
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import CircularProgress from '@mui/material/CircularProgress';
-import { showErrorAlert } from '@/lib/swal';
+import { showErrorAlert } from '@/app/lib/swal';
 import { AuxiliarType } from '@/interfaces/AuxiliarType';
 
 const EventsProvidersPage = () => {
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
   const [eventTypes, setEventTypes] = useState<AuxiliarType[]>([]);
   const [openModal, setOpenModal] = useState(false);
   const [loadingTable, setLoadingTable] = useState(true);
@@ -19,7 +18,7 @@ const EventsProvidersPage = () => {
   const fetchEventTypes = async () => {
     try {
       setLoadingTable(true);
-      const res = await fetch(`${API_BASE_URL}/event-type`);
+      const res = await fetch(`/api/event-type`);
       const data = await res.json();
 
       if (data.message.code === '000') {
