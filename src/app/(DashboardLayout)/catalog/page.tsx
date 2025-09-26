@@ -61,8 +61,6 @@ function Row({ type, services, onServiceClick }: { type: AuxiliarType; services:
 }
 
 export default function CatalogPage() {
-  // Por ahora esta data fixed así pero nao nao hay que quitarla y acomodar todo después de que haya autenticación
-  const USUARIO_ID = 1;
   const { token } = useAppContext();
   
 
@@ -96,7 +94,7 @@ export default function CatalogPage() {
   const fetchData = async () => {
     try {
       setLoadingTable(true);
-      const res = await fetch(`/api/catalog/${USUARIO_ID}`, { headers: { 'token': token as string, }, });
+      const res = await fetch(`/api/catalog`, { headers: { 'token': token as string, }, });
       const data = await res.json();
       if (data.message.code === '000') {
         setCatalog(data.data.catalog);
@@ -126,7 +124,7 @@ export default function CatalogPage() {
     const newDescription = formData.get('description') as string;
 
     try {
-      const res = await fetch(`/api/catalog/${USUARIO_ID}/description`, {
+      const res = await fetch(`/api/catalog`, {
         method: 'PATCH',
         headers: { 'token': token as string, },
         body: JSON.stringify({ description: newDescription }),
@@ -178,11 +176,11 @@ export default function CatalogPage() {
     };
 
     try {
-      let url = `/api/catalog/${USUARIO_ID}/services`;
+      let url = `/api/catalog/services`;
       let method = 'POST';
 
       if (modalMode === 'modify') {
-        url = `/api/catalog/${USUARIO_ID}/services/${selectedService.name}`;
+        url = `/api/catalog/services/${selectedService.name}`;
         method = 'PATCH';
       }
 
@@ -210,7 +208,7 @@ export default function CatalogPage() {
   const handleDelete = async (serviceName: string | undefined) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/catalog/${USUARIO_ID}/services/${serviceName}`, { method: 'DELETE', headers: { 'token': token as string, }, });
+      const res = await fetch(`/api/catalog/services/${serviceName}`, { method: 'DELETE', headers: { 'token': token as string, }, });
       const data = await res.json();
 
       if (data.message.code === '000') {

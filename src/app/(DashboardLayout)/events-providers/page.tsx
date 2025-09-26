@@ -1,56 +1,52 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dialog, DialogTitle, DialogContent, Button, TextField } from '@mui/material';
+
+import { Fragment, useEffect, useState } from 'react';
+import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dialog, DialogTitle, DialogContent, Button, TextField, List, ListItemText, ListItem } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import CircularProgress from '@mui/material/CircularProgress';
 import { showErrorAlert } from '@/app/lib/swal';
-import { AuxiliarType } from '@/interfaces/AuxiliarType';
+import { useAppContext } from '@/context/AppContext';
+import { FilteredEvent } from '@/interfaces/Event';
 
 const EventsProvidersPage = () => {
-  const [eventTypes, setEventTypes] = useState<AuxiliarType[]>([]);
   const [openModal, setOpenModal] = useState(false);
+  const [events, setEvents] = useState<FilteredEvent[]>([]);
   const [loadingTable, setLoadingTable] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [selectedType, setSelectedType] = useState<AuxiliarType | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<FilteredEvent | null>(null);
+  const { token } = useAppContext();
 
-  // Traer los tipos de evento de la API para mostrarlos en la tabla.
-  const fetchEventTypes = async () => {
+  const fetchEvents = async () => {
     try {
       setLoadingTable(true);
-      const res = await fetch(`/api/event-type`);
+      const res = await fetch(`/api/event/for-providers`, { headers: { token: token as string } });
       const data = await res.json();
-
       if (data.message.code === '000') {
-        setEventTypes(data.data);
+        setEvents(data.data);
       } else {
         showErrorAlert(data.message.description);
       }
       setLoadingTable(false);
     } catch (err) {
       setLoadingTable(false);
-      console.error('error:', err);
+      console.error('Error', err);
     }
   };
 
   useEffect(() => {
-    fetchEventTypes();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleAdd = () => {
-    setSelectedType({ id: '', name: '', description: '' });
-    setOpenModal(true);
-  };
+    if (token) {
+      fetchEvents();
+    }
+  }, [token]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
-
   };
 
-  const handleRowClick = (type: AuxiliarType) => {
-    setSelectedType(type);
+  const handleRowClick = (event: FilteredEvent) => {
+    setSelectedEvent(event);
     setOpenModal(true);
   };
 
@@ -60,13 +56,8 @@ const EventsProvidersPage = () => {
   };
 
   return (
-    <PageContainer title='Tipos de evento' description='Event Types Page'>
-      <DashboardCard title='Tipos de evento'>
-        <Box display='flex' justifyContent='flex-end' mb={2}>
-          <Button variant='contained' color='primary' onClick={handleAdd}>
-            Añadir
-          </Button>
-        </Box>
+    <PageContainer title='Eventos' description='Página de eventos'>
+      <DashboardCard title='Eventos'>
         <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
           {loadingTable ? (
             <Box sx={{ overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -78,31 +69,31 @@ const EventsProvidersPage = () => {
                 <TableRow>
                   <TableCell>
                     <Typography variant='subtitle2' fontWeight={600}>
-                      ID
+                      Name
                     </Typography>
                   </TableCell>
                   <TableCell>
                     <Typography variant='subtitle2' fontWeight={600}>
-                      Name
+                      Event date
                     </Typography>
                   </TableCell>
                 </TableRow>
               </TableHead>
 
               <TableBody>
-                {eventTypes.map((type) => (
+                {events.map((event) => (
                   <TableRow
-                    key={type.id}
+                    key={event.name}
                     className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
                     onClick={() => {
-                      handleRowClick(type);
+                      handleRowClick(event);
                     }}
                   >
                     <TableCell>
-                      <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{type.id}</Typography>
+                      <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{event.name}</Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{type.name}</Typography>
+                      <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{event.eventDate.toString()}</Typography>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -116,18 +107,46 @@ const EventsProvidersPage = () => {
       <Dialog open={openModal} onClose={handleClose} maxWidth='sm' fullWidth>
         <DialogTitle>Añadir tipo de evento</DialogTitle>
         <DialogContent dividers>
-          {selectedType && (
+          {selectedEvent && (
             <Box component='form' onSubmit={handleSubmit} display='flex' flexDirection='column' gap={2} mt={1}>
-              
-              <TextField label='Name' name='name' defaultValue={selectedType.name} required />
-              <TextField label='Description' name='description' defaultValue={selectedType.description} required />
+              <TextField label='Name' name='name' defaultValue={selectedEvent.name} required />
+              <TextField label='Description' name='description' defaultValue={selectedEvent.description} required />
+              <List sx={{ width: '100%' }}>
+                {selectedEvent.services.map((service) => (
+                  <ListItem
+                    key={service.name}
+                    alignItems='flex-start'
+                    className='rounded-xl'
+                    sx={{width: '100%'}}
+                    secondaryAction={
+                      <Button variant='outlined' color='primary' onClick={() => console.log('aquí hacemos link a cotizacion (paso event id y tipo de servicio a cotizar)')}>
+                        Enviar cotización
+                      </Button>
+                    }
+                  >
+                    <ListItemText
+                      primary={<Typography sx={{ fontSize: '15px', fontWeight: 600 }}>{service.name}</Typography>}
+                      secondary={
+                        <Fragment>
+                          <Typography component='span' variant='body2' sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                            {service.description}
+                          </Typography>
+                          <Typography variant='caption' sx={{ display: 'block', color: 'text.disabled' }}>
+                            Cantidad: {service.quantity}
+                          </Typography>
+                          <Typography variant='caption' sx={{ display: 'block', color: 'text.disabled' }}>
+                            Fecha límite para enviar cotización: {service.dueDate.toString()}
+                          </Typography>
+                        </Fragment>
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
+
               <Box display='flex' justifyContent='center' gap={2}>
-                
-                <Button variant='contained' type='submit' color='primary' disabled={loading}>
-    
-                </Button>
                 <Button onClick={handleClose} color='secondary' disabled={loading}>
-                  Cancel
+                  Close
                 </Button>
               </Box>
             </Box>

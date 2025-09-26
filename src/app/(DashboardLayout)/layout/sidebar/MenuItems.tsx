@@ -76,7 +76,7 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Eventos (SOLO LO VEN PROVEEDORES)",
+    title: "Eventos (PROVEEDORES)",
     icon: IconCalendarCheck,
     href: "/events-providers",
   },

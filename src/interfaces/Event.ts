@@ -65,3 +65,20 @@ export interface Event {
   services?: Service[]; // lista servicios que ya definimos
   tasks?: Task[]; // lista tarea que ya definimos arriba también
 }
+
+// ----------- Event info para provider
+export interface FilteredService {
+  serviceTypeId: string;
+  name: string;
+  description: string;
+  quantity: number | null;
+  dueDate: Date;
+}
+
+export interface FilteredEvent {
+  name: string;
+  description: string;
+  eventDate: Date;
+  services: FilteredService[];
+}
+
