@@ -9,6 +9,7 @@ import {
   IconCalendarCheck,
   IconBook,
   IconCakeRoll,
+  IconFileDollar,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -80,6 +81,18 @@ const Menuitems = [
     href: "/events-providers",
   },
   {
+  id: uniqueId(),
+  title: "Cotizaciones (Organizador)",
+  icon: IconFileDollar,
+  href: "/quote_organizer",
+  },
+  {
+    id: uniqueId(),
+    title: "Cotizaciones (Proveedor)",
+    icon: IconFileDollar,
+    href: "/supplier_quotes",
+  },
+  {
     id: uniqueId(),
     title: "Tipos de servicio",
     icon: IconCakeRoll,
@@ -97,9 +110,6 @@ const Menuitems = [
     icon: IconCalendarCheck,
     href: "/event-types",
   },
-
 ];
 
 export default Menuitems;
-
-
