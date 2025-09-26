@@ -1,11 +1,14 @@
 import {
-  IconAperture,
   IconCopy,
   IconLayoutDashboard,
   IconLogin,
   IconMoodHappy,
   IconTypography,
   IconUserPlus,
+  IconUserCheck,
+  IconCalendarCheck,
+  IconBook,
+  IconCakeRoll,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -44,13 +47,13 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Login",
+    title: "Iniciar sesión",
     icon: IconLogin,
     href: "/authentication/login",
   },
   {
     id: uniqueId(),
-    title: "Register",
+    title: "Registrarte",
     icon: IconUserPlus,
     href: "/authentication/register",
   },
@@ -66,9 +69,33 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Sample Page",
-    icon: IconAperture,
-    href: "/sample-page",
+    title: "Catálogo",
+    icon: IconBook,
+    href: "/catalog",
+  },
+  {
+    id: uniqueId(),
+    title: "Eventos (SOLO LO VEN PROVEEDORES)",
+    icon: IconCalendarCheck,
+    href: "/events-providers",
+  },
+  {
+    id: uniqueId(),
+    title: "Tipos de servicio",
+    icon: IconCakeRoll,
+    href: "/service-types",
+  },
+  {
+    id: uniqueId(),
+    title: "Tipos de cliente",
+    icon: IconUserCheck,
+    href: "/client-types",
+  },
+  {
+    id: uniqueId(),
+    title: "Tipos de evento",
+    icon: IconCalendarCheck,
+    href: "/event-types",
   },
 
 ];
