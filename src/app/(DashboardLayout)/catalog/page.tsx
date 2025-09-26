@@ -4,11 +4,12 @@ import { Box, Collapse, IconButton, Table, TableBody, TableCell, TableContainer,
 import { KeyboardArrowDown as KeyboardArrowDownIcon, KeyboardArrowUp as KeyboardArrowUpIcon } from '@mui/icons-material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
-import { showErrorAlert, showSucessAlert } from '@/lib/swal';
+import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
 import { AuxiliarType } from '@/interfaces/AuxiliarType';
 import { Service } from '@/interfaces/Service';
 import { Catalog } from '@/interfaces/Catalog';
 import { useEffect, useState } from 'react';
+import { useAppContext } from '@/context/AppContext';
 
 // tooda la lógica rara para rows expandibles (según la doc de mui)
 function Row({ type, services, onServiceClick }: { type: AuxiliarType; services: Service[]; onServiceClick: (service: Service) => void }) {
@@ -60,10 +61,10 @@ function Row({ type, services, onServiceClick }: { type: AuxiliarType; services:
 }
 
 export default function CatalogPage() {
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
   // Por ahora esta data fixed así pero nao nao hay que quitarla y acomodar todo después de que haya autenticación
   const USUARIO_ID = 1;
+  const { token } = useAppContext();
+  
 
   const [serviceTypes, setServiceTypes] = useState<AuxiliarType[]>([]);
   const [serviceTypesSelect, setServiceTypesSelect] = useState<AuxiliarType[]>([]);
@@ -79,7 +80,7 @@ export default function CatalogPage() {
 
   const fetchServiceTypes = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/service-type`);
+      const res = await fetch(`/api/service-type`, { headers: { 'token': token as string, }, });
       const data = await res.json();
 
       if (data.message.code === '000') {
@@ -95,7 +96,7 @@ export default function CatalogPage() {
   const fetchData = async () => {
     try {
       setLoadingTable(true);
-      const res = await fetch(`${API_BASE_URL}/catalog/${USUARIO_ID}`);
+      const res = await fetch(`/api/catalog/${USUARIO_ID}`, { headers: { 'token': token as string, }, });
       const data = await res.json();
       if (data.message.code === '000') {
         setCatalog(data.data.catalog);
@@ -111,9 +112,11 @@ export default function CatalogPage() {
   };
 
   useEffect(() => {
-    fetchData();
-    fetchServiceTypes();
-  }, []);
+    if (token) {
+      fetchData();
+      fetchServiceTypes();
+    }
+  }, [token]);
 
   const handleModifyDescription = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -123,9 +126,9 @@ export default function CatalogPage() {
     const newDescription = formData.get('description') as string;
 
     try {
-      const res = await fetch(`${API_BASE_URL}/catalog/${USUARIO_ID}/description`, {
+      const res = await fetch(`/api/catalog/${USUARIO_ID}/description`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'token': token as string, },
         body: JSON.stringify({ description: newDescription }),
       });
 
@@ -175,17 +178,17 @@ export default function CatalogPage() {
     };
 
     try {
-      let url = `${API_BASE_URL}/catalog/${USUARIO_ID}/services`;
+      let url = `/api/catalog/${USUARIO_ID}/services`;
       let method = 'POST';
 
       if (modalMode === 'modify') {
-        url = `${API_BASE_URL}/catalog/${USUARIO_ID}/services/${selectedService.name}`;
+        url = `/api/catalog/${USUARIO_ID}/services/${selectedService.name}`;
         method = 'PATCH';
       }
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'token': token as string, },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
@@ -207,7 +210,7 @@ export default function CatalogPage() {
   const handleDelete = async (serviceName: string | undefined) => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/catalog/${USUARIO_ID}/services/${serviceName}`, { method: 'DELETE' });
+      const res = await fetch(`/api/catalog/${USUARIO_ID}/services/${serviceName}`, { method: 'DELETE', headers: { 'token': token as string, }, });
       const data = await res.json();
 
       if (data.message.code === '000') {

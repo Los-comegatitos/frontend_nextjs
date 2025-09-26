@@ -4,11 +4,11 @@ import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dial
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import CircularProgress from '@mui/material/CircularProgress';
-import { showErrorAlert, showSucessAlert } from '@/lib/swal';
+import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
 import { AuxiliarType } from '@/interfaces/AuxiliarType';
+import { useAppContext } from '@/context/AppContext';
 
 const ServiceTypesPage = () => {
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
   type ModalMode = 'add' | 'modify'; // dependiendo de para qué vayamos a abrir el modal, hay que setear la variable a una de estas (o añadir más valores de ser necesario)
   const [serviceTypes, setServiceTypes] = useState<AuxiliarType[]>([]);
   const [modalMode, setModalMode] = useState<ModalMode>('add');
@@ -16,12 +16,13 @@ const ServiceTypesPage = () => {
   const [loadingTable, setLoadingTable] = useState(true);
   const [loading, setLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<AuxiliarType | null>(null);
-
+  const { token } = useAppContext();
+  
   // fetch service types (to table)
   const fetchServiceTypes = async () => {
     try {
       setLoadingTable(true);
-      const res = await fetch(`${API_BASE_URL}/service-type`);
+      const res = await fetch(`/api/service-type`, {headers: { 'token': token as string, },});
       const data = await res.json();
 
       if (data.message.code === '000') {
@@ -38,9 +39,8 @@ const ServiceTypesPage = () => {
   };
 
   useEffect(() => {
-    fetchServiceTypes();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (token) fetchServiceTypes()
+  }, [token]);
 
   const handleAdd = () => {
     setSelectedType({ id: '', name: '', description: '' });
@@ -62,17 +62,17 @@ const ServiceTypesPage = () => {
     try {
       let res;
       if (modalMode === 'modify') {
-        res = await fetch(`${API_BASE_URL}/service-type/${formData.get('id')}`, {
+        res = await fetch(`/api/service-type/${formData.get('id')}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'token': token as string, },
           body: JSON.stringify(payload),
         });
       }
 
       if (modalMode === 'add') {
-        res = await fetch(`${API_BASE_URL}/service-type`, {
+        res = await fetch(`/api/service-type`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'token': token as string, },
           body: JSON.stringify(payload),
         });
       }
@@ -96,8 +96,9 @@ const ServiceTypesPage = () => {
   const handleDelete = async (id: string ) => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/service-type/${id}`, {
+      const res = await fetch(`/api/service-type/${id}`, {
         method: 'DELETE',
+        headers: { 'token': token as string, },
       });
       const data = await res.json();
 
