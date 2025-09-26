@@ -1,14 +1,15 @@
 'use server';
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-export async function PATCH(req: Request, { params }: { params: { userId: string } }) {
+export async function PATCH(req: NextRequest, params: { params: Promise<{ userId: string }> }) {
   try {
+    const { userId } = await params.params;
     const token = req.headers.get('token');
     const body = await req.json();
 
-    const res = await fetch(`${API_BACKEND}catalog/${params.userId}/description`, {
+    const res = await fetch(`${API_BACKEND}catalog/${userId}/description`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',

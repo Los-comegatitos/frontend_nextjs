@@ -77,7 +77,7 @@ const ServiceTypesPage = () => {
         });
       }
 
-      const data = await res.json();
+      const data = await res!.json();
       if (data.message.code === '000') {
         showSucessAlert(modalMode === 'add' ? 'Tipo de servicio añadido exitosamente.' : 'Tipo de servicio modificado exitosamente.');
       }
