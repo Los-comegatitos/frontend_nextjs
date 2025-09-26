@@ -81,4 +81,3 @@ export interface FilteredEvent {
   eventDate: Date;
   services: FilteredService[];
 }
-
