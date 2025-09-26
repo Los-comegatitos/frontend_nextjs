@@ -24,7 +24,7 @@ type Quote = {
 type GroupedQuotes = Record<string, Quote[]>;
 
 const OrganizerQuotesPage = () => {
-  const { token, user } = useAppContext();
+  const { token } = useAppContext();
   const [eventFilter, setEventFilter] = useState('');
   const [quotes, setQuotes] = useState<GroupedQuotes>({});
   const [loadingTable, setLoadingTable] = useState(false);

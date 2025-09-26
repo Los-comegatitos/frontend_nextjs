@@ -19,6 +19,7 @@ import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCa
 import CircularProgress from '@mui/material/CircularProgress';
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal'
 import { Event } from '@/interfaces/Events';
+import { useAppContext } from '@/context/AppContext';
 
 const EventsPage = () => {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -29,12 +30,18 @@ const EventsPage = () => {
   const [loadingTable, setLoadingTable] = useState(true);
   const [loading, setLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const { token } = useAppContext();
 
   // fetch events
   const fetchEvents = async () => {
     try {
       setLoadingTable(true);
-      const res = await fetch(`${API_BASE_URL}/events`);
+      const res = await fetch(`${API_BASE_URL}events`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const data = await res.json();
 
       if (data.message.code === '000') {
@@ -50,9 +57,10 @@ const EventsPage = () => {
   };
 
   useEffect(() => {
+    if (!token) return;
     fetchEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [token]);
 
   const handleAdd = () => {
     setSelectedEvent({
@@ -91,15 +99,21 @@ const EventsPage = () => {
     try {
       let res: Response;
       if (modalMode === 'modify') {
-        res = await fetch(`${API_BASE_URL}/events/${formData.get('eventId')}`, {
+        res = await fetch(`${API_BASE_URL}events/${formData.get('eventId')}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json', 
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify(payload),
         });
       } else {
-        res = await fetch(`${API_BASE_URL}/events`, {
+        res = await fetch(`${API_BASE_URL}events`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify(payload),
         });
       }
@@ -126,10 +140,11 @@ const EventsPage = () => {
   const handleFinalize = async (eventId: string) => {
     setLoading(true);
     try {
-        const res = await fetch(`${API_BASE_URL}/events/${eventId}/finalize`, {
+        const res = await fetch(`${API_BASE_URL}events/${eventId}/finalize`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ status: 'finalized' }),
         });

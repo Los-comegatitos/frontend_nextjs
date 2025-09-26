@@ -30,10 +30,10 @@ export async function GET(
 
 
     return NextResponse.json(data, { status: res.status });
-  } catch (err: any) {
+  } catch (err) {
     console.error('Error en route /api/quote/[id]:', err);
     return NextResponse.json(
-      { data: {}, message: { code: '999', description: err.message || 'Error interno del servidor' } },
+      { data: { error: err }, message: { code: '999', description: 'Un error ha ocurrido' } },
       { status: 500 }
     );
   }
