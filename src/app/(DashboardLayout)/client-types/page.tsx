@@ -79,7 +79,7 @@ const ClientTypesPage = () => {
         });
       }
 
-      const data = await res.json();
+      const data = await res!.json();
       if (data.message.code === '000') {
         showSucessAlert(modalMode === 'add' ? 'Tipo de cliente añadido exitosamente.' : 'Tipo de cliente modificado exitosamente.');
       } else {

@@ -180,7 +180,7 @@ export default function CatalogPage() {
       let method = 'POST';
 
       if (modalMode === 'modify') {
-        url = `/api/catalog/services/${selectedService.name}`;
+        url = `/api/catalog/services/${selectedService!.name}`;
         method = 'PATCH';
       }
 
@@ -264,7 +264,7 @@ export default function CatalogPage() {
                 </TableHead>
                 <TableBody>
                   {serviceTypes.map((type) => (
-                    <Row key={type.id} type={type} services={catalog.services.filter((s) => parseInt(s.serviceTypeId) === parseInt(type.id))} onServiceClick={handleRowClick} />
+                    <Row key={type.id} type={type} services={catalog!.services.filter((s) => parseInt(s.serviceTypeId) === parseInt(type.id))} onServiceClick={handleRowClick} />
                   ))}
                 </TableBody>
               </Table>

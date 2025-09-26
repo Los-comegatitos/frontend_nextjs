@@ -1,4 +1,4 @@
-import React from "react";
+// import React from "react";
 import Menuitems from "./MenuItems";
 import { Box } from "@mui/material";
 import {
@@ -77,7 +77,7 @@ const SidebarItems = () => {
     < >
       <MUI_Sidebar width={"100%"} showProfile={false} themeColor={"#5D87FF"} themeSecondaryColor={'#49beff'} >
 
-        <Logo img='/images/logos/dark-logo.svg' component={Link} to="/" >El Gestionainador</Logo>
+        <Logo img='/images/logos/dark-logo.svg' component={Link} href="/" >El Gestionainador</Logo>
 
         {renderMenuItems(Menuitems, pathDirect)}
         <Box px={2}>

@@ -79,16 +79,16 @@ const SalesOverview = () => {
             fillSeriesColor: false,
         },
     };
-    const seriescolumnchart: Array<object> = [
-        {
-            name: 'Eanings this month',
-            data: [355, 390, 300, 350, 390, 180, 355, 390],
-        },
-        {
-            name: 'Expense this month',
-            data: [280, 250, 325, 215, 250, 310, 280, 250],
-        },
-    ];
+    // const seriescolumnchart: Array<object> = [
+    //     {
+    //         name: 'Eanings this month',
+    //         data: [355, 390, 300, 350, 390, 180, 355, 390],
+    //     },
+    //     {
+    //         name: 'Expense this month',
+    //         data: [280, 250, 325, 215, 250, 310, 280, 250],
+    //     },
+    // ];
 
     return (
 
@@ -107,7 +107,7 @@ const SalesOverview = () => {
         }>
             <Chart
                 options={optionscolumnchart}
-                series={seriescolumnchart}
+                // series={seriescolumnchart}
                 type="bar"
                 height={370} width={"100%"}
             />
