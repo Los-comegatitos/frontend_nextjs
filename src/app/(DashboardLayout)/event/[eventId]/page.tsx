@@ -8,6 +8,8 @@ import { showErrorAlert } from '@/app/lib/swal';
 import { Event } from '@/interfaces/Event';
 import ExampleTabContent from '@/components/tabs/ExampleTabContent';
 import EventOverview from '@/components/tabs/EventOverview';
+import { useAppContext } from '@/context/AppContext';
+import ServicesTab from '@/components/tabs/ServicesTab';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -61,6 +63,7 @@ function a11yProps(index: number) {
 const EventPage = () => {
   const params = useParams() as { eventId?: string };
   const eventId = params?.eventId ?? '';
+  const { token } = useAppContext();
 
   const [eventData, setEventData] = useState<Event | null>(null);
   const [loadingEvent, setLoadingEvent] = useState<boolean>(true);
@@ -74,7 +77,7 @@ const EventPage = () => {
 
     try {
       setLoadingEvent(true);
-      const res = await fetch(`/api/event/${eventId}`);
+      const res = await fetch(`/api/event/${eventId}`, {headers: { 'token': token as string, },});
       const data = await res.json();
 
       if (data?.message?.code === '000') {
@@ -92,9 +95,8 @@ const EventPage = () => {
   };
 
   useEffect(() => {
-    fetchEvent();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId]);
+    if (token && eventId) fetchEvent()
+  }, [token, eventId]);
 
   const [tabValue, setTabValue] = useState(0);
 
@@ -129,7 +131,7 @@ const EventPage = () => {
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={1} loading={loadingEvent} eventData={eventData}>
-          <ExampleTabContent event={eventData!} />
+          <ServicesTab token={token as string} event={eventData!} onRefresh={fetchEvent}/>
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={2} loading={loadingEvent} eventData={eventData}>

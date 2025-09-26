@@ -54,6 +54,7 @@ export interface Task {
 
 export interface Event {
   id: string;
+  eventId: string;
   name: string;
   description: string;
   eventDate: string;
@@ -81,3 +82,26 @@ export interface FilteredEvent {
   eventDate: Date;
   services: FilteredService[];
 }
+
+
+// TODO: esto es lo que realmente tiene event cuando te traes 1 
+
+// {
+//     "_id": "68d6d24cdea47ffec2ac3ae4",
+//     "eventId": "2111",
+//     "name": "un evento",
+//     "description": "descripcion del evento",
+//     "eventDate": "2025-09-02T00:00:00.000Z",
+//     "eventTypeId": "1",
+//     "organizerUserId": "42",
+//     "status": "in progress",
+//     "client": {
+//         "name": "el partido",
+//         "clientTypeId": 1,
+//         "description": "politico"
+//     },
+//     "creationDate": "2025-09-26T17:50:04.484Z",
+//     "services": [],
+//     "tasks": [],
+//     "__v": 0
+// }

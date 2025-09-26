@@ -3,13 +3,19 @@
 import { NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-export async function GET(req: Request) {
+export async function PATCH(req: Request, { params }: { params: { id: string, serviceName: string } }) {
   try {
+    const { id, serviceName } = await params;
     const token = req.headers.get('token');
-    const res = await fetch(`${API_BACKEND}events`, {
+    const body = await req.json();
+
+    const res = await fetch(`${API_BACKEND}events/${id}/services/${serviceName}`, {
+      method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(body),
     });
 
     const data = await res.json();
@@ -20,18 +26,16 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+export async function DELETE(req: Request, { params }: { params: { id: string, serviceName: string } }) {
   try {
     const token = req.headers.get('token');
-    const body = await req.json();
+    const { id, serviceName } = await params;
 
-    const res = await fetch(`${API_BACKEND}events`, {
-      method: 'POST',
+    const res = await fetch(`${API_BACKEND}events/${id}/services/${serviceName}`, {
+      method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
     });
 
     const data = await res.json();
