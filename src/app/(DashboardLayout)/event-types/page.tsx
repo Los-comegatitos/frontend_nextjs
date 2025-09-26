@@ -4,11 +4,11 @@ import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dial
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import CircularProgress from '@mui/material/CircularProgress';
-import { showErrorAlert, showSucessAlert } from '@/lib/swal';
+import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
 import { AuxiliarType } from '@/interfaces/AuxiliarType';
+import { useAppContext } from '@/context/AppContext';
 
 const EventTypesPage = () => {
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
   type ModalMode = 'add' | 'modify';
   const [eventTypes, setEventTypes] = useState<AuxiliarType[]>([]);
   const [modalMode, setModalMode] = useState<ModalMode>('add');
@@ -16,12 +16,14 @@ const EventTypesPage = () => {
   const [loadingTable, setLoadingTable] = useState(true);
   const [loading, setLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<AuxiliarType | null>(null);
+  const { token } = useAppContext();
+
 
   // Traer los tipos de evento de la API para mostrarlos en la tabla.
   const fetchEventTypes = async () => {
     try {
       setLoadingTable(true);
-      const res = await fetch(`${API_BASE_URL}/event-type`);
+      const res = await fetch(`/api/event-type`, { headers: { 'token': token as string, }, });
       const data = await res.json();
 
       if (data.message.code === '000') {
@@ -37,9 +39,8 @@ const EventTypesPage = () => {
   };
 
   useEffect(() => {
-    fetchEventTypes();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (token) fetchEventTypes()
+  }, [token]);
 
   const handleAdd = () => {
     setSelectedType({ id: '', name: '', description: '' });
@@ -61,17 +62,17 @@ const EventTypesPage = () => {
     try {
       let res;
       if (modalMode === 'modify') {
-        res = await fetch(`${API_BASE_URL}/event-type/${formData.get('id')}`, {
+        res = await fetch(`/api/event-type/${formData.get('id')}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'token': token as string, },
           body: JSON.stringify(payload),
         });
       }
 
       if (modalMode === 'add') {
-        res = await fetch(`${API_BASE_URL}/event-type`, {
+        res = await fetch(`/api/event-type`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'token': token as string, },
           body: JSON.stringify(payload),
         });
       }
@@ -94,8 +95,9 @@ const EventTypesPage = () => {
   const handleDelete = async (id: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/event-type/${id}`, {
+      const res = await fetch(`/api/event-type/${id}`, {
         method: 'DELETE',
+        headers: { 'token': token as string, },
       });
       const data = await res.json();
 

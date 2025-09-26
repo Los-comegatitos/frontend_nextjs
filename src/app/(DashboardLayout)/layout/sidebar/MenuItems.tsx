@@ -76,6 +76,12 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
+    title: "Eventos (SOLO LO VEN PROVEEDORES)",
+    icon: IconCalendarCheck,
+    href: "/events-providers",
+  },
+  {
+    id: uniqueId(),
     title: "Tipos de servicio",
     icon: IconCakeRoll,
     href: "/service-types",
