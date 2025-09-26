@@ -41,7 +41,7 @@ const OrganizerQuotesPage = () => {
         setQuotes({});
         return;
       }
-      //ya no puedo mas por hoy DIOS
+      
 
       const resp = await res.json();
       if (resp.data && Object.keys(resp.data).length > 0) {

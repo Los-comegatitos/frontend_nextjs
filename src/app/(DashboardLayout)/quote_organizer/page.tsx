@@ -44,10 +44,10 @@ const OrganizerQuotesPage = () => {
         setQuotes({});
         return;
       }
-
+//ya no puedo mas por hoy DIOS
       const resp = await res.json();
       if (resp.data && Object.keys(resp.data).length > 0) {
-        // filtrado de solo las cotizaciones con status pending
+        
         const pending: GroupedQuotes = {};
         Object.keys(resp.data).forEach((serviceType) => {
           pending[serviceType] = resp.data[serviceType].filter((q: Quote) => q.status === 'pending');
