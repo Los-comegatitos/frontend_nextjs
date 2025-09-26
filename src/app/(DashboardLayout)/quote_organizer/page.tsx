@@ -25,7 +25,7 @@ type Quote = {
 type GroupedQuotes = Record<string, Quote[]>;
 
 const OrganizerQuotesPage = () => {
-  const { token, user } = useAppContext();
+  const { token } = useAppContext();
   const params = useParams();
   const eventId = params.id;
 

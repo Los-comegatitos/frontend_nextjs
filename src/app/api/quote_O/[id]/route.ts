@@ -20,10 +20,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
-  } catch (err: any) {
+  } catch (err) {
     console.error('Error en route /api/quote_O/[id]:', err);
     return NextResponse.json(
-      { data: {}, message: { code: '999', description: err.message || 'Error interno del servidor' } },
+      { data: { error: err }, message: { code: '999', description: 'Un error ha ocurrido' } },
       { status: 500 }
     );
   }
