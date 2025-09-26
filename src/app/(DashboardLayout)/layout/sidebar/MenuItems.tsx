@@ -1,3 +1,4 @@
+import { CalendarMonth } from "@mui/icons-material";
 import {
   IconCopy,
   IconLayoutDashboard,
@@ -103,6 +104,12 @@ const Menuitems = [
     title: "Tipos de cliente",
     icon: IconUserCheck,
     href: "/client-types",
+  },
+  {
+  id: 'event',
+  title: 'Eventos',
+  icon: CalendarMonth, 
+  href: '/event', 
   },
   {
     id: uniqueId(),
