@@ -4,7 +4,7 @@
 import { User } from '@/app/lib/definitions';
 import { decrypt } from '@/app/lib/encrypting';
 import { checkJwt, getJwt } from '@/app/lib/session';
-import { JwtPayload } from 'jsonwebtoken';
+// import { JwtPayload } from 'jsonwebtoken';
 import { redirect, usePathname } from 'next/navigation';
 // import { useRouter } from 'next/navigation';
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
@@ -36,11 +36,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUser(null)
         setToken(null)
         redirect('/authentication/login') 
-      } else if (truth && user?.role != 'admin' && pathname.includes('event-types')) {
+      } else if (truth && user?.role != 'provider' && pathname.includes('event-types')) {
         redirect('/') 
       } else if (truth) {
         
-        const data = await decrypt(getJwt()) as JwtPayload
+        const data = (await decrypt(getJwt())) as { sub: string, email: string, role: string }
+        // as JwtPayload
 
         const newUser : User = {
           id: parseInt(data.sub!), 

@@ -1,3 +1,4 @@
+import { CalendarMonth } from "@mui/icons-material";
 import {
   IconCopy,
   IconLayoutDashboard,
@@ -9,6 +10,7 @@ import {
   IconCalendarCheck,
   IconBook,
   IconCakeRoll,
+  IconFileDollar,
 } from "@tabler/icons-react";
 
 import { uniqueId } from "lodash";
@@ -75,9 +77,21 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: "Eventos (SOLO LO VEN PROVEEDORES)",
+    title: "Eventos (PROVEEDORES)",
     icon: IconCalendarCheck,
     href: "/events-providers",
+  },
+  {
+  id: uniqueId(),
+  title: "Cotizaciones (Organizador)",
+  icon: IconFileDollar,
+  href: "/quote_organizer",
+  },
+  {
+    id: uniqueId(),
+    title: "Cotizaciones (Proveedor)",
+    icon: IconFileDollar,
+    href: "/supplier_quotes",
   },
   {
     id: uniqueId(),
@@ -92,14 +106,17 @@ const Menuitems = [
     href: "/client-types",
   },
   {
+  id: 'event',
+  title: 'Eventos',
+  icon: CalendarMonth, 
+  href: '/event', 
+  },
+  {
     id: uniqueId(),
     title: "Tipos de evento",
     icon: IconCalendarCheck,
     href: "/event-types",
   },
-
 ];
 
 export default Menuitems;
-
-
