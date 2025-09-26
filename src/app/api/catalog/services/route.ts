@@ -1,16 +1,18 @@
+'use server';
+
 import { NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-export async function POST(req: Request, { params }: { params: { userId: string } }) {
+export async function POST(req: Request) {
   try {
     const token = req.headers.get('token');
     const body = await req.json();
 
-    const res = await fetch(`${API_BACKEND}catalog/${params.userId}/services`, {
+    const res = await fetch(`${API_BACKEND}catalog/services`, {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     });

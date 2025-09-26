@@ -3,18 +3,13 @@
 import { NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-export async function PATCH(req: Request, { params }: { params: { userId: string } }) {
+export async function GET(req: Request) {
   try {
     const token = req.headers.get('token');
-    const body = await req.json();
-
-    const res = await fetch(`${API_BACKEND}catalog/${params.userId}/description`, {
-      method: 'PATCH',
+    const res = await fetch(`${API_BACKEND}events/for-provider`, {
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify(body),
     });
 
     const data = await res.json();

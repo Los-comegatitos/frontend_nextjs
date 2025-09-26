@@ -1,12 +1,13 @@
+'use server';
+
 import { NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: { serviceName: string } }) {
   try {
     const token = req.headers.get('token');
     const body = await req.json();
-
-    const res = await fetch(`${API_BACKEND}client-type/${params.id}`, {
+    const res = await fetch(`${API_BACKEND}catalog/services/${params.serviceName}`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -23,11 +24,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: { serviceName: string } }) {
   try {
     const token = req.headers.get('token');
 
-    const res = await fetch(`${API_BACKEND}client-type/${params.id}`, {
+    const res = await fetch(`${API_BACKEND}catalog/services/${params.serviceName}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
