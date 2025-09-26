@@ -77,7 +77,7 @@ const EventTypesPage = () => {
         });
       }
 
-      const data = await res.json();
+      const data = await res!.json();
       if (data.message.code === '000') {
         showSucessAlert(modalMode === 'add' ? 'Tipo de evento añadido exitosamente.' : 'Tipo de evento modificado exitosamente.');
       } else {

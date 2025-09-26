@@ -1,13 +1,12 @@
 'use server';
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from '@/app/lib/definitions';
 
 export async function GET(
-  req: Request,
-  context: { params: { id?: string } }
+  req: NextRequest, params: { params: Promise<{ id: string }> }
 ) {
-  const providerId = context.params?.id ?? '';
+  const providerId = (await params.params)?.id ?? '';
 
   try {
     const token = req.headers.get('token');
