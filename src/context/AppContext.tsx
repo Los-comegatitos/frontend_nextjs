@@ -61,7 +61,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     }
     obtain();
-  }, [pathname]);
+  }, [pathname, user?.role]);
 
   useEffect(() => {
     if (user) {

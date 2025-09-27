@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dialog, DialogTitle, DialogContent, Button, TextField, Select, MenuItem } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
@@ -25,7 +25,7 @@ const EventsPage = () => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const { token } = useAppContext();
 
-  const fetchClientTypes = async () => {
+  const fetchClientTypes = React.useCallback(async () => {
     try {
       const res = await fetch(`/api/client-type`, { headers: { token: token as string } });
       const data = await res.json();
@@ -38,9 +38,9 @@ const EventsPage = () => {
     } catch (err) {
       console.error('error:', err);
     }
-  };
+  }, [token]);
 
-  const fetchEventTypes = async () => {
+  const fetchEventTypes = React.useCallback(async () => {
     try {
       const res = await fetch(`/api/event-type`, { headers: { token: token as string } });
       const data = await res.json();
@@ -53,10 +53,10 @@ const EventsPage = () => {
     } catch (err) {
       console.error('error:', err);
     }
-  };
+  }, [token]);
 
   // fetch events
-  const fetchEvents = async () => {
+  const fetchEvents = React.useCallback(async () => {
     try {
       setLoadingTable(true);
       const res = await fetch(`/api/event`, { headers: { token: token as string } });
@@ -72,14 +72,14 @@ const EventsPage = () => {
     } finally {
       setLoadingTable(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
-    if (!token) return;
+    // if (!token) return;
     fetchEvents();
     fetchEventTypes();
     fetchClientTypes();
-  }, [token]);
+  }, [fetchClientTypes, fetchEventTypes, fetchEvents]);
 
   const handleAdd = () => {
     setSelectedEvent({

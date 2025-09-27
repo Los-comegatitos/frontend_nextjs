@@ -76,7 +76,7 @@ export default function CatalogPage() {
   const [loading, setLoading] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
-  const fetchServiceTypes = async () => {
+  const fetchServiceTypes = React.useCallback(async () => {
     try {
       const res = await fetch(`/api/service-type`, { headers: { 'token': token as string, }, });
       const data = await res.json();
@@ -89,9 +89,9 @@ export default function CatalogPage() {
     } catch (err) {
       console.error('error:', err);
     }
-  };
+  }, [token]);
 
-  const fetchData = async () => {
+  const fetchData = React.useCallback(async () => {
     try {
       setLoadingTable(true);
       const res = await fetch(`/api/catalog`, { headers: { 'token': token as string, }, });
@@ -107,14 +107,14 @@ export default function CatalogPage() {
       setLoadingTable(false);
       console.error('Error', err);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
-    if (token) {
+    // if (token) {
       fetchData();
       fetchServiceTypes();
-    }
-  }, [token]);
+    // }
+  }, [fetchData, fetchServiceTypes]);
 
   const handleModifyDescription = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

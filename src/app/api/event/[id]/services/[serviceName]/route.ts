@@ -1,11 +1,11 @@
 'use server';
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-export async function PATCH(req: Request, { params }: { params: { id: string, serviceName: string } }) {
+export async function PATCH(req: NextRequest, params: { params: Promise<{ id: string, serviceName: string }> }) {
   try {
-    const { id, serviceName } = await params;
+    const { id, serviceName } = await params.params;
     const token = req.headers.get('token');
     const body = await req.json();
 
@@ -26,10 +26,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string, se
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string, serviceName: string } }) {
+export async function DELETE(req: NextRequest, params: { params: Promise<{ id: string, serviceName: string }> }) {
   try {
     const token = req.headers.get('token');
-    const { id, serviceName } = await params;
+    const { id, serviceName } = await params.params;
 
     const res = await fetch(`${API_BACKEND}events/${id}/services/${serviceName}`, {
       method: 'DELETE',

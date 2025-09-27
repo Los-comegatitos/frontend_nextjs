@@ -1,5 +1,5 @@
 'use client';
-import { SyntheticEvent, useEffect, useState } from 'react';
+import React, { SyntheticEvent, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Box, Tabs, Tab, Typography, CircularProgress, Divider } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
@@ -69,7 +69,7 @@ const EventPage = () => {
   const [loadingEvent, setLoadingEvent] = useState<boolean>(true);
 
   // info principal a mostrar de event
-  const fetchEvent = async () => {
+  const fetchEvent = React.useCallback(async () => {
     if (!eventId) {
       setLoadingEvent(false);
       return;
@@ -92,11 +92,12 @@ const EventPage = () => {
     } finally {
       setLoadingEvent(false);
     }
-  };
+  }, [eventId, token]);
 
   useEffect(() => {
-    if (token && eventId) fetchEvent()
-  }, [token, eventId]);
+    // if (token && eventId) 
+    fetchEvent()
+  }, [fetchEvent]);
 
   const [tabValue, setTabValue] = useState(0);
 

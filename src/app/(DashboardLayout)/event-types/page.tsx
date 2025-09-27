@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dialog, DialogTitle, DialogContent, Button, TextField } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
@@ -20,7 +20,7 @@ const EventTypesPage = () => {
 
 
   // Traer los tipos de evento de la API para mostrarlos en la tabla.
-  const fetchEventTypes = async () => {
+  const fetchEventTypes = React.useCallback(async () => {
     try {
       setLoadingTable(true);
       const res = await fetch(`/api/event-type`, { headers: { 'token': token as string, }, });
@@ -36,11 +36,12 @@ const EventTypesPage = () => {
       setLoadingTable(false);
       console.error('error:', err);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
-    if (token) fetchEventTypes()
-  }, [token]);
+    // if (token) 
+      fetchEventTypes()
+  }, [fetchEventTypes]);
 
   const handleAdd = () => {
     setSelectedType({ id: '', name: '', description: '' });
