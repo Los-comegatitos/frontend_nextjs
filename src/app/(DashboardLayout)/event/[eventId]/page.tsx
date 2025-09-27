@@ -26,6 +26,7 @@ import EventOverview from '@/components/tabs/EventOverview';
 import { useAppContext } from '@/context/AppContext';
 import ServicesTab from '@/components/tabs/ServicesTab';
 import { AuxiliarType } from '@/interfaces/AuxiliarType';
+import Swal from 'sweetalert2';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -188,6 +189,28 @@ const EventPage = () => {
 
   const handleFinalize = async () => {
     if (!eventId) return;
+    await Swal.fire({
+      title: '¿Seguro de esta acción?', 
+      text: '¿Está seguro de que desea finalizar este evento?', 
+      icon: 'question', 
+      showDenyButton: true,
+      showConfirmButton: true,
+      confirmButtonText: 'Si',
+      denyButtonText: 'No'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        console.log('que bieeeeeeeeeeeeeeeeeeeeeen');
+        setLoading(true);
+        console.log(loading);
+        
+        return;
+      }
+    })
+    console.log(loading);
+    
+    if (loading === false) return
+    console.log('pasasteeeeeeeeeeeeeeee');
+    
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}events/${eventId}/finalize`, {
@@ -202,10 +225,10 @@ const EventPage = () => {
       const data = await res.json();
 
       if (data.message.code === '000') {
-        showSucessAlert('Evento finalizado exitosamente');
-        fetchEvent();
+        await showSucessAlert('Evento finalizado exitosamente');
+        await fetchEvent();
       } else {
-        showErrorAlert(data.message.description);
+        await showErrorAlert(data.message.description);
       }
     } catch (err) {
       console.error('Error finalizando evento', err);
