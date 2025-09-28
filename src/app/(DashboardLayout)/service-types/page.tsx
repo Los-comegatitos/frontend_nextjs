@@ -20,6 +20,7 @@ const ServiceTypesPage = () => {
   
   // fetch service types (to table)
   const fetchServiceTypes = React.useCallback(async () => {
+    if (!token) return;
     try {
       setLoadingTable(true);
       const res = await fetch(`/api/service-type`, {headers: { 'token': token as string, },});

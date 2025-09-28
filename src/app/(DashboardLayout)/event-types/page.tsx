@@ -21,6 +21,7 @@ const EventTypesPage = () => {
 
   // Traer los tipos de evento de la API para mostrarlos en la tabla.
   const fetchEventTypes = React.useCallback(async () => {
+    if (!token) return;
     try {
       setLoadingTable(true);
       const res = await fetch(`/api/event-type`, { headers: { 'token': token as string, }, });

@@ -18,6 +18,7 @@ const EventsProvidersPage = () => {
   const { token } = useAppContext();
 
   const fetchEvents = React.useCallback(async () => {
+    if (!token) return;
     try {
       setLoadingTable(true);
       const res = await fetch(`/api/event/for-providers`, { headers: { token: token as string } });
@@ -69,12 +70,12 @@ const EventsProvidersPage = () => {
                   <TableRow>
                     <TableCell>
                       <Typography variant='subtitle2' fontWeight={600}>
-                        Name
+                        Nombre
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant='subtitle2' fontWeight={600}>
-                        Event date
+                        Fecha del evento
                       </Typography>
                     </TableCell>
                   </TableRow>

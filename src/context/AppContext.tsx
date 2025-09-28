@@ -6,6 +6,7 @@ import { decrypt } from '@/app/lib/encrypting';
 import { checkJwt, getJwt } from '@/app/lib/session';
 // import { JwtPayload } from 'jsonwebtoken';
 import { redirect, usePathname } from 'next/navigation';
+// import path from 'path';
 // import { useRouter } from 'next/navigation';
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
@@ -42,13 +43,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         !pathname.includes('/event') &&
         !pathname.includes('/catalog') && 
         !pathname.includes('/quote_providers') &&  
+        !pathname.includes('/supplier_quotes') &&
+        !pathname.includes('/events-providers') &&
         !pathname.includes('/events'))
         || pathname.includes('/event-types'))
       ) {
         redirect('/') 
       } else if (truth && user?.role == 'organizer' && (( 
         !pathname.includes('/event') && 
-        !pathname.includes('/quote_organizer'))
+        !pathname.includes('/quote_organizer')) 
         || pathname.includes('/event-types'))) {
         redirect('/')
       } else if (truth) {

@@ -42,6 +42,7 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const fetchServiceTypes =React.useCallback(async () => {
+    if (!token) return;
     try {
       const res = await fetch(`/api/service-type`, {
         headers: { token },
