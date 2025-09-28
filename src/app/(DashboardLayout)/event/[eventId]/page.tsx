@@ -454,7 +454,7 @@ const EventPage = () => {
               </Select>
 
               <TextField
-                label="Client Name"
+                label="Nombre del cliente"
                 value={formValues.clientName}
                 onChange={(e) =>
                   setFormValues({ ...formValues, clientName: e.target.value })
@@ -462,7 +462,7 @@ const EventPage = () => {
                 required
               />
               <TextField
-                label="Client Description"
+                label="Descripción del cliente"
                 value={formValues.clientDescription}
                 onChange={(e) =>
                   setFormValues({ ...formValues, clientDescription: e.target.value })
