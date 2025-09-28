@@ -38,18 +38,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUser(null)
         setToken(null)
         redirect('/authentication/login') 
-      } else if (truth && user?.role == 'provider' && 
-        !['/events', 
-          '/catalog', 
-          '/event', 
-          '/events-providers', 
-        ].includes(pathname)) {
+      } else if (truth && user?.role == 'provider' && ((
+        !pathname.includes('/event') &&
+        !pathname.includes('/catalog') && 
+        !pathname.includes('/quote_providers') &&  
+        !pathname.includes('/events'))
+        || pathname.includes('/event-types'))
+      ) {
         redirect('/') 
-      } else if (truth && user?.role == 'organizer' && 
-        ![
-          '/event', 
-          '/quote_organizer'
-        ].includes(pathname) ) {
+      } else if (truth && user?.role == 'organizer' && (( 
+        !pathname.includes('/event') && 
+        !pathname.includes('/quote_organizer'))
+        || pathname.includes('/event-types'))) {
         redirect('/')
       } else if (truth) {
         
