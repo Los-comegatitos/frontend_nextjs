@@ -21,7 +21,7 @@ interface Props {
   event: Event;
 }
 
-const EventOverview = ({ event }: Props) => {
+const EventOverviewTab = ({ event }: Props) => {
   return (
     <Box display='grid' gridTemplateColumns={{ xs: '1fr', md: '2fr 1fr' }} gap={2}>
       <Box>
@@ -107,4 +107,4 @@ const EventOverview = ({ event }: Props) => {
   );
 };
 
-export default EventOverview;
+export default EventOverviewTab;

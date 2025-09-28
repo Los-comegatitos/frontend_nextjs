@@ -41,9 +41,9 @@ const ClientTypesPage = () => {
   }, [token]);
 
   useEffect(() => {
-    // if (token) 
+    if (!token) return;
     fetchClientTypes()
-  }, [fetchClientTypes]);
+  }, [fetchClientTypes, token]);
 
   const handleAdd = () => {
     setSelectedType({ id: '', name: '', description: '' });

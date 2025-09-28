@@ -39,9 +39,9 @@ const ServiceTypesPage = () => {
   }, [token]);
 
   useEffect(() => {
-    // if (token) 
+    if (!token) return;
     fetchServiceTypes()
-  }, [fetchServiceTypes]);
+  }, [fetchServiceTypes, token]);
 
   const handleAdd = () => {
     setSelectedType({ id: '', name: '', description: '' });

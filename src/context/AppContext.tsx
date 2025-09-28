@@ -80,9 +80,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (user) {
       console.log(user);
       
-    if (user.role !== 'provider') {
-      console.log(`ERES UN ${user.role}`);
-    }
+    // if (user.role !== 'provider') {
+    //   console.log(`ERES UN ${user.role}`);
+    // }
 
     if (token) console.log(token)
   }
