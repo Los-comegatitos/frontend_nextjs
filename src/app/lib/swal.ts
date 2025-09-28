@@ -35,3 +35,16 @@ export const showErrorAlert = (title: string) => {
   });
 };
 
+export const showInfoAlert = (title: string) => {
+  return Swal.fire({
+    title,
+    toast: true,
+    icon: 'info',
+    position: "top-end",
+    showConfirmButton: false,
+    showCloseButton: true,
+    timer: getMsgSeconds(title),
+    timerProgressBar: true,
+  });
+};
+

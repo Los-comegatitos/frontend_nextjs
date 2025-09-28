@@ -30,14 +30,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const truth = checkJwt()
       
       console.log(truth);
+      console.log(pathname);
+      
       
       if (!truth && !pathname.includes('authentication')) {
         console.log('ESTÁS AQUÍ')
         setUser(null)
         setToken(null)
         redirect('/authentication/login') 
-      } else if (truth && user?.role != 'provider' && pathname.includes('event-types')) {
+      } else if (truth && user?.role == 'provider' && ((
+        !pathname.includes('/event') &&
+        !pathname.includes('/catalog') && 
+        !pathname.includes('/quote_providers') &&  
+        !pathname.includes('/events'))
+        || pathname.includes('/event-types'))
+      ) {
         redirect('/') 
+      } else if (truth && user?.role == 'organizer' && (( 
+        !pathname.includes('/event') && 
+        !pathname.includes('/quote_organizer'))
+        || pathname.includes('/event-types'))) {
+        redirect('/')
       } else if (truth) {
         
         const data = (await decrypt(getJwt())) as { sub: string, email: string, role: string }
@@ -61,7 +74,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     }
     obtain();
-  }, [pathname]);
+  }, [pathname, user?.role]);
 
   useEffect(() => {
     if (user) {

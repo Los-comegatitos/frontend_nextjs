@@ -81,7 +81,7 @@ const Login2 = () => {
                         color: "primary.main",
                       }}
                     >
-                      ¡Hazte una cueta!
+                      ¡Hazte una cuenta!
                     </Typography>
                   </Stack>
                 }

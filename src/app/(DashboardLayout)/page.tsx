@@ -2,7 +2,7 @@
 import { Grid, Box } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 // components
-import SalesOverview from '@/app/(DashboardLayout)/components/dashboard/SalesOverview';
+// import SalesOverview from '@/app/(DashboardLayout)/components/dashboard/SalesOverview';
 import YearlyBreakup from '@/app/(DashboardLayout)/components/dashboard/YearlyBreakup';
 import RecentTransactions from '@/app/(DashboardLayout)/components/dashboard/RecentTransactions';
 import ProductPerformance from '@/app/(DashboardLayout)/components/dashboard/ProductPerformance';
@@ -24,13 +24,13 @@ const Dashboard = () => {
       <p>este es el email{ user?.email }</p> */}
       <Box>
         <Grid container spacing={3}>
-          <Grid
+          {/* <Grid
             size={{
               xs: 12,
               lg: 8
             }}>
             <SalesOverview />
-          </Grid>
+          </Grid> */}
           <Grid
             size={{
               xs: 12,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box, Table, TableHead, TableBody, TableRow, TableCell, Typography,
   CircularProgress, Select, MenuItem, FormControl, InputLabel,
@@ -29,7 +29,7 @@ const OrganizerQuotesPage = () => {
   const [quotes, setQuotes] = useState<GroupedQuotes>({});
   const [loadingTable, setLoadingTable] = useState(false);
 
-  const fetchQuotes = async () => {
+  const fetchQuotes = React.useCallback(async () => {
     if (!token || !eventFilter) return;
 
     setLoadingTable(true);
@@ -61,11 +61,12 @@ const OrganizerQuotesPage = () => {
     } finally {
       setLoadingTable(false);
     }
-  };
+  }, [token, eventFilter]);
 
   useEffect(() => {
-    if (token && eventFilter) fetchQuotes();
-  }, [token, eventFilter]);
+    // if (token && eventFilter) 
+      fetchQuotes();
+  }, [fetchQuotes]);
 
   return (
     <PageContainer title="Cotizaciones Recibidas" description="Listado de cotizaciones recibidas por evento">

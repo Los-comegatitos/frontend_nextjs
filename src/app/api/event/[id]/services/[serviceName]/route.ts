@@ -1,15 +1,21 @@
 'use server';
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-export async function GET(req: Request) {
+export async function PATCH(req: NextRequest, params: { params: Promise<{ id: string, serviceName: string }> }) {
   try {
+    const { id, serviceName } = await params.params;
     const token = req.headers.get('token');
-    const res = await fetch(`${API_BACKEND}events`, {
+    const body = await req.json();
+
+    const res = await fetch(`${API_BACKEND}events/${id}/services/${serviceName}`, {
+      method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(body),
     });
 
     const data = await res.json();
@@ -20,18 +26,16 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+export async function DELETE(req: NextRequest, params: { params: Promise<{ id: string, serviceName: string }> }) {
   try {
     const token = req.headers.get('token');
-    const body = await req.json();
+    const { id, serviceName } = await params.params;
 
-    const res = await fetch(`${API_BACKEND}events`, {
-      method: 'POST',
+    const res = await fetch(`${API_BACKEND}events/${id}/services/${serviceName}`, {
+      method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
     });
 
     const data = await res.json();

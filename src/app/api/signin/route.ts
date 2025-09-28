@@ -43,9 +43,9 @@ export async function POST(request: Request) {
         console.log(final);
         if (data.status == 201) {
             return NextResponse.json({ ok: true, body: 'Se ha registrado en la aplicación correctamente' });
-        } else return NextResponse.json({ ok: false }, { status: 401 });
+        } else return NextResponse.json({ ok: false, body: final['message']['description'] }, { status: 401 });
     } catch (error) {
         console.log(error);
-        return NextResponse.json({ ok: false }, { status: 401 });
+        return NextResponse.json({ ok: false, body: 'Ha sucedido un error' }, { status: 401 });
     }
 }

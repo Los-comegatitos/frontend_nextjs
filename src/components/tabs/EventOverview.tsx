@@ -51,26 +51,12 @@ const EventOverview = ({ event }: Props) => {
             <Typography sx={{ fontSize: '14px' }}>{event.description}</Typography>
           </Box>
 
-          <Box display='flex' gap={2} flexWrap='wrap' alignItems='center'>
+          <Box display='flex' gap={10} flexWrap='wrap' alignItems='center'>
             <Box>
               <Typography variant='caption' color='text.secondary'>
                 Fecha del evento
               </Typography>
               <Typography sx={{ fontSize: '14px' }}>{formatDate(event.eventDate)}</Typography>
-            </Box>
-
-            <Box>
-              <Typography variant='caption' color='text.secondary'>
-                Estado
-              </Typography>
-              <Box mt={0.5}>
-                <Chip
-                  label={event.status}
-                  size='small'
-                  variant='outlined'
-                  sx={{ textTransform: 'capitalize' }}
-                />
-              </Box>
             </Box>
 
             <Box>
@@ -82,9 +68,11 @@ const EventOverview = ({ event }: Props) => {
 
             <Box>
               <Typography variant='caption' color='text.secondary'>
-                Tareas totales
+                Estado
               </Typography>
-              <Typography sx={{ fontSize: '14px' }}>{(event.tasks?.length ?? 0).toString()}</Typography>
+              <Box mt={0.5}>
+                <Chip label={event.status} size='small' variant='outlined' sx={{ textTransform: 'capitalize' }} />
+              </Box>
             </Box>
           </Box>
         </Box>
@@ -97,8 +85,8 @@ const EventOverview = ({ event }: Props) => {
 
         <Box
           sx={{
-            border: '1px dashed',
-            borderColor: 'divider',
+            border: '2px solid',
+            borderColor: 'red',
             borderRadius: 1,
             p: 3,
             minHeight: 180,
@@ -108,16 +96,13 @@ const EventOverview = ({ event }: Props) => {
           }}
         >
           <Typography variant='body2' color='text.secondary'>
-            POR IMPLEMENTAR PROXIMAMENTE
+            POR IMPLEMENTAR PROXIMAMENTE 
           </Typography>
         </Box>
 
-        <Box display='flex' justifyContent='flex-end' mt={2}>
-          <Typography variant='body2' color='text.secondary'>
-            el template que usé tenía este espacio adicional y decidí no quitárselo, sirve para futuras cosas
-          </Typography>
-        </Box>
       </Box>
+
+      
     </Box>
   );
 };

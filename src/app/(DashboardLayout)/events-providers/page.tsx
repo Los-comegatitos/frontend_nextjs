@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dialog, DialogTitle, DialogContent, Button, TextField, List, ListItemText, ListItem } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
@@ -17,7 +17,7 @@ const EventsProvidersPage = () => {
   const [selectedEvent, setSelectedEvent] = useState<FilteredEvent | null>(null);
   const { token } = useAppContext();
 
-  const fetchEvents = async () => {
+  const fetchEvents = React.useCallback(async () => {
     try {
       setLoadingTable(true);
       const res = await fetch(`/api/event/for-providers`, { headers: { token: token as string } });
@@ -32,13 +32,13 @@ const EventsProvidersPage = () => {
       setLoadingTable(false);
       console.error('Error', err);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
-    if (token) {
+    // if (token) {
       fetchEvents();
-    }
-  }, [token]);
+    // }
+  }, [fetchEvents]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
