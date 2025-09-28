@@ -1,12 +1,12 @@
 'use server';
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, params: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params;
+    const { id } = await params.params;
     const token = req.headers.get('token');
     const body = await req.json();
 

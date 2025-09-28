@@ -1,5 +1,5 @@
 'use client';
-import { SyntheticEvent, useEffect, useState } from 'react';
+import React, { SyntheticEvent, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import {
   Box,
@@ -109,7 +109,7 @@ const EventPage = () => {
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  const fetchEvent = async () => {
+  const fetchEvent = React.useCallback(async () => {
     if (!eventId) {
       setLoadingEvent(false);
       return;
@@ -145,9 +145,9 @@ const EventPage = () => {
     } finally {
       setLoadingEvent(false);
     }
-  };
+  }, [eventId, token]);
 
-  const fetchEventTypes = async () => {
+  const fetchEventTypes = React.useCallback(async () => {
     try {
       const res = await fetch(`/api/event-type`, {
         headers: { token: token as string },
@@ -159,9 +159,9 @@ const EventPage = () => {
     } catch (err) {
       console.error('error:', err);
     }
-  };
+  }, [token]);
 
-  const fetchClientTypes = async () => {
+  const fetchClientTypes = React.useCallback(async () => {
     try {
       const res = await fetch(`/api/client-type`, {
         headers: { token: token as string },
@@ -173,15 +173,15 @@ const EventPage = () => {
     } catch (err) {
       console.error('error:', err);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
-    if (token && eventId) {
-      fetchEvent();
-      fetchEventTypes();
-      fetchClientTypes();
-    }
-  }, [token, eventId]);
+    // if (token && eventId) {
+      
+    fetchEvent();
+    fetchEventTypes();
+    fetchClientTypes();
+  }, [fetchEvent, fetchEventTypes, fetchClientTypes]);
 
   const handleTabChange = (event: SyntheticEvent, newValue: number) => {
     setTabValue(newValue);

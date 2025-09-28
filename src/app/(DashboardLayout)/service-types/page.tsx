@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dialog, DialogTitle, DialogContent, Button, TextField } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
@@ -19,7 +19,7 @@ const ServiceTypesPage = () => {
   const { token } = useAppContext();
   
   // fetch service types (to table)
-  const fetchServiceTypes = async () => {
+  const fetchServiceTypes = React.useCallback(async () => {
     try {
       setLoadingTable(true);
       const res = await fetch(`/api/service-type`, {headers: { 'token': token as string, },});
@@ -36,11 +36,12 @@ const ServiceTypesPage = () => {
       setLoadingTable(false);
       console.error('error:', err);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
-    if (token) fetchServiceTypes()
-  }, [token]);
+    // if (token) 
+    fetchServiceTypes()
+  }, [fetchServiceTypes]);
 
   const handleAdd = () => {
     setSelectedType({ id: '', name: '', description: '' });
