@@ -36,7 +36,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUser(null)
         setToken(null)
         redirect('/authentication/login') 
-      } else if (truth && user?.role != 'provider' && pathname.includes('event-types')) {
+      } else if (truth && user?.role != 'organizer' && pathname.includes('event-types')) {
         redirect('/') 
       } else if (truth) {
         

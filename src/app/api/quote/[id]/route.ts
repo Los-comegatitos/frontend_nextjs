@@ -3,10 +3,7 @@
 import { NextResponse } from 'next/server';
 import { API_BACKEND } from '@/app/lib/definitions';
 
-export async function GET(
-  req: Request,
-  context: { params: { id?: string } }
-) {
+export async function GET(req: Request, context: { params: { id?: string } }) {
   const providerId = context.params?.id ?? '';
 
   try {
@@ -27,13 +24,11 @@ export async function GET(
     });
 
     const data = await res.json();
-
-
     return NextResponse.json(data, { status: res.status });
   } catch (err) {
     console.error('Error en route /api/quote/[id]:', err);
     return NextResponse.json(
-      { data: { error: err }, message: { code: '999', description: 'Un error ha ocurrido' } },
+      { data: {}, message: { code: '999', description: 'Un error ha ocurrido' } },
       { status: 500 }
     );
   }
