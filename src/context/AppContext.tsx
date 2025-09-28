@@ -30,14 +30,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const truth = checkJwt()
       
       console.log(truth);
+      console.log(pathname);
+      
       
       if (!truth && !pathname.includes('authentication')) {
         console.log('ESTÁS AQUÍ')
         setUser(null)
         setToken(null)
         redirect('/authentication/login') 
-      } else if (truth && user?.role != 'provider' && pathname.includes('event-types')) {
+      } else if (truth && user?.role == 'provider' && 
+        !['/events', 
+          '/catalog', 
+          '/event', 
+          '/events-providers', 
+        ].includes(pathname)) {
         redirect('/') 
+      } else if (truth && user?.role == 'organizer' && 
+        ![
+          '/event', 
+          '/quote_organizer'
+        ].includes(pathname) ) {
+        redirect('/')
       } else if (truth) {
         
         const data = (await decrypt(getJwt())) as { sub: string, email: string, role: string }

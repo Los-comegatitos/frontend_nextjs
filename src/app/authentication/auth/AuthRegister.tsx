@@ -25,13 +25,11 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
-    const regex = /^$|^0$|^0[24][0-9]*$/;
+    if (e.target.id === "phone") {
+      const regex = /^$|^0$|^0[24][0-9]*$/;
+      if (!regex.test(e.target.value) || e.target.value.length > 11) return;
+    }
 
-    // if (!e.target.value.match('^$|^0[24][0-9]*$') || 
-    //     e.target.value.length > 11 && e.target.id === "phone") return;
-
-    if (!regex.test(e.target.value) || 
-    (e.target.value.length > 11 && e.target.id === "phone")) return;
     setFormData({
       ...formData,
       [e.target.id]: e.target.value,
@@ -57,6 +55,16 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
       return;
     }
 
+    if (formData.phone.length != 11) {
+      Swal.fire({
+        icon: "error",
+        title: "Campos incompletos",
+        text: "Su número telefónico está incompleto.",
+        confirmButtonColor: "#1976d2",
+      });
+      return;
+    }
+
     const data = await fetch('/api/signin', {
       method: 'POST',
       body: JSON.stringify({ 
@@ -69,6 +77,7 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
         user_Typeid: formData.userType
       }),
     });
+    
 
     if (data.ok) {
       await Swal.fire({
@@ -80,10 +89,11 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
       console.log("Datos enviados:", formData);
       redirect('/')
     } else {
+      const final = await data.json()
       Swal.fire({
         icon: "error",
         title: "¡Oh no! Ha sucedido un error",
-        text: "Por favor, revisa que sean tus datos correctos.",
+        text: final.body || "Inténtalo de nuevo más tarde.",
         confirmButtonColor: "#1976d2",
       });
     }
