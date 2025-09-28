@@ -39,9 +39,9 @@ const EventTypesPage = () => {
   }, [token]);
 
   useEffect(() => {
-    // if (token) 
+    if (!token) return; 
       fetchEventTypes()
-  }, [fetchEventTypes]);
+  }, [fetchEventTypes, token]);
 
   const handleAdd = () => {
     setSelectedType({ id: '', name: '', description: '' });

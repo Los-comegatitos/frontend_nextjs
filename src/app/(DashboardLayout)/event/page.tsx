@@ -75,11 +75,11 @@ const EventsPage = () => {
   }, [token]);
 
   useEffect(() => {
-    // if (!token) return;
+    if (!token) return;
     fetchEvents();
     fetchEventTypes();
     fetchClientTypes();
-  }, [fetchClientTypes, fetchEventTypes, fetchEvents]);
+  }, [fetchClientTypes, fetchEventTypes, fetchEvents, token]);
 
   const handleAdd = () => {
     setSelectedEvent({
@@ -178,8 +178,6 @@ const EventsPage = () => {
 
   const handleRowClick = (event: Event) => {
 
-    // TODO: Pensar en el comportamiento de esto (donde va el modificar, eliminar)
-    // TODO: Pensar técnicamente si en el dashboard se consulta evento o se pasa desde aquí? .
     router.push(`/event/${event.eventId}`);
     // Por ahora no va abrir modal ni nada sino redirigir al dashboard
     // setSelectedEvent(event);

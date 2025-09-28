@@ -58,10 +58,9 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
   }, [token]);
 
   useEffect(() => {
-    // if (token) {
-      fetchServiceTypes();
-    // }
-  }, [fetchServiceTypes]);
+    if (!token) return;
+    fetchServiceTypes();
+  }, [fetchServiceTypes, token]);
   
 
   const handleRowClick = (service: Service) => {

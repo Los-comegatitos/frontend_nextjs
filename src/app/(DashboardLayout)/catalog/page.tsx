@@ -110,11 +110,10 @@ export default function CatalogPage() {
   }, [token]);
 
   useEffect(() => {
-    // if (token) {
+    if (!token) return;
       fetchData();
       fetchServiceTypes();
-    // }
-  }, [fetchData, fetchServiceTypes]);
+  }, [fetchData, fetchServiceTypes, token]);
 
   const handleModifyDescription = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

@@ -2,6 +2,8 @@ import { Box, Typography, Button } from '@mui/material';
 import Image from 'next/image';
 import Link from 'next/link';
 
+
+// Probablemente esto no será usado pero igual lo dejaré de referencia porque uno nunca sabe.
 export const Upgrade = () => {
     return (
         <Box

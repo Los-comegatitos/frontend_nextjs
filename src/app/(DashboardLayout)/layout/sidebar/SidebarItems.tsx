@@ -1,5 +1,5 @@
 // import React from "react";
-import Menuitems from "./MenuItems";
+import { Menuitems, ProviderMenuitems, OrganizerMenuitems, AdminMenuitems } from "./MenuItems";
 import { Box } from "@mui/material";
 import {
   Logo,
@@ -11,12 +11,12 @@ import {
 import { IconPoint } from '@tabler/icons-react';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Upgrade } from "./Updrade";
+// import { Upgrade } from "./Updrade";
+import { useAppContext } from "@/context/AppContext";
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderMenuItems = (items: any, pathDirect: any) => {
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return items.map((item: any) => {
 
@@ -70,6 +70,8 @@ const renderMenuItems = (items: any, pathDirect: any) => {
 
 
 const SidebarItems = () => {
+  const { user } = useAppContext();
+  
   const pathname = usePathname();
   const pathDirect = pathname;
 
@@ -77,12 +79,15 @@ const SidebarItems = () => {
     < >
       <MUI_Sidebar width={"100%"} showProfile={false} themeColor={"#5D87FF"} themeSecondaryColor={'#49beff'} >
 
-        <Logo img='/images/logos/dark-logo.svg' component={Link} href="/" >El Gestionainador</Logo>
-
-        {renderMenuItems(Menuitems, pathDirect)}
-        <Box px={2}>
-          <Upgrade />
-        </Box>
+        <Logo img='/images/logos/dark-logo.svg' component={Link} href="/" >Gestionainador</Logo>
+        { user?.role === 'organizer' ?
+          renderMenuItems(OrganizerMenuitems, pathDirect) :
+          user?.role === 'provider' ?
+          renderMenuItems(ProviderMenuitems, pathDirect) :
+          user?.role === 'admin' ?
+          renderMenuItems(AdminMenuitems, pathDirect) :
+          renderMenuItems(Menuitems, pathDirect) 
+        }
       </MUI_Sidebar>
 
     </>
