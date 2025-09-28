@@ -24,6 +24,14 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+    const regex = /^$|^0$|^0[24][0-9]*$/;
+
+    // if (!e.target.value.match('^$|^0[24][0-9]*$') || 
+    //     e.target.value.length > 11 && e.target.id === "phone") return;
+
+    if (!regex.test(e.target.value) || 
+    (e.target.value.length > 11 && e.target.id === "phone")) return;
     setFormData({
       ...formData,
       [e.target.id]: e.target.value,
