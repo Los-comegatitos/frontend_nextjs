@@ -6,7 +6,7 @@ import { decrypt } from '@/app/lib/encrypting';
 import { checkJwt, getJwt } from '@/app/lib/session';
 // import { JwtPayload } from 'jsonwebtoken';
 import { redirect, usePathname } from 'next/navigation';
-import path from 'path';
+// import path from 'path';
 // import { useRouter } from 'next/navigation';
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
