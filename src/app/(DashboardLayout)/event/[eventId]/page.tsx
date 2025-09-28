@@ -71,7 +71,7 @@ const EventPage = () => {
   const [tabValue, setTabValue] = useState(0);
 
   const fetchEvent = React.useCallback(async () => {
-    if (!eventId) {
+    if (!eventId || !token) {
       setLoadingEvent(false);
       return;
     }

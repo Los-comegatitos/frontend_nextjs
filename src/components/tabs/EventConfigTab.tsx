@@ -22,6 +22,7 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
   const [clientTypes, setClientTypes] = useState<AuxiliarType[]>([]);
 
   const fetchEventTypes = React.useCallback(async () => {
+    if (!token) return;
     try {
       const res = await fetch(`/api/service-type`, {
         headers: { token },
@@ -44,6 +45,7 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
   }, [fetchEventTypes, token]);
 
   const fetchClientTypes = React.useCallback(async () => {
+    if (!token) return;
     try {
       const res = await fetch(`/api/service-type`, {
         headers: { token },

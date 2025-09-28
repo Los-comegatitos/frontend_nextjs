@@ -20,6 +20,7 @@ const ClientTypesPage = () => {
 
   // fetch client types (to table)
   const fetchClientTypes = React.useCallback(async () => {
+    if (!token) return;
     try {
       setLoadingTable(true);
       const res = await fetch('/api/client-type', {

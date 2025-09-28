@@ -55,7 +55,7 @@ const Login2 = () => {
                     color="textSecondary"
                     mb={1}
                   >
-                    Ingresa tus datos
+                    Ingresa tus datos para iniciar sesión
                   </Typography>
                 }
                 subtitle={
