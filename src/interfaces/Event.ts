@@ -53,7 +53,7 @@ export interface Task {
 
 
 export interface Event {
-  id: string;
+  // id: string;
   eventId: string;
   name: string;
   description: string;

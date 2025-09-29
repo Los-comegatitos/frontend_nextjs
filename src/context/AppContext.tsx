@@ -81,13 +81,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (user) {
-      console.log(user);
+      console.log('user', user);
       
     // if (user.role !== 'provider') {
     //   console.log(`ERES UN ${user.role}`);
     // }
 
-    if (token) console.log(token)
+    if (token) console.log('token', token)
   }
   }, [user, token]);
 
