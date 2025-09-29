@@ -63,7 +63,7 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
         text: '¡Iniciaste sesión correctamente!',
         confirmButtonColor: '#1976d2',
       });
-      console.log('Datos enviados:', formData);
+      // console.log('Datos enviados:', formData);
       setLoading(false);
       redirect('/');
     } else {
@@ -120,7 +120,7 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
       <Box>
         <Button color='primary' variant='contained' size='large' fullWidth type='submit' onClick={handleSubmit}>
           Inicia sesión
-          {loading && <CircularProgress size='15px' className={'ml-2'} />}
+          {loading && <CircularProgress size='15px' className={'ml-2'} color="secondary" />}
         </Button>
       </Box>
       {subtitle}
