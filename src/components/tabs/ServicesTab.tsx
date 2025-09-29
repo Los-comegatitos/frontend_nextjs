@@ -24,6 +24,7 @@ import { Event } from '@/interfaces/Event';
 import { Service } from '@/interfaces/Event';
 
 import { useEffect, useState } from 'react';
+import { AuxiliarType } from '@/interfaces/AuxiliarType';
 
 type ServicesTabProps = {
   token: string;
@@ -33,7 +34,7 @@ type ServicesTabProps = {
 
 export default function ServicesTab({ token, event, onRefresh }: ServicesTabProps) {
 //   const [serviceTypes, setServiceTypes] = useState<Service[]>([]);
-  const [serviceTypesSelect, setServiceTypesSelect] = useState<Service[]>([]);
+  const [serviceTypesSelect, setServiceTypesSelect] = useState<AuxiliarType[]>([]);
 
   const [modalMode, setModalMode] = useState<'add' | 'modify'>('modify');
 
@@ -84,10 +85,15 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
   const handleSubmit = async (eventReact: React.FormEvent<HTMLFormElement>) => {
     eventReact.preventDefault();
     setLoading(true);
-
+    
     const formData = new FormData(eventReact.currentTarget);
+
+    const selectedId = formData.get('serviceTypeId') as string;
+    const selectedType = serviceTypesSelect.find(t => parseInt(t.id) === parseInt(selectedId));
+
     const payload = {
-      serviceTypeId: formData.get('serviceTypeId') as string,
+      serviceTypeId: selectedId,
+      serviceTypeName: selectedType?.name ?? '',
       name: formData.get('name') as string,
       dueDate: formData.get('dueDate') as string,
       description: formData.get('description') as string,
@@ -198,7 +204,7 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
               <p>Tipo de servicio</p>
               <Select name="serviceTypeId" defaultValue={selectedService.serviceTypeId || ''} required>
                 {serviceTypesSelect.map((t) => (
-                  <MenuItem key={t.name} value={t.name}>
+                  <MenuItem key={t.id} value={t.id}>
                     {t.name}
                   </MenuItem>
                 ))}

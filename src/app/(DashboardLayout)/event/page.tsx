@@ -26,7 +26,6 @@ const EventsPage = () => {
   const { token } = useAppContext();
 
   const fetchClientTypes = React.useCallback(async () => {
-    if (!token) return;
     try {
       const res = await fetch(`/api/client-type`, { headers: { token: token as string } });
       const data = await res.json();
@@ -42,7 +41,6 @@ const EventsPage = () => {
   }, [token]);
 
   const fetchEventTypes = React.useCallback(async () => {
-    if (!token) return;
     try {
       const res = await fetch(`/api/event-type`, { headers: { token: token as string } });
       const data = await res.json();
@@ -59,7 +57,6 @@ const EventsPage = () => {
 
   // fetch events
   const fetchEvents = React.useCallback(async () => {
-    if (!token) return;
     try {
       setLoadingTable(true);
       const res = await fetch(`/api/event`, { headers: { token: token as string } });
@@ -78,7 +75,7 @@ const EventsPage = () => {
   }, [token]);
 
   useEffect(() => {
-    // if (!token) return;
+    if (!token) return;
     fetchEvents();
     fetchEventTypes();
     fetchClientTypes();
@@ -324,8 +321,8 @@ const EventsPage = () => {
                   </MenuItem>
                 ))}
               </Select>
-              <TextField label='Nombre del cliente' name='clientName' defaultValue={selectedEvent.client?.name} required />
-              <TextField label='Descripción del cliente' name='clientDescription' defaultValue={selectedEvent.client?.description} required />
+              <TextField label='Client Name' name='clientName' defaultValue={selectedEvent.client?.name} required />
+              <TextField label='Client Description' name='clientDescription' defaultValue={selectedEvent.client?.description} required />
               <Box display='flex' justifyContent='center' gap={2}>
                 {modalMode === 'modify' && (
                   <Button variant='outlined' color='error' onClick={() => handleFinalize(selectedEvent.eventId)} disabled={loading}>
