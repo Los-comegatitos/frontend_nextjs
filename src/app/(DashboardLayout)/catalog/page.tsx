@@ -77,6 +77,7 @@ export default function CatalogPage() {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const fetchServiceTypes = React.useCallback(async () => {
+    if (!token) return;
     try {
       const res = await fetch(`/api/service-type`, { headers: { 'token': token as string, }, });
       const data = await res.json();
@@ -92,6 +93,7 @@ export default function CatalogPage() {
   }, [token]);
 
   const fetchData = React.useCallback(async () => {
+    if (!token) return;
     try {
       setLoadingTable(true);
       const res = await fetch(`/api/catalog`, { headers: { 'token': token as string, }, });
@@ -110,11 +112,10 @@ export default function CatalogPage() {
   }, [token]);
 
   useEffect(() => {
-    // if (token) {
+    if (!token) return;
       fetchData();
       fetchServiceTypes();
-    // }
-  }, [fetchData, fetchServiceTypes]);
+  }, [fetchData, fetchServiceTypes, token]);
 
   const handleModifyDescription = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

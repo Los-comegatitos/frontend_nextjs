@@ -55,7 +55,7 @@ const Login2 = () => {
                     color="textSecondary"
                     mb={1}
                   >
-                    Ingresa tus datos
+                    Ingresa tus datos para iniciar sesión
                   </Typography>
                 }
                 subtitle={
@@ -70,7 +70,7 @@ const Login2 = () => {
                       variant="h6"
                       fontWeight="500"
                     >
-                      ¿Eres nuevo a El Gestionainador?
+                      ¿Eres nuevo a Gestionainador?
                     </Typography>
                     <Typography
                       component={Link}

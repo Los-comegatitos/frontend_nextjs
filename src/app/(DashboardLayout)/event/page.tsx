@@ -26,6 +26,7 @@ const EventsPage = () => {
   const { token } = useAppContext();
 
   const fetchClientTypes = React.useCallback(async () => {
+    if (!token) return;
     try {
       const res = await fetch(`/api/client-type`, { headers: { token: token as string } });
       const data = await res.json();
@@ -41,6 +42,7 @@ const EventsPage = () => {
   }, [token]);
 
   const fetchEventTypes = React.useCallback(async () => {
+    if (!token) return;
     try {
       const res = await fetch(`/api/event-type`, { headers: { token: token as string } });
       const data = await res.json();
@@ -57,6 +59,7 @@ const EventsPage = () => {
 
   // fetch events
   const fetchEvents = React.useCallback(async () => {
+    if (!token) return;
     try {
       setLoadingTable(true);
       const res = await fetch(`/api/event`, { headers: { token: token as string } });
@@ -79,7 +82,7 @@ const EventsPage = () => {
     fetchEvents();
     fetchEventTypes();
     fetchClientTypes();
-  }, [fetchClientTypes, fetchEventTypes, fetchEvents]);
+  }, [fetchClientTypes, fetchEventTypes, fetchEvents, token]);
 
   const handleAdd = () => {
     setSelectedEvent({
@@ -178,8 +181,6 @@ const EventsPage = () => {
 
   const handleRowClick = (event: Event) => {
 
-    // TODO: Pensar en el comportamiento de esto (donde va el modificar, eliminar)
-    // TODO: Pensar técnicamente si en el dashboard se consulta evento o se pasa desde aquí? .
     router.push(`/event/${event.eventId}`);
     // Por ahora no va abrir modal ni nada sino redirigir al dashboard
     // setSelectedEvent(event);
@@ -323,8 +324,8 @@ const EventsPage = () => {
                   </MenuItem>
                 ))}
               </Select>
-              <TextField label='Client Name' name='clientName' defaultValue={selectedEvent.client?.name} required />
-              <TextField label='Client Description' name='clientDescription' defaultValue={selectedEvent.client?.description} required />
+              <TextField label='Nombre del cliente' name='clientName' defaultValue={selectedEvent.client?.name} required />
+              <TextField label='Descripción del cliente' name='clientDescription' defaultValue={selectedEvent.client?.description} required />
               <Box display='flex' justifyContent='center' gap={2}>
                 {modalMode === 'modify' && (
                   <Button variant='outlined' color='error' onClick={() => handleFinalize(selectedEvent.eventId)} disabled={loading}>

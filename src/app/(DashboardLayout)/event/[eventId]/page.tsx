@@ -22,9 +22,12 @@ import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCa
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
 import { Event } from '@/interfaces/Event';
 import ExampleTabContent from '@/components/tabs/ExampleTabContent';
-import EventOverview from '@/components/tabs/EventOverview';
+import EventOverviewTab from '@/components/tabs/EventOverviewTab';
 import { useAppContext } from '@/context/AppContext';
 import ServicesTab from '@/components/tabs/ServicesTab';
+import EventConfigTab from '@/components/tabs/EventConfigTab';
+// import { useAppContext } from '@/context/AppContext';
+// import ServicesTab from '@/components/tabs/ServicesTab';
 import { AuxiliarType } from '@/interfaces/AuxiliarType';
 import Swal from 'sweetalert2';
 
@@ -81,6 +84,7 @@ function a11yProps(index: number) {
   };
 }
 
+// Este es técnicamente el dashboard
 const EventPage = () => {
   const params = useParams() as { eventId?: string };
   const eventId = params?.eventId ?? '';
@@ -287,31 +291,19 @@ const EventPage = () => {
       description="Vista de detalle del evento"
     >
       <DashboardCard title={eventData ? eventData.name : 'Evento'}>
-        <Box
-          mb={2}
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          flexWrap="wrap"
-          gap={1}
-        >
-          <Tabs
-            value={tabValue}
-            onChange={handleTabChange}
-            aria-label="Event navigation tabs"
-            variant="scrollable"
-            scrollButtons="auto"
-          >
-            <Tab label="Overview" {...a11yProps(0)} />
-            <Tab label="Servicios" {...a11yProps(1)} />
-            <Tab label="Tareas" {...a11yProps(2)} />
-            <Tab label="Cotizaciones" {...a11yProps(3)} />
-            <Tab label="Proveedores" {...a11yProps(4)} />
+        <Box mb={2} display='flex' alignItems='center' justifyContent='space-between' flexWrap='wrap' gap={1}>
+          <Tabs value={tabValue} onChange={handleTabChange} aria-label='Event navigation tabs' variant='scrollable' scrollButtons='auto'>
+            <Tab label='Overview' {...a11yProps(0)} />
+            <Tab label='Servicios' {...a11yProps(1)} />
+            <Tab label='Tareas' {...a11yProps(2)} />
+            <Tab label='Cotizaciones' {...a11yProps(3)} />
+            <Tab label='Proveedores' {...a11yProps(4)} />
+            <Tab label='Configuración' {...a11yProps(5)} />
 
             {eventData?.status === 'finished' && (
               <>
-                <Tab label="Reporte" {...a11yProps(5)} />
-                <Tab label="Calificar proveedores" {...a11yProps(6)} />
+                <Tab label='Reporte' {...a11yProps(6)} />
+                <Tab label='Calificar proveedores' {...a11yProps(7)} />
               </>
             )}
             <Tab label="Opciones Generales" {...a11yProps(7)} />
@@ -320,13 +312,8 @@ const EventPage = () => {
 
         <Divider sx={{ mb: 2 }} />
 
-        <CustomTabPanel
-          value={tabValue}
-          index={0}
-          loading={loadingEvent}
-          eventData={eventData}
-        >
-          <EventOverview event={eventData!} />
+        <CustomTabPanel value={tabValue} index={0} loading={loadingEvent} eventData={eventData}>
+          <EventOverviewTab event={eventData!} />
         </CustomTabPanel>
 
         <CustomTabPanel
@@ -343,6 +330,7 @@ const EventPage = () => {
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={3} loading={loadingEvent} eventData={eventData}>
+          <p>teóricamente aquí la hu que hizo david</p>
           <ExampleTabContent event={eventData!} />
         </CustomTabPanel>
 
@@ -351,7 +339,7 @@ const EventPage = () => {
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={5} loading={loadingEvent} eventData={eventData}>
-          <ExampleTabContent event={eventData!} />
+          <EventConfigTab token={token as string} event={eventData!} onRefresh={fetchEvent} />
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={6} loading={loadingEvent} eventData={eventData}>

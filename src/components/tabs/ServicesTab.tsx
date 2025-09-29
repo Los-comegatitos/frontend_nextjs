@@ -42,6 +42,7 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const fetchServiceTypes =React.useCallback(async () => {
+    if (!token) return;
     try {
       const res = await fetch(`/api/service-type`, {
         headers: { token },
@@ -58,10 +59,9 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
   }, [token]);
 
   useEffect(() => {
-    // if (token) {
-      fetchServiceTypes();
-    // }
-  }, [fetchServiceTypes]);
+    if (!token) return;
+    fetchServiceTypes();
+  }, [fetchServiceTypes, token]);
   
 
   const handleRowClick = (service: Service) => {

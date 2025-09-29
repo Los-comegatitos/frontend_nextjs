@@ -20,6 +20,7 @@ const ServiceTypesPage = () => {
   
   // fetch service types (to table)
   const fetchServiceTypes = React.useCallback(async () => {
+    if (!token) return;
     try {
       setLoadingTable(true);
       const res = await fetch(`/api/service-type`, {headers: { 'token': token as string, },});
@@ -39,9 +40,9 @@ const ServiceTypesPage = () => {
   }, [token]);
 
   useEffect(() => {
-    // if (token) 
+    if (!token) return;
     fetchServiceTypes()
-  }, [fetchServiceTypes]);
+  }, [fetchServiceTypes, token]);
 
   const handleAdd = () => {
     setSelectedType({ id: '', name: '', description: '' });

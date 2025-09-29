@@ -64,14 +64,15 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
         confirmButtonColor: '#1976d2',
       });
       console.log('Datos enviados:', formData);
-      redirect('/');
       setLoading(false);
+      redirect('/');
     } else {
       // TODO PONER ESTO CON DATA DEL BACK QUE DEVUELVA
+      const final = await data.json();
       Swal.fire({
         icon: 'error',
         title: '¡Oh no! Ha sucedido un error',
-        text: 'Por favor, revisa que sean tus datos correctos.',
+        text: final.body || 'Error al iniciar sesión, por favor intenta de nuevo.',
         confirmButtonColor: '#1976d2',
       });
       setLoading(false);
