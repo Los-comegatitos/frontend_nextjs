@@ -26,7 +26,7 @@ export async function POST(req: Request) {
             console.log(final);
             return NextResponse.json({ ok: true, body: final['data']['access_token'] });
         } else {
-            const final = await data.text()
+            const final = await data.json()
             console.log(final);
             return NextResponse.json({ ok: false, body: final }, { status: 401 });
         }
