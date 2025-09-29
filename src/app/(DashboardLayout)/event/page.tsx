@@ -78,7 +78,7 @@ const EventsPage = () => {
   }, [token]);
 
   useEffect(() => {
-    if (!token) return;
+    // if (!token) return;
     fetchEvents();
     fetchEventTypes();
     fetchClientTypes();
