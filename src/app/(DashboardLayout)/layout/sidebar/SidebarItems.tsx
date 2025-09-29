@@ -70,14 +70,12 @@ const renderMenuItems = (items: any, pathDirect: any) => {
 
 const SidebarItems = () => {
   const { user } = useAppContext();
-
   const pathname = usePathname();
   const pathDirect = pathname;
 
   return (
     < >
       <MUI_Sidebar key={user?.role} width={"100%"} showProfile={false} themeColor={"#5D87FF"} themeSecondaryColor={'#49beff'} >
-
         <Logo img='/images/logos/dark-logo.svg' component={Link} href="/" >Gestionainador</Logo>
         { user?.role === 'organizer' ?
           renderMenuItems(OrganizerMenuitems, pathDirect) :
