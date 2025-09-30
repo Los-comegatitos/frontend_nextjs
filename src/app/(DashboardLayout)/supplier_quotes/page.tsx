@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Box, Table, TableHead, TableBody, TableRow, TableCell, Typography,
   CircularProgress, Select, MenuItem, FormControl, InputLabel,
@@ -23,33 +23,29 @@ type Quote = {
 
 type GroupedQuotes = Record<string, Quote[]>;
 
-const OrganizerQuotesPage = () => {
-  const { token } = useAppContext();
-  const [eventFilter, setEventFilter] = useState('');
+const SupplierQuotesPage = () => {
+  const { token, user } = useAppContext();
+  const [statusFilter, setStatusFilter] = useState('');
   const [quotes, setQuotes] = useState<GroupedQuotes>({});
   const [loadingTable, setLoadingTable] = useState(false);
 
-  const fetchQuotes = React.useCallback(async () => {
-    if (!token || !eventFilter) return;
+  const fetchQuotes = async () => {
+    if (!token || !user?.id) return;
 
     setLoadingTable(true);
     try {
-      const res = await fetch(`/api/quote_O/${eventFilter}`, { headers: { token } });
+      const query = statusFilter ? `?status=${statusFilter}` : '';
+      const res = await fetch(`/api/quote/${user.id}${query}`, { headers: { token } });
       if (!res.ok) {
         const errorData = await res.json();
         showErrorAlert(errorData.message?.description || 'Error al cargar cotizaciones');
         setQuotes({});
         return;
       }
-      
 
       const resp = await res.json();
       if (resp.data && Object.keys(resp.data).length > 0) {
-        const pending: GroupedQuotes = {};
-        Object.keys(resp.data).forEach((serviceType) => {
-          pending[serviceType] = resp.data[serviceType].filter((q: Quote) => q.status === 'pending');
-        });
-        setQuotes(pending);
+        setQuotes(resp.data);
       } else {
         showErrorAlert(resp.message?.description || 'No hay cotizaciones para mostrar');
         setQuotes({});
@@ -61,25 +57,27 @@ const OrganizerQuotesPage = () => {
     } finally {
       setLoadingTable(false);
     }
-  }, [token, eventFilter]);
+  };
 
   useEffect(() => {
-    // if (token && eventFilter) 
-      fetchQuotes();
-  }, [fetchQuotes]);
+    if (token && user?.id) fetchQuotes();
+  }, [token, user?.id, statusFilter]);
 
   return (
-    <PageContainer title="Cotizaciones Recibidas" description="Listado de cotizaciones recibidas por evento">
-      <DashboardCard title="Cotizaciones recibidas">
+    <PageContainer title="Cotizaciones Enviadas" description="Listado de cotizaciones enviadas por proveedor">
+      <DashboardCard title="Cotizaciones enviadas">
         <Box mb={2} display="flex" justifyContent="flex-end" gap={2}>
           <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Evento</InputLabel>
+            <InputLabel>Status</InputLabel>
             <Select
-              value={eventFilter}
-              label="Evento"
-              onChange={(e) => setEventFilter(e.target.value)}
+              value={statusFilter}
+              label="Status"
+              onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <MenuItem value="">Seleccione un evento</MenuItem>
+              <MenuItem value="">Todos</MenuItem>
+              <MenuItem value="pending">Pendientes</MenuItem>
+              <MenuItem value="accepted">Aceptadas</MenuItem>
+              <MenuItem value="rejected">Rechazadas</MenuItem>
             </Select>
           </FormControl>
         </Box>
@@ -130,4 +128,4 @@ const OrganizerQuotesPage = () => {
   );
 };
 
-export default OrganizerQuotesPage;
+export default SupplierQuotesPage;

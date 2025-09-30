@@ -11,6 +11,10 @@ import EventOverviewTab from '@/components/tabs/EventOverviewTab';
 import { useAppContext } from '@/context/AppContext';
 import ServicesTab from '@/components/tabs/ServicesTab';
 import EventConfigTab from '@/components/tabs/EventConfigTab';
+import OrganizerQuotesPage from '@/app/(DashboardLayout)/quote_organizer/page';
+
+
+
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -142,7 +146,7 @@ const EventPage = () => {
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={3} loading={loadingEvent} eventData={eventData}>
-          <p>teóricamente aquí la hu que hizo david</p>
+          <OrganizerQuotesPage eventId={eventData?.eventId} />
           <ExampleTabContent event={eventData!} />
         </CustomTabPanel>
 
