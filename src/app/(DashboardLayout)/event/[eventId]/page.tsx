@@ -1,5 +1,5 @@
 'use client';
-import { SyntheticEvent, useEffect, useState } from 'react';
+import React, { SyntheticEvent, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Box, Tabs, Tab, Typography, CircularProgress, Divider } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
@@ -7,7 +7,10 @@ import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCa
 import { showErrorAlert } from '@/app/lib/swal';
 import { Event } from '@/interfaces/Event';
 import ExampleTabContent from '@/components/tabs/ExampleTabContent';
-import EventOverview from '@/components/tabs/EventOverview';
+import EventOverviewTab from '@/components/tabs/EventOverviewTab';
+import { useAppContext } from '@/context/AppContext';
+import ServicesTab from '@/components/tabs/ServicesTab';
+import EventConfigTab from '@/components/tabs/EventConfigTab';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -49,8 +52,6 @@ function CustomTabPanel(props: TabPanelProps) {
   );
 }
 
-// de verdad no sé por qué esta function se llama así pero así ponía la documentación
-// básicamente es para el manejo de tabs
 function a11yProps(index: number) {
   return {
     id: `simple-tab-${index}`,
@@ -58,15 +59,18 @@ function a11yProps(index: number) {
   };
 }
 
+// Este es técnicamente el dashboard
 const EventPage = () => {
   const params = useParams() as { eventId?: string };
   const eventId = params?.eventId ?? '';
+  const { token } = useAppContext();
 
   const [eventData, setEventData] = useState<Event | null>(null);
   const [loadingEvent, setLoadingEvent] = useState<boolean>(true);
 
-  // info principal a mostrar de event
-  const fetchEvent = async () => {
+  const [tabValue, setTabValue] = useState(0);
+
+  const fetchEvent = React.useCallback(async () => {
     if (!eventId) {
       setLoadingEvent(false);
       return;
@@ -74,7 +78,9 @@ const EventPage = () => {
 
     try {
       setLoadingEvent(true);
-      const res = await fetch(`/api/event/${eventId}`);
+      const res = await fetch(`/api/event/${eventId}`, {
+        headers: { token: token as string },
+      });
       const data = await res.json();
 
       if (data?.message?.code === '000') {
@@ -89,14 +95,12 @@ const EventPage = () => {
     } finally {
       setLoadingEvent(false);
     }
-  };
+  }, [eventId, token]);
+
 
   useEffect(() => {
     fetchEvent();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId]);
-
-  const [tabValue, setTabValue] = useState(0);
+  }, [fetchEvent, token]);
 
   const handleTabChange = (event: SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -112,11 +116,12 @@ const EventPage = () => {
             <Tab label='Tareas' {...a11yProps(2)} />
             <Tab label='Cotizaciones' {...a11yProps(3)} />
             <Tab label='Proveedores' {...a11yProps(4)} />
+            <Tab label='Configuración' {...a11yProps(5)} />
 
             {eventData?.status === 'finished' && (
               <>
-                <Tab label='Reporte' {...a11yProps(5)} />
-                <Tab label='Calificar proveedores' {...a11yProps(6)} />
+                <Tab label='Reporte' {...a11yProps(6)} />
+                <Tab label='Calificar proveedores' {...a11yProps(7)} />
               </>
             )}
           </Tabs>
@@ -125,11 +130,11 @@ const EventPage = () => {
         <Divider sx={{ mb: 2 }} />
 
         <CustomTabPanel value={tabValue} index={0} loading={loadingEvent} eventData={eventData}>
-          <EventOverview event={eventData!} />
+          <EventOverviewTab event={eventData!} />
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={1} loading={loadingEvent} eventData={eventData}>
-          <ExampleTabContent event={eventData!} />
+          <ServicesTab token={token as string} event={eventData!} onRefresh={fetchEvent} />
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={2} loading={loadingEvent} eventData={eventData}>
@@ -137,6 +142,7 @@ const EventPage = () => {
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={3} loading={loadingEvent} eventData={eventData}>
+          <p>teóricamente aquí la hu que hizo david</p>
           <ExampleTabContent event={eventData!} />
         </CustomTabPanel>
 
@@ -145,12 +151,18 @@ const EventPage = () => {
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={5} loading={loadingEvent} eventData={eventData}>
-          <ExampleTabContent event={eventData!} />
+          <EventConfigTab token={token as string} event={eventData!} onRefresh={fetchEvent} />
         </CustomTabPanel>
-        
+
         <CustomTabPanel value={tabValue} index={6} loading={loadingEvent} eventData={eventData}>
           <ExampleTabContent event={eventData!} />
         </CustomTabPanel>
+
+        <CustomTabPanel value={tabValue} index={7} loading={loadingEvent} eventData={eventData}>
+          <ExampleTabContent event={eventData!} />
+        </CustomTabPanel>
+
+        
       </DashboardCard>
     </PageContainer>
   );

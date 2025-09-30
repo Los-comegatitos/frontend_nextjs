@@ -53,7 +53,7 @@ const Register2 = () => (
                   color="textSecondary"
                   mb={1}
                 >
-                  ¡Ingresa todos tus datos!
+                  ¡Ingresa todos tus datos para registrarte!
                 </Typography>
               }
               subtitle={

@@ -12,10 +12,10 @@ const ExampleTabContent: React.FC<ExampleTabContentProps> = ({ event }) => {
     <Card sx={{ maxWidth: 400 }}>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          Contenido del Tab
+          Tab de ejemplo (WIP)
         </Typography>
         <Typography variant="body1">
-          Evento recibido: {event.name}
+          Evento: {event.name}
         </Typography>
       </CardContent>
     </Card>

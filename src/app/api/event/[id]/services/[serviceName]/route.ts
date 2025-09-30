@@ -3,18 +3,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-export async function PATCH(req: NextRequest, params: { params: Promise<{ userId: string; serviceName: string }> }) {
+export async function PATCH(req: NextRequest, params: { params: Promise<{ id: string, serviceName: string }> }) {
   try {
+    const { id, serviceName } = await params.params;
     const token = req.headers.get('token');
     const body = await req.json();
 
-    const { userId, serviceName } = await params.params;
-
-    const res = await fetch(`${API_BACKEND}catalog/${userId}/services/${serviceName}`, {
+    const res = await fetch(`${API_BACKEND}events/${id}/services/${serviceName}`, {
       method: 'PATCH',
       headers: {
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(body),
     });
@@ -27,13 +26,16 @@ export async function PATCH(req: NextRequest, params: { params: Promise<{ userId
   }
 }
 
-export async function DELETE(req: NextRequest, params: { params: Promise<{ userId: string; serviceName: string }> }) {
+export async function DELETE(req: NextRequest, params: { params: Promise<{ id: string, serviceName: string }> }) {
   try {
     const token = req.headers.get('token');
-    const { userId, serviceName } = await params.params;
-    const res = await fetch(`${API_BACKEND}catalog/${userId}/services/${serviceName}`, {
+    const { id, serviceName } = await params.params;
+
+    const res = await fetch(`${API_BACKEND}events/${id}/services/${serviceName}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
     });
 
     const data = await res.json();

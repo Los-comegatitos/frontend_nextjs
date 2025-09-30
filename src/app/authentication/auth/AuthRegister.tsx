@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Box, Typography, Button, Stack, Select, MenuItem } from "@mui/material";
+import { Box, Typography, Button, Stack, Select, MenuItem, CircularProgress } from "@mui/material";
 import CustomTextField from "@/app/(DashboardLayout)/components/forms/theme-elements/CustomTextField";
 import Swal from "sweetalert2";
 import { redirect } from "next/navigation";
@@ -13,6 +13,8 @@ interface registerType {
 }
 
 const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
+  const [loading, setLoading] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: "",
     lastname: "",
@@ -24,6 +26,12 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+    if (e.target.id === "phone") {
+      const regex = /^$|^0$|^0[24][0-9]*$/;
+      if (!regex.test(e.target.value) || e.target.value.length > 11) return;
+    }
+
     setFormData({
       ...formData,
       [e.target.id]: e.target.value,
@@ -35,7 +43,7 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    setLoading(true);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const emptyFields = Object.entries(formData).filter(([_, value]) => !value);
 
@@ -46,6 +54,18 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
         text: "Por favor, llena todos los campos antes de continuar.",
         confirmButtonColor: "#1976d2",
       });
+      setLoading(false);
+      return;
+    }
+
+    if (formData.phone.length != 11) {
+      Swal.fire({
+        icon: "error",
+        title: "Campos incompletos",
+        text: "Su número telefónico está incompleto.",
+        confirmButtonColor: "#1976d2",
+      });
+      setLoading(false);
       return;
     }
 
@@ -61,6 +81,7 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
         user_Typeid: formData.userType
       }),
     });
+    
 
     if (data.ok) {
       await Swal.fire({
@@ -69,15 +90,19 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
         text: "¡Tus datos fueron enviados correctamente!",
         confirmButtonColor: "#1976d2",
       });
-      console.log("Datos enviados:", formData);
+      setLoading(false);
+      // console.log("Datos enviados:", formData);
       redirect('/')
     } else {
+      const final = await data.json()
       Swal.fire({
         icon: "error",
         title: "¡Oh no! Ha sucedido un error",
-        text: "Por favor, revisa que sean tus datos correctos.",
+        text: final.body || "Inténtalo de nuevo más tarde.",
         confirmButtonColor: "#1976d2",
       });
+      setLoading(false);
+
     }
   };
 
@@ -140,7 +165,8 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
         </Stack>
 
         <Button color="primary" variant="contained" size="large" fullWidth type="submit">
-          Registar
+          Registrar
+          {loading && <CircularProgress size='15px' className={'ml-2'} color="secondary" />}
         </Button>
       </Box>
 

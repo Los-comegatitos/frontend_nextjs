@@ -5,5 +5,5 @@ import { redirect } from "next/navigation";
 
 export async function logout() {
   deleteJwt()
-  redirect('authentication/login')
+  redirect('/authentication/login')
 }

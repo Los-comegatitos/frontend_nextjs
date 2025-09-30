@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dialog, DialogTitle, DialogContent, Button, TextField } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
@@ -19,7 +19,8 @@ const ClientTypesPage = () => {
   const { token } = useAppContext();
 
   // fetch client types (to table)
-  const fetchClientTypes = async () => {
+  const fetchClientTypes = React.useCallback(async () => {
+    if (!token) return;
     try {
       setLoadingTable(true);
       const res = await fetch('/api/client-type', {
@@ -38,11 +39,12 @@ const ClientTypesPage = () => {
       setLoadingTable(false);
       console.error('error:', err);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
-    if (token) fetchClientTypes()
-  }, [token]);
+    if (!token) return;
+    fetchClientTypes()
+  }, [fetchClientTypes, token]);
 
   const handleAdd = () => {
     setSelectedType({ id: '', name: '', description: '' });
@@ -79,7 +81,7 @@ const ClientTypesPage = () => {
         });
       }
 
-      const data = await res.json();
+      const data = await res!.json();
       if (data.message.code === '000') {
         showSucessAlert(modalMode === 'add' ? 'Tipo de cliente añadido exitosamente.' : 'Tipo de cliente modificado exitosamente.');
       } else {

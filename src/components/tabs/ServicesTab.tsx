@@ -24,15 +24,17 @@ import { Event } from '@/interfaces/Event';
 import { Service } from '@/interfaces/Event';
 
 import { useEffect, useState } from 'react';
+import { AuxiliarType } from '@/interfaces/AuxiliarType';
 
 type ServicesTabProps = {
   token: string;
   event: Event;
+  onRefresh: () => void;
 };
 
-export default function ServicesTab({ token, event }: ServicesTabProps) {
+export default function ServicesTab({ token, event, onRefresh }: ServicesTabProps) {
 //   const [serviceTypes, setServiceTypes] = useState<Service[]>([]);
-  const [serviceTypesSelect, setServiceTypesSelect] = useState<Service[]>([]);
+  const [serviceTypesSelect, setServiceTypesSelect] = useState<AuxiliarType[]>([]);
 
   const [modalMode, setModalMode] = useState<'add' | 'modify'>('modify');
 
@@ -40,7 +42,8 @@ export default function ServicesTab({ token, event }: ServicesTabProps) {
   const [loading, setLoading] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
-  const fetchServiceTypes = async () => {
+  const fetchServiceTypes =React.useCallback(async () => {
+    if (!token) return;
     try {
       const res = await fetch(`/api/service-type`, {
         headers: { token },
@@ -54,13 +57,13 @@ export default function ServicesTab({ token, event }: ServicesTabProps) {
     } catch (err) {
       console.error('error:', err);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
-    if (token) {
-      fetchServiceTypes();
-    }
-  }, [token]);
+    if (!token) return;
+    fetchServiceTypes();
+  }, [fetchServiceTypes, token]);
+  
 
   const handleRowClick = (service: Service) => {
     setSelectedService(service);
@@ -79,24 +82,30 @@ export default function ServicesTab({ token, event }: ServicesTabProps) {
     setOpenModal(true);
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = async (eventReact: React.FormEvent<HTMLFormElement>) => {
+    eventReact.preventDefault();
     setLoading(true);
+    
+    const formData = new FormData(eventReact.currentTarget);
 
-    const formData = new FormData(event.currentTarget);
+    const selectedId = formData.get('serviceTypeId') as string;
+    const selectedType = serviceTypesSelect.find(t => parseInt(t.id) === parseInt(selectedId));
+
     const payload = {
-      serviceTypeId: formData.get('serviceTypeId') as string,
+      serviceTypeId: selectedId,
+      serviceTypeName: selectedType?.name ?? '',
       name: formData.get('name') as string,
+      dueDate: formData.get('dueDate') as string,
       description: formData.get('description') as string,
       quantity: formData.get('quantity') === '' ? null : Number(formData.get('quantity')),
     };
 
     try {
-      let url = `/api/catalog/services`;
+      let url = `/api/event/${event.eventId}/services`;
       let method = 'POST';
 
       if (modalMode === 'modify') {
-        url = `/api/catalog/services/${selectedService?.name}`;
+        url = `/api/event/${event.eventId}/services/${payload.name}`;
         method = 'PATCH';
       }
 
@@ -105,11 +114,13 @@ export default function ServicesTab({ token, event }: ServicesTabProps) {
         headers: { token },
         body: JSON.stringify(payload),
       });
+
+      
       const data = await res.json();
 
       if (data.message.code === '000') {
-        showSucessAlert(modalMode === 'add' ? 'Service added successfully' : 'Service modified successfully');
-        // TODO: en vez de fetch data debe recargar toda la pag y aja
+        showSucessAlert(modalMode === 'add' ? 'Servicio añadido exitosamente' : 'Servicio modificado exitosamente');
+        onRefresh();
       } else {
         showErrorAlert(data.message.description);
       }
@@ -124,15 +135,15 @@ export default function ServicesTab({ token, event }: ServicesTabProps) {
   const handleDelete = async (serviceName: string | undefined) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/catalog/services/${serviceName}`, {
+      const res = await fetch(`/api/event/${event.eventId}/services/${serviceName}`, {
         method: 'DELETE',
         headers: { token },
       });
       const data = await res.json();
 
       if (data.message.code === '000') {
-        showSucessAlert('Service eliminado exitosamente');
-        // TODO: en vez de fetch data debe recargar toda la pag y aja
+        showSucessAlert('Servicio eliminado exitosamente');
+        onRefresh();
       } else {
         showErrorAlert(data.message.description);
       }
@@ -148,7 +159,7 @@ export default function ServicesTab({ token, event }: ServicesTabProps) {
 
   return (
     <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
-      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, my: 3 }}>
+      <Box sx={{ display: 'flex', mb: 3, justifyContent: 'flex-end'}}>
         <Button variant="contained" onClick={handleAdd}>
           Añadir servicio
         </Button>
@@ -193,7 +204,7 @@ export default function ServicesTab({ token, event }: ServicesTabProps) {
               <p>Tipo de servicio</p>
               <Select name="serviceTypeId" defaultValue={selectedService.serviceTypeId || ''} required>
                 {serviceTypesSelect.map((t) => (
-                  <MenuItem key={t.name} value={t.name}>
+                  <MenuItem key={t.id} value={t.id}>
                     {t.name}
                   </MenuItem>
                 ))}
@@ -201,6 +212,8 @@ export default function ServicesTab({ token, event }: ServicesTabProps) {
               <TextField label="Nombre" name="name" defaultValue={selectedService.name} required />
               <TextField label="Descripción" name="description" defaultValue={selectedService.description} required />
               <TextField label="Cantidad" name="quantity" type="number" defaultValue={selectedService.quantity ?? ''} />
+              <TextField type='date' label='Fecha límite para cotizaciones' name='dueDate' defaultValue={selectedService.dueDate?.split('T')[0]}  InputLabelProps={{ shrink: true }}  required />
+              
 
               <Box display="flex" justifyContent="center" gap={2}>
                 {modalMode === 'modify' && (

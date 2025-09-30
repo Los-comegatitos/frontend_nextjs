@@ -1,29 +1,22 @@
 'use client';
-import { useEffect, useState } from 'react';
-import {
-  Box,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Button,
-  TextField,
-} from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dialog, DialogTitle, DialogContent, Button, TextField, Select, MenuItem } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import CircularProgress from '@mui/material/CircularProgress';
-import { showErrorAlert, showSucessAlert } from '@/app/lib/swal'
+import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
 import { Event } from '@/interfaces/Events';
 import { useAppContext } from '@/context/AppContext';
+import { AuxiliarType } from '@/interfaces/AuxiliarType';
+import { useRouter } from 'next/navigation'
 
 const EventsPage = () => {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const router = useRouter();
   type ModalMode = 'add' | 'modify';
+  const [eventTypes, setEventTypes] = useState<AuxiliarType[]>([]);
+  const [clientTypes, setClientTypes] = useState<AuxiliarType[]>([]);
+
   const [events, setEvents] = useState<Event[]>([]);
   const [modalMode, setModalMode] = useState<ModalMode>('add');
   const [openModal, setOpenModal] = useState(false);
@@ -32,16 +25,44 @@ const EventsPage = () => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const { token } = useAppContext();
 
+  const fetchClientTypes = React.useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`/api/client-type`, { headers: { token: token as string } });
+      const data = await res.json();
+
+      if (data.message.code === '000') {
+        setClientTypes(data.data);
+      } else {
+        showErrorAlert(data.message.description);
+      }
+    } catch (err) {
+      console.error('error:', err);
+    }
+  }, [token]);
+
+  const fetchEventTypes = React.useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`/api/event-type`, { headers: { token: token as string } });
+      const data = await res.json();
+
+      if (data.message.code === '000') {
+        setEventTypes(data.data);
+      } else {
+        showErrorAlert(data.message.description);
+      }
+    } catch (err) {
+      console.error('error:', err);
+    }
+  }, [token]);
+
   // fetch events
-  const fetchEvents = async () => {
+  const fetchEvents = React.useCallback(async () => {
+    if (!token) return;
     try {
       setLoadingTable(true);
-      const res = await fetch(`${API_BASE_URL}events`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const res = await fetch(`/api/event`, { headers: { token: token as string } });
       const data = await res.json();
 
       if (data.message.code === '000') {
@@ -54,13 +75,14 @@ const EventsPage = () => {
     } finally {
       setLoadingTable(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     if (!token) return;
     fetchEvents();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+    fetchEventTypes();
+    fetchClientTypes();
+  }, [fetchClientTypes, fetchEventTypes, fetchEvents, token]);
 
   const handleAdd = () => {
     setSelectedEvent({
@@ -87,11 +109,10 @@ const EventsPage = () => {
       name: formData.get('name') as string,
       description: formData.get('description') as string,
       eventDate: formData.get('eventDate') as string,
-      eventTypeId: Number(formData.get('eventTypeId')),
-      organizerUserId: Number(formData.get('organizerUserId')),
+      eventTypeId: parseInt(formData.get('eventTypeId') as string) as number,
       client: {
         name: formData.get('clientName') as string,
-        clientTypeId: Number(formData.get('clientTypeId')),
+        clientTypeId: parseInt(formData.get('clientTypeId') as string) as number,
         description: formData.get('clientDescription') as string,
       },
     };
@@ -99,32 +120,25 @@ const EventsPage = () => {
     try {
       let res: Response;
       if (modalMode === 'modify') {
-        res = await fetch(`${API_BASE_URL}events/${formData.get('eventId')}`, {
+        res = await fetch(`${API_BASE_URL}event/${formData.get('eventId')}`, {
           method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'Authorization': `Bearer ${token}`
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(payload),
         });
       } else {
-        res = await fetch(`${API_BASE_URL}events`, {
+        res = await fetch(`/api/event`, {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
+          headers: { token: token as string },
           body: JSON.stringify(payload),
         });
       }
 
       const data = await res.json();
       if (data.message.code === '000') {
-        showSucessAlert(
-          modalMode === 'add'
-            ? 'Evento añadido exitosamente.'
-            : 'Evento modificado exitosamente.'
-        );
+        showSucessAlert(modalMode === 'add' ? 'Evento añadido exitosamente.' : 'Evento modificado exitosamente.');
       } else {
         showErrorAlert(data.message.description);
       }
@@ -140,36 +154,38 @@ const EventsPage = () => {
   const handleFinalize = async (eventId: string) => {
     setLoading(true);
     try {
-        const res = await fetch(`${API_BASE_URL}events/${eventId}/finalize`, {
+      const res = await fetch(`${API_BASE_URL}events/${eventId}/finalize`, {
         method: 'PATCH',
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ status: 'finalized' }),
-        });
+      });
 
-        const data = await res.json();
+      const data = await res.json();
 
-        if (data.message.code === '000') {
+      if (data.message.code === '000') {
         showSucessAlert('Evento finalizado exitosamente');
-        } else {
+      } else {
         showErrorAlert(data.message.description);
-        }
+      }
     } catch (err) {
-        console.error('Error finalizando evento', err);
+      console.error('Error finalizando evento', err);
     } finally {
-        fetchEvents();
-        setLoading(false);
-        setOpenModal(false);
+      fetchEvents();
+      setLoading(false);
+      setOpenModal(false);
     }
-    };
-
+  };
 
   const handleRowClick = (event: Event) => {
-    setSelectedEvent(event);
-    setModalMode('modify');
-    setOpenModal(true);
+
+    router.push(`/event/${event.eventId}`);
+    // Por ahora no va abrir modal ni nada sino redirigir al dashboard
+    // setSelectedEvent(event);
+    // setModalMode('modify');
+    // setOpenModal(true);
   };
 
   const handleClose = () => {
@@ -184,6 +200,7 @@ const EventsPage = () => {
             Añadir Evento
           </Button>
         </Box>
+        {}
         <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
           {loadingTable ? (
             <Box
@@ -197,164 +214,126 @@ const EventsPage = () => {
               <CircularProgress size='55px' className='mb-2' />
             </Box>
           ) : (
-            <Table aria-label='events table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <Typography variant='subtitle2' fontWeight={600}>
-                      ID
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant='subtitle2' fontWeight={600}>
-                      Nombre
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant='subtitle2' fontWeight={600}>
-                      Fecha
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant='subtitle2' fontWeight={600}>
-                      Estado
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                {events.map((event) => (
-                  <TableRow
-                    key={event.eventId}
-                    className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
-                    onClick={() => {
-                      handleRowClick(event);
-                    }}
-                  >
+            <>
+              <Table aria-label='events table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
+                <TableHead>
+                  <TableRow>
                     <TableCell>
-                      <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>
-                        {event.eventId}
+                      <Typography variant='subtitle2' fontWeight={600}>
+                        ID
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>
-                        {event.name}
+                      <Typography variant='subtitle2' fontWeight={600}>
+                        Nombre
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>
-                        {new Date(event.eventDate).toLocaleDateString()}
+                      <Typography variant='subtitle2' fontWeight={600}>
+                        Fecha
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>
-                        {event.status}
+                      <Typography variant='subtitle2' fontWeight={600}>
+                        Estado
                       </Typography>
                     </TableCell>
+                    {/* <TableCell>
+                      <Typography variant='subtitle2' fontWeight={600}>
+                        Acciones
+                      </Typography>
+                    </TableCell> */}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {events.map((event) => (
+                    <TableRow
+                      key={event.eventId}
+                      className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
+                      onClick={() => {
+                        handleRowClick(event);
+                      }}
+                    >
+                      <TableCell>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{event.eventId}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{event.name}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{new Date(event.eventDate).toLocaleDateString()}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{event.status}</Typography>
+                      </TableCell>
+                      {/* <TableCell>
+                        <Button variant='outlined' color='primary' component={NextLink} href={`event/${event.eventId}`}>
+                          Dashboard
+                        </Button>
+                      </TableCell> */}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {events.length === 0 && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: '100px',
+                  }}
+                >
+                  <Typography className='text' variant='subtitle2' fontWeight={600}>
+                    No hay eventos para mostrar.
+                  </Typography>
+                </Box>
+              )}
+            </>
           )}
         </Box>
       </DashboardCard>
 
       {/* modal */}
       <Dialog open={openModal} onClose={handleClose} maxWidth='sm' fullWidth>
-        <DialogTitle>
-          {modalMode === 'add' ? 'Añadir evento' : 'Modificar evento'}
-        </DialogTitle>
+        <DialogTitle>{modalMode === 'add' ? 'Añadir evento' : 'Modificar evento'}</DialogTitle>
         <DialogContent dividers>
           {selectedEvent && (
-            <Box
-              component='form'
-              onSubmit={handleSubmit}
-              display='flex'
-              flexDirection='column'
-              gap={2}
-              mt={1}
-            >
-              {modalMode === 'modify' && (
-                <TextField
-                  label='ID'
-                  name='eventId'
-                  defaultValue={selectedEvent.eventId}
-                  slotProps={{ input: { readOnly: true } }}
-                />
-              )}
-              <TextField
-                label='Nombre'
-                name='name'
-                defaultValue={selectedEvent.name}
-                required
-              />
-              <TextField
-                label='Descripción'
-                name='description'
-                defaultValue={selectedEvent.description}
-                required
-              />
-              <TextField
-                type='date'
-                label='Fecha'
-                name='eventDate'
-                defaultValue={selectedEvent.eventDate?.split('T')[0]}
-                InputLabelProps={{ shrink: true }}
-                required
-              />
-              <TextField
-                type='number'
-                label='Event Type ID'
-                name='eventTypeId'
-                defaultValue={selectedEvent.eventTypeId}
-                required
-              />
-              <TextField
-                type='number'
-                label='Organizer User ID'
-                name='organizerUserId'
-                defaultValue={selectedEvent.organizerUserId}
-                required
-              />
-              {/* Client */}
-              <TextField
-                label='Client Name'
-                name='clientName'
-                defaultValue={selectedEvent.client?.name}
-                required
-              />
-              <TextField
-                type='number'
-                label='Client Type ID'
-                name='clientTypeId'
-                defaultValue={selectedEvent.client?.clientTypeId}
-                required
-              />
-              <TextField
-                label='Client Description'
-                name='clientDescription'
-                defaultValue={selectedEvent.client?.description}
-                required
-              />
+            <Box component='form' onSubmit={handleSubmit} display='flex' flexDirection='column' gap={2} mt={1}>
+              {modalMode === 'modify' && <TextField label='ID' name='eventId' defaultValue={selectedEvent.eventId} slotProps={{ input: { readOnly: true } }} />}
+
+              <TextField label='Nombre' name='name' defaultValue={selectedEvent.name} required />
+              <TextField label='Descripción' name='description' defaultValue={selectedEvent.description} required />
+              <TextField type='date' label='Fecha' name='eventDate' defaultValue={selectedEvent.eventDate?.split('T')[0]} InputLabelProps={{ shrink: true }} required />
+
+              <p>Tipo de evento</p>
+              <Select name='eventTypeId' defaultValue={selectedEvent.eventTypeId || ''} required>
+                {eventTypes.map((t) => (
+                  <MenuItem key={t.id} value={t.id}>
+                    {t.name}
+                  </MenuItem>
+                ))}
+              </Select>
+
+              <p>Tipo de cliente</p>
+              <Select name='clientTypeId' defaultValue={selectedEvent.client.clientTypeId || ''} required>
+                {clientTypes.map((t) => (
+                  <MenuItem key={t.id} value={t.id}>
+                    {t.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              <TextField label='Nombre del cliente' name='clientName' defaultValue={selectedEvent.client?.name} required />
+              <TextField label='Descripción del cliente' name='clientDescription' defaultValue={selectedEvent.client?.description} required />
               <Box display='flex' justifyContent='center' gap={2}>
                 {modalMode === 'modify' && (
-                  <Button
-                    variant='outlined'
-                    color='error'
-                    onClick={() => handleFinalize(selectedEvent.eventId)}
-                    disabled={loading}
-                  >
+                  <Button variant='outlined' color='error' onClick={() => handleFinalize(selectedEvent.eventId)} disabled={loading}>
                     Finalizar
                     {loading && <CircularProgress size='15px' className={'ml-2'} />}
                   </Button>
                 )}
-                <Button
-                  variant='contained'
-                  type='submit'
-                  color='primary'
-                  disabled={loading}
-                >
+                <Button variant='contained' type='submit' color='primary' disabled={loading}>
                   {modalMode === 'add' ? 'Agregar' : 'Modificar'}
                   {loading && <CircularProgress size='15px' className={'ml-2'} />}
                 </Button>

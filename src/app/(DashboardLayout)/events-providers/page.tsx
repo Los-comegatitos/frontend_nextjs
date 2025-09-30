@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dialog, DialogTitle, DialogContent, Button, TextField, List, ListItemText, ListItem } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
@@ -17,7 +17,8 @@ const EventsProvidersPage = () => {
   const [selectedEvent, setSelectedEvent] = useState<FilteredEvent | null>(null);
   const { token } = useAppContext();
 
-  const fetchEvents = async () => {
+  const fetchEvents = React.useCallback(async () => {
+    if (!token) return;
     try {
       setLoadingTable(true);
       const res = await fetch(`/api/event/for-providers`, { headers: { token: token as string } });
@@ -32,13 +33,12 @@ const EventsProvidersPage = () => {
       setLoadingTable(false);
       console.error('Error', err);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
-    if (token) {
-      fetchEvents();
-    }
-  }, [token]);
+    if (!token) return;
+    fetchEvents();
+  }, [fetchEvents, token]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -64,41 +64,57 @@ const EventsProvidersPage = () => {
               <CircularProgress size='55px' className='mb-2' />
             </Box>
           ) : (
-            <Table aria-label='event table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <Typography variant='subtitle2' fontWeight={600}>
-                      Name
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant='subtitle2' fontWeight={600}>
-                      Event date
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                {events.map((event) => (
-                  <TableRow
-                    key={event.name}
-                    className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
-                    onClick={() => {
-                      handleRowClick(event);
-                    }}
-                  >
+            <>
+              <Table aria-label='event table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
+                <TableHead>
+                  <TableRow>
                     <TableCell>
-                      <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{event.name}</Typography>
+                      <Typography variant='subtitle2' fontWeight={600}>
+                        Nombre
+                      </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{event.eventDate.toString()}</Typography>
+                      <Typography variant='subtitle2' fontWeight={600}>
+                        Fecha del evento
+                      </Typography>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+
+                <TableBody>
+                  {events.map((event) => (
+                    <TableRow
+                      key={event.name}
+                      className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
+                      onClick={() => {
+                        handleRowClick(event);
+                      }}
+                    >
+                      <TableCell>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{event.name}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{event.eventDate.toString()}</Typography>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {events.length === 0 && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: '100px',
+                  }}
+                >
+                  <Typography className='text' variant='subtitle2' fontWeight={600}>
+                    No hay eventos para mostrar.
+                  </Typography>
+                </Box>
+              )}
+            </>
           )}
         </Box>
       </DashboardCard>
@@ -117,7 +133,7 @@ const EventsProvidersPage = () => {
                     key={service.name}
                     alignItems='flex-start'
                     className='rounded-xl'
-                    sx={{width: '100%'}}
+                    sx={{ width: '100%' }}
                     secondaryAction={
                       <Button variant='outlined' color='primary' onClick={() => console.log('aquí hacemos link a cotizacion (paso event id y tipo de servicio a cotizar)')}>
                         Enviar cotización
