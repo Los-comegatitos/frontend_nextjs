@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box, Table, TableHead, TableBody, TableRow, TableCell, Typography,
   CircularProgress, Modal, Button,
@@ -45,7 +45,7 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
     setModalOpen(false);
   };
 
-  const fetchQuotes = async () => {
+  const fetchQuotes = React.useCallback(async () => {
     if (!token || !user?.id || !eventId) return;
 
     setLoadingTable(true);
@@ -79,11 +79,11 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
     } finally {
       setLoadingTable(false);
     }
-  };
+  }, [token, user?.id, eventId]);
 
   useEffect(() => {
     fetchQuotes();
-  }, [token, user?.id, eventId]);
+  }, [fetchQuotes]);
 
   return (
     <DashboardCard title="Cotizaciones Recibidas">
