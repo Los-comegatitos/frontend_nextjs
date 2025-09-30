@@ -47,7 +47,7 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
   const fetchClientTypes = React.useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`/api/service-type`, {
+      const res = await fetch(`/api/client-type`, {
         headers: { token },
       });
       const data = await res.json();

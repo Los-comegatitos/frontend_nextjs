@@ -120,12 +120,9 @@ const EventsPage = () => {
     try {
       let res: Response;
       if (modalMode === 'modify') {
-        res = await fetch(`${API_BASE_URL}event/${formData.get('eventId')}`, {
+        res = await fetch(`/api/event/${formData.get('eventId')}`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { 'token': token as string, },
           body: JSON.stringify(payload),
         });
       } else {
