@@ -12,10 +12,6 @@ import { useAppContext } from '@/context/AppContext';
 import ServicesTab from '@/components/tabs/ServicesTab';
 import EventConfigTab from '@/components/tabs/EventConfigTab';
 import OrganizerQuotesPage from '@/app/(DashboardLayout)/quote_organizer/page';
-
-
-
-
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -155,7 +151,7 @@ const EventPage = () => {
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={5} loading={loadingEvent} eventData={eventData}>
-          <EventConfigTab token={token as string} event={eventData!} onRefresh={fetchEvent} />
+          <EventConfigTab token={token as string} event={eventData!} onRefresh={fetchEvent}/>
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={6} loading={loadingEvent} eventData={eventData}>
