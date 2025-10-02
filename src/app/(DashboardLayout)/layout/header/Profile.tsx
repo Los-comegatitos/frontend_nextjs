@@ -13,9 +13,11 @@ import {
 
 import { IconListCheck, IconMail, IconUser } from "@tabler/icons-react";
 import { logout } from "@/app/actions/auth";
+import { useRouter } from "next/navigation";
 
 const Profile = () => {
   const [anchorEl2, setAnchorEl2] = useState(null);
+  const router = useRouter()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleClick2 = (event: any) => {
     setAnchorEl2(event.currentTarget);
@@ -26,6 +28,10 @@ const Profile = () => {
 
   const handlelogout = async () => {
     await logout()
+  };
+
+  const handleProfile = async () => {
+    router.push('/profile')
   };
 
   return (
@@ -73,7 +79,7 @@ const Profile = () => {
           <ListItemIcon>
             <IconUser width={20} />
           </ListItemIcon>
-          <ListItemText>My Profile</ListItemText>
+          <ListItemText onClick={handleProfile}>Mi perfil</ListItemText>
         </MenuItem>
         <MenuItem>
           <ListItemIcon>
