@@ -50,6 +50,10 @@ const ProfilePage = () => {
                     </Typography>
                     <Typography variant="h5">{user?.lastName}</Typography>
                     <Typography variant="body1" color="textSecondary">
+                      Fecha de nacimiento:
+                    </Typography>
+                    <Typography variant="h5">{showFormalDate(user?.birthDate as string)}</Typography>
+                    <Typography variant="body1" color="textSecondary">
                       email: 
                     </Typography>
                     <Typography variant="h5">{user?.email}</Typography>
