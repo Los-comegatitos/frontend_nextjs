@@ -7,20 +7,17 @@ export async function POST(request: Request) {
         firstName, 
         lastName, 
         email, 
-        telephone, 
-        birthDate, 
         password, 
-        user_Typeid 
+        user_Typeid,
     } = body;
     const hiddenPassword = Buffer.from(password).toString('base64')
     
     if (
+        firstName.length <= 0 || 
         email.length <= 0 || 
         lastName.length <= 0 || 
-        password.length <= 0 || 
-        telephone.length <= 0 || 
-        password.length <= 0 
-    ) return NextResponse.json({ ok: false }, { status: 401 });
+        password.length <= 0 )
+        return NextResponse.json({ ok: false }, { status: 401 });
     
     try {
         const data = await fetch(`${API_BACKEND}user`, {
@@ -32,8 +29,6 @@ export async function POST(request: Request) {
                 firstName: firstName as string, 
                 lastName: lastName as string, 
                 email: email as string, 
-                telephone: telephone as string, 
-                birthDate: birthDate, 
                 password: hiddenPassword, 
                 user_Typeid: parseInt(user_Typeid as string) 
             })

@@ -64,7 +64,7 @@ const EventOverviewTab = ({ event }: Props) => {
               <Typography variant='caption' color='text.secondary'>
                 Cliente
               </Typography>
-              <Typography sx={{ fontSize: '14px' }}>{event.client?.name}</Typography>
+              <Typography sx={{ fontSize: '14px' }}>{event.client ? event.client.name : 'n/a'}</Typography>
             </Box>
 
             <Box>
