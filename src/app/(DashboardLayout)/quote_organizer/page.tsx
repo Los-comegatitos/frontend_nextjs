@@ -59,6 +59,8 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
       }
 
       const resp = await res.json();
+      console.log(resp);
+      
       if (resp.data && Object.keys(resp.data).length > 0) {
         const filtered: GroupedQuotes = {};
 

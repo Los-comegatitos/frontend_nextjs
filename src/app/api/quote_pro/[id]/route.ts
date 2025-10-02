@@ -22,6 +22,8 @@ export async function GET(req: Request) {
     });
 
     const data = await res.json();
+    console.log(data);
+    
     return NextResponse.json(data, { status: res.status });
   } catch (err) {
     console.error('Error en route /api/quote_pro/[id]:', err);
