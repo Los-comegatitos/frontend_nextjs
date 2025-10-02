@@ -19,7 +19,7 @@ const Dashboard = () => {
   // console.log(user);
   
   return (
-    <PageContainer title="Dashboard" description="this is Dashboard">
+    <PageContainer title="Dashboard" description="Esto es un dashboard">
       {/* <p>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</p>
       <p>este es el email{ user?.email }</p> */}
       <Box>
