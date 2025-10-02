@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box, Table, TableHead, TableBody, TableRow, TableCell, Typography,
   CircularProgress, Select, MenuItem, FormControl, InputLabel,
@@ -29,8 +29,8 @@ const SupplierQuotesPage = () => {
   const [quotes, setQuotes] = useState<GroupedQuotes>({});
   const [loadingTable, setLoadingTable] = useState(false);
 
-  const fetchQuotes = async () => {
-    if (!token || !user?.id) return;
+  const fetchQuotes = React.useCallback(async () => {
+    if (!token || !user?.id || !statusFilter) return;
 
     setLoadingTable(true);
     try {
@@ -57,11 +57,11 @@ const SupplierQuotesPage = () => {
     } finally {
       setLoadingTable(false);
     }
-  };
+  }, [token, user?.id, statusFilter]);
 
   useEffect(() => {
-    if (token && user?.id) fetchQuotes();
-  }, [token, user?.id, statusFilter]);
+    fetchQuotes();
+  }, [fetchQuotes]);
 
   return (
     <PageContainer title="Cotizaciones Enviadas" description="Listado de cotizaciones enviadas por proveedor">

@@ -231,7 +231,7 @@ export default function CatalogPage() {
   };
 
   return (
-    <PageContainer title='Catálogo' description='Catalog Page'>
+    <PageContainer title='Catálogo' description='Página de catálogo'>
       <DashboardCard title='Catálogo'>
         <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
           <Typography variant='h6' fontWeight={600} mb={2}>

@@ -12,6 +12,7 @@ import { useAppContext } from '@/context/AppContext';
 import ServicesTab from '@/components/tabs/ServicesTab';
 import EventConfigTab from '@/components/tabs/EventConfigTab';
 import TasksTab from '@/components/task/TasksTab';
+import OrganizerQuotesPage from '@/app/(DashboardLayout)/quote_organizer/page';
 
 
 
@@ -74,7 +75,7 @@ const EventPage = () => {
   const [tabValue, setTabValue] = useState(0);
 
   const fetchEvent = React.useCallback(async () => {
-    if (!eventId) {
+    if (!eventId || !token) {
       setLoadingEvent(false);
       return;
     }
@@ -103,7 +104,7 @@ const EventPage = () => {
 
   useEffect(() => {
     fetchEvent();
-  }, [fetchEvent, token]);
+  }, [fetchEvent]);
 
   const handleTabChange = (event: SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -154,7 +155,7 @@ const EventPage = () => {
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={5} loading={loadingEvent} eventData={eventData}>
-          <EventConfigTab token={token as string} event={eventData!} onRefresh={fetchEvent} />
+          <EventConfigTab token={token as string} event={eventData!} onRefresh={fetchEvent}/>
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={6} loading={loadingEvent} eventData={eventData}>
