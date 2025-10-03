@@ -3,16 +3,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-interface Params {
-  id: string;
-  taskId: string;
-}
 
 // Actualizar una tarea
-export async function PATCH(req: NextRequest, { params }: { params: Params }) {
+export async function PATCH(req: NextRequest, params : { params: Promise<{ taskId: string; eventId: string }> }) {
   try {
-    const { id: eventId, taskId } = params;
-    const token = req.headers.get('token');
+    const { taskId, eventId } = await params.params;
+    const token = req.headers.get('token'); 
 
     if (!token) {
       return NextResponse.json(
@@ -43,10 +39,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
   }
 }
 
+
 // Eliminar una tarea
-export async function DELETE(req: NextRequest, { params }: { params: Params }) {
+export async function DELETE(req: NextRequest, params : { params: Promise<{ taskId: string; eventId: string }> }) {
+
   try {
-    const { id: eventId, taskId } = params;
+    const { taskId, eventId } = await params.params;
     const token = req.headers.get('token');
 
     if (!token) {
