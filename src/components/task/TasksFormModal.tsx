@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { Task } from '@/interfaces/Task';
 import { useState, useEffect } from 'react';
+import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
 
 type Props = {
   open: boolean;
@@ -23,6 +24,7 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, tok
   const [form, setForm] = useState<Partial<Task>>({});
   const [providerName, setProviderName] = useState<string>('Cargando...');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const BACKEND_URL = 'http://localhost:5000';
 
   useEffect(() => {
     setForm(initialData || {});
@@ -50,24 +52,90 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, tok
     if (!eventId || !initialData || !token) return;
 
     try {
-      const res = await fetch(`/api/event/${eventId}/task/${initialData.id}`, {
+      const res = await fetch(`${BACKEND_URL}/events/${eventId}/tasks/${initialData.id}`, {
         method: 'DELETE',
-        headers: { token },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
 
-      if (res.status === 200 && data?.message?.code === '000') {
+      if (data.message.code === '000') {
+        showSucessAlert(`La tarea "${initialData.name}" fue eliminada exitosamente.`);
         onRefresh?.();
         onClose();
       } else {
-        alert(data?.message?.description || 'Error al eliminar');
+        showErrorAlert(data.message.description || 'No se pudo eliminar la tarea.');
       }
     } catch (err) {
       console.error('Error al eliminar tarea:', err);
-      alert('Error interno al eliminar');
+      showErrorAlert('Ocurrió un error interno al eliminar la tarea.');
     } finally {
       setConfirmOpen(false);
+    }
+  };
+
+  const handleFinalize = async () => {
+    if (!eventId || !initialData || !token) return;
+
+    try {
+      const res = await fetch(
+        `${BACKEND_URL}/events/${eventId}/tasks/${initialData.id}/finalize`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.message.code === '000') {
+        showSucessAlert(`La tarea "${initialData.name}" fue finalizada exitosamente.`);
+        onRefresh?.();
+        onClose();
+      } else {
+        showErrorAlert(data.message.description || 'No se pudo finalizar la tarea.');
+      }
+    } catch (err) {
+      console.error('Error al finalizar tarea:', err);
+      showErrorAlert('Ocurrió un error interno al finalizar la tarea.');
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!eventId || !initialData || !token) return;
+
+    const updatePayload = {
+      name: form.name,
+      description: form.description,
+      dueDate: form.dueDate,
+      reminderDate: form.reminderDate,
+    };
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/events/${eventId}/tasks/${initialData.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updatePayload),
+      });
+
+      const data = await res.json();
+
+      if (data.message.code === '000') {
+        showSucessAlert(`La tarea "${initialData.name}" fue modificada exitosamente.`);
+        onRefresh?.();
+        onClose();
+      } else {
+        showErrorAlert(data.message.description || 'No se pudo modificar la tarea.');
+      }
+    } catch (err) {
+      console.error('Error al modificar tarea:', err);
+      showErrorAlert('Ocurrió un error interno al modificar la tarea.');
     }
   };
 
@@ -123,9 +191,11 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, tok
         </DialogContent>
         <DialogActions>
           {initialData && (
-            <Button color="error" onClick={() => setConfirmOpen(true)}>
-              Eliminar
-            </Button>
+            <>
+              <Button color="primary" onClick={handleUpdate}>Modificar</Button>
+              <Button color="success" onClick={handleFinalize}>Finalizar</Button>
+              <Button color="error" onClick={() => setConfirmOpen(true)}>Eliminar</Button>
+            </>
           )}
           <Button onClick={onClose}>Cerrar</Button>
         </DialogActions>
