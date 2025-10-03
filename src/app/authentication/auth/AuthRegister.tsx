@@ -13,9 +13,7 @@ type Props = {
   subtitle: JSX.Element
 }
 
-const AuthRegister = <PROPS extends Props, >({ subtext, subtitle, ...rest }: PROPS): JSX.Element =>  {
-  console.log(subtext);
-  console.log(subtitle);
+const AuthRegister = <PROPS extends Props, >({ ...rest }: PROPS): JSX.Element =>  {
   
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
