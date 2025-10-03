@@ -3,14 +3,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-//actualizar una tarea
-export async function PATCH(req: NextRequest, { params }: { params: { id: string, taskId: string } }) {
+interface Params {
+  id: string;
+  taskId: string;
+}
+
+// Actualizar una tarea
+export async function PATCH(req: NextRequest, { params }: { params: Params }) {
   try {
-    const { id, taskId } = params;
+    const { id: eventId, taskId } = params;
     const token = req.headers.get('token');
+
+    if (!token) {
+      return NextResponse.json(
+        { message: { code: '401', description: 'Token no proporcionado' } },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
 
-    const res = await fetch(`${API_BACKEND}events/${id}/tasks/${taskId}`, {
+    const res = await fetch(`${API_BACKEND}events/${eventId}/tasks/${taskId}`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -22,18 +35,28 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ message: { code: '999', description: 'Error interno' } }, { status: 500 });
+    console.error('Error en PATCH task:', error);
+    return NextResponse.json(
+      { message: { code: '999', description: 'Error interno' } },
+      { status: 500 }
+    );
   }
 }
 
-//eliminar una tarea
-export async function DELETE(req: NextRequest, { params }: { params: { id: string, taskId: string } }) {
+// Eliminar una tarea
+export async function DELETE(req: NextRequest, { params }: { params: Params }) {
   try {
-    const { id, taskId } = params;
+    const { id: eventId, taskId } = params;
     const token = req.headers.get('token');
 
-    const res = await fetch(`${API_BACKEND}events/${id}/tasks/${taskId}`, {
+    if (!token) {
+      return NextResponse.json(
+        { message: { code: '401', description: 'Token no proporcionado' } },
+        { status: 401 }
+      );
+    }
+
+    const res = await fetch(`${API_BACKEND}events/${eventId}/tasks/${taskId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -43,7 +66,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ message: { code: '999', description: 'Error interno' } }, { status: 500 });
+    console.error('Error en DELETE task:', error);
+    return NextResponse.json(
+      { message: { code: '999', description: 'Error interno' } },
+      { status: 500 }
+    );
   }
 }
