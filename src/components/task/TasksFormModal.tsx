@@ -31,7 +31,8 @@ export default function TaskFormModal({
   const [form, setForm] = useState<Partial<Task>>({});
   const [providerName, setProviderName] = useState<string>('Cargando...');
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const BACKEND_URL = 'http://localhost:5000';
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 
   useEffect(() => {
     setForm(initialData || {});
@@ -55,7 +56,8 @@ export default function TaskFormModal({
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // CREAR nueva tarea
+
+  //Crear tarea de un evento
   const handleCreate = async () => {
     if (!eventId || !token) return;
 
@@ -67,7 +69,7 @@ export default function TaskFormModal({
     };
 
     try {
-      const res = await fetch(`${BACKEND_URL}/events/${eventId}/tasks`, {
+      const res = await fetch(`${API_BASE_URL}events/${eventId}/tasks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -91,13 +93,13 @@ export default function TaskFormModal({
     }
   };
 
-  // ELIMINAR
+  //Eliminar tarea de un evento
   const handleDeleteConfirmed = async () => {
     if (!eventId || !initialData || !token) return;
 
     try {
       const res = await fetch(
-        `${BACKEND_URL}/events/${eventId}/tasks/${initialData.id}`,
+        `${API_BASE_URL}events/${eventId}/tasks/${initialData.id}`,
         {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` },
@@ -123,19 +125,23 @@ export default function TaskFormModal({
     }
   };
 
-  // FINALIZAR
+  //Finalizar tarea de un evento
   const handleFinalize = async () => {
     if (!eventId || !initialData || !token) return;
 
+    //payload por si el backend espera algo adicional
+    const payload = { status: 'finished' };
+
     try {
       const res = await fetch(
-        `${BACKEND_URL}/events/${eventId}/tasks/${initialData.id}/finalize`,
+        `${API_BASE_URL}events/${eventId}/tasks/${initialData.id}/finalize`,
         {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
+          body: JSON.stringify(payload),
         }
       );
 
@@ -156,7 +162,8 @@ export default function TaskFormModal({
     }
   };
 
-  // MODIFICAR
+
+  //Modificar
   const handleUpdate = async () => {
     if (!eventId || !initialData || !token) return;
 
@@ -168,17 +175,14 @@ export default function TaskFormModal({
     };
 
     try {
-      const res = await fetch(
-        `${BACKEND_URL}/events/${eventId}/tasks/${initialData.id}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(updatePayload),
-        }
-      );
+      const res = await fetch(`${API_BASE_URL}events/${eventId}/tasks/${initialData.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updatePayload),
+      });
 
       const data = await res.json();
 
