@@ -1,4 +1,3 @@
-//src/app/(DashboardLayout)/event/[eventId]/page.tsx
 'use client';
 import React, { SyntheticEvent, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -14,8 +13,6 @@ import ServicesTab from '@/components/tabs/ServicesTab';
 import EventConfigTab from '@/components/tabs/EventConfigTab';
 import TasksTab from '@/components/task/TasksTab';
 import OrganizerQuotesPage from '@/app/(DashboardLayout)/quote_organizer/page';
-
-
 
 interface TabPanelProps {
   children?: React.ReactNode;
