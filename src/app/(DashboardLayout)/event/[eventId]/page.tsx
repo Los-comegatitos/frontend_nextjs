@@ -1,3 +1,4 @@
+//src/app/(DashboardLayout)/event/[eventId]/page.tsx
 'use client';
 import React, { SyntheticEvent, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -11,8 +12,8 @@ import EventOverviewTab from '@/components/tabs/EventOverviewTab';
 import { useAppContext } from '@/context/AppContext';
 import ServicesTab from '@/components/tabs/ServicesTab';
 import EventConfigTab from '@/components/tabs/EventConfigTab';
+import TasksTab from '@/components/task/TasksTab';
 import OrganizerQuotesPage from '@/app/(DashboardLayout)/quote_organizer/page';
-
 
 
 
@@ -142,7 +143,7 @@ const EventPage = () => {
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={2} loading={loadingEvent} eventData={eventData}>
-          <ExampleTabContent event={eventData!} />
+          <TasksTab token={token as string} event={eventData!} onRefresh={fetchEvent} />
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={3} loading={loadingEvent} eventData={eventData}>
@@ -155,7 +156,7 @@ const EventPage = () => {
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={5} loading={loadingEvent} eventData={eventData}>
-          <EventConfigTab token={token as string} event={eventData!} onRefresh={fetchEvent} />
+          <EventConfigTab token={token as string} event={eventData!} onRefresh={fetchEvent}/>
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={6} loading={loadingEvent} eventData={eventData}>
