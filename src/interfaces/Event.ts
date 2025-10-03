@@ -53,7 +53,7 @@ export interface Task {
 
 
 export interface Event {
-  id: string;
+  // id: string;
   eventId: string;
   name: string;
   description: string;
@@ -73,13 +73,14 @@ export interface FilteredService {
   name: string;
   description: string;
   quantity: number | null;
-  dueDate: Date;
+  dueDate: string;
 }
 
 export interface FilteredEvent {
+  eventId: string;
   name: string;
   description: string;
-  eventDate: Date;
+  eventDate: string;
   services: FilteredService[];
 }
 

@@ -6,6 +6,8 @@ import { decrypt } from '@/app/lib/encrypting';
 import { checkJwt, getJwt } from '@/app/lib/session';
 // import { JwtPayload } from 'jsonwebtoken';
 import { redirect, usePathname } from 'next/navigation';
+// import path from 'path';
+// import path from 'path';
 // import { useRouter } from 'next/navigation';
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
@@ -30,13 +32,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const truth = checkJwt()
       
       console.log(truth);
+      console.log(pathname);
+      
       
       if (!truth && !pathname.includes('authentication')) {
         console.log('ESTÁS AQUÍ')
         setUser(null)
         setToken(null)
         redirect('/authentication/login') 
-      } else if (truth && user?.role != 'provider' && pathname.includes('event-types')) {
+      } else if (truth && user?.role == 'provider' && ((
+        !pathname.includes('/event') &&
+        !pathname.includes('/catalog') && 
+        !pathname.includes('/quote_providers') &&  
+        !pathname.includes('/supplier_quotes') &&
+        !pathname.includes('/events-providers') &&
+        !pathname.includes('/events'))
+        || pathname.includes('/event-types'))
+      ) {
+        redirect('/') 
+      } else if (truth && user?.role == 'organizer' && (( 
+        !pathname.includes('/event') && 
+        !pathname.includes('/quote_organizer')) 
+        || pathname.includes('/event-types'))) {
+        redirect('/')
+      } else if (truth && pathname.includes('/authentication/login')) {
         redirect('/') 
       } else if (truth) {
         
@@ -61,17 +80,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     }
     obtain();
-  }, [pathname]);
+  }, [pathname, user?.role]);
 
   useEffect(() => {
     if (user) {
-      console.log(user);
+      console.log('user', user);
       
-    if (user.role !== 'provider') {
-      console.log(`ERES UN ${user.role}`);
-    }
+    // if (user.role !== 'provider') {
+    //   console.log(`ERES UN ${user.role}`);
+    // }
 
-    if (token) console.log(token)
+    if (token) console.log('token', token)
   }
   }, [user, token]);
 

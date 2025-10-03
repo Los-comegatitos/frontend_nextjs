@@ -1,26 +1,23 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { Box, Typography, Button, Stack, Select, MenuItem } from "@mui/material";
-import CustomTextField from "@/app/(DashboardLayout)/components/forms/theme-elements/CustomTextField";
-import Swal from "sweetalert2";
-import { redirect } from "next/navigation";
+import React, { useState } from 'react';
+import { Box, Typography, Button, Stepper, Step, StepLabel, Stack, CircularProgress } from '@mui/material';
+import CustomTextField from '@/app/(DashboardLayout)/components/forms/theme-elements/CustomTextField';
+import Swal from 'sweetalert2';
+import { redirect } from 'next/navigation';
 
-interface registerType {
-  title?: string;
-  subtitle?: React.ReactNode;
-  subtext?: React.ReactNode;
-}
+const steps = ['Seleccionar rol', 'Completar formulario', 'Registro exitoso'];
 
-const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
+const AuthRegister = () => {
+  const [activeStep, setActiveStep] = useState(0);
+  const [loading, setLoading] = useState(false);
+
   const [formData, setFormData] = useState({
-    name: "",
-    lastname: "",
-    email: "",
-    birthdate: "",
-    phone: "",
-    password: "",
-    userType: "",
+    name: '',
+    lastname: '',
+    email: '',
+    password: '',
+    userType: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,124 +25,159 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
       ...formData,
       [e.target.id]: e.target.value,
     });
-
-    console.log(formData);
-    
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleNext = async () => {
+    if (activeStep === 1) {
+      // Validar y enviar datos solo en el segundo paso
+      setLoading(true);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const emptyFields = Object.entries(formData).filter(([_, value]) => !value);
+      // console.log('funciona validacion emptyFields', emptyFields);
+      if (emptyFields.length > 0) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Campos incompletos',
+          text: 'Por favor, llena todos los campos antes de continuar.',
+          confirmButtonColor: '#1976d2',
+        });
+        setLoading(false);
+        return;
+      }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const emptyFields = Object.entries(formData).filter(([_, value]) => !value);
-
-    if (emptyFields.length > 0) {
-      Swal.fire({
-        icon: "error",
-        title: "Campos incompletos",
-        text: "Por favor, llena todos los campos antes de continuar.",
-        confirmButtonColor: "#1976d2",
+      const data = await fetch('/api/signin', {
+        method: 'POST',
+        body: JSON.stringify({
+          firstName: formData.name,
+          lastName: formData.lastname,
+          email: formData.email,
+          password: formData.password,
+          user_Typeid: formData.userType,
+        }),
       });
-      return;
-    }
 
-    const data = await fetch('/api/signin', {
-      method: 'POST',
-      body: JSON.stringify({ 
-        firstName: formData.name, 
-        lastName: formData.lastname, 
-        email: formData.email, 
-        telephone: formData.phone, 
-        birthDate: formData.birthdate, 
-        password: formData.password, 
-        user_Typeid: formData.userType
-      }),
-    });
-
-    if (data.ok) {
-      await Swal.fire({
-        icon: "success",
-        title: "Registro exitoso",
-        text: "¡Tus datos fueron enviados correctamente!",
-        confirmButtonColor: "#1976d2",
-      });
-      console.log("Datos enviados:", formData);
-      redirect('/')
+      if (data.ok) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Registro exitoso',
+          text: '¡Tus datos fueron enviados correctamente!',
+          confirmButtonColor: '#1976d2',
+        });
+        setLoading(false);
+        setActiveStep((prev) => prev + 1);
+      } else {
+        const final = await data.json();
+        Swal.fire({
+          icon: 'error',
+          title: '¡Oh no! Ha sucedido un error',
+          text: final.body || 'Inténtalo de nuevo más tarde.',
+          confirmButtonColor: '#1976d2',
+        });
+        setLoading(false);
+      }
     } else {
-      Swal.fire({
-        icon: "error",
-        title: "¡Oh no! Ha sucedido un error",
-        text: "Por favor, revisa que sean tus datos correctos.",
-        confirmButtonColor: "#1976d2",
-      });
+      setActiveStep((prev) => prev + 1);
     }
+  };
+
+  const handleBack = () => {
+    if (activeStep === 0) redirect('/authentication/login');
+    setActiveStep((prevActiveStep) => prevActiveStep - 1);
   };
 
   return (
-    <>
-      {title && (
-        <Typography fontWeight="700" variant="h2" mb={1}>
-          {title}
-        </Typography>
+    <Box sx={{ width: '100%' }}>
+      <Stepper activeStep={activeStep} alternativeLabel>
+        {steps.map((label) => (
+          <Step key={label}>
+            <StepLabel>{label}</StepLabel>
+          </Step>
+        ))}
+      </Stepper>
+
+      {/* step 1 */}
+      {activeStep === 0 && (
+        <Box sx={{ mt: 4, textAlign: 'center' }}>
+          <Typography variant='h6' mb={2}>
+            Selecciona el tipo de usuario
+          </Typography>
+          <Stack direction='row' spacing={4} justifyContent='center'>
+            <Box>
+              <Button variant='contained' color={formData.userType === '2' ? 'primary' : 'inherit'} onClick={() => setFormData({ ...formData, userType: '2' })}>
+                Proveedor
+              </Button>
+              <Typography variant='body2' mt={1}>
+                Ofrece productos o servicios para los eventos.
+              </Typography>
+            </Box>
+            <Box>
+              <Button variant='contained' color={formData.userType === '3' ? 'primary' : 'inherit'} onClick={() => setFormData({ ...formData, userType: '3' })}>
+                Organizador
+              </Button>
+              <Typography variant='body2' mt={1}>
+                Planifica y gestiona la organización de los eventos.
+              </Typography>
+            </Box>
+          </Stack>
+        </Box>
       )}
 
-      {subtext}
+      {/* step 2 */}
+      {activeStep === 1 && (
+        <Box component='form' sx={{ mt: 4 }}>
+          <Stack mb={3}>
+            <Typography fontWeight={600} component='label' htmlFor='name' mb='5px'>
+              Nombres
+            </Typography>
+            <CustomTextField id='name' variant='outlined' fullWidth value={formData.name} onChange={handleChange} required />
 
-      <Box component="form" onSubmit={handleSubmit}>
-        <Stack mb={3}>
-          <Typography fontWeight={600} component="label" htmlFor="name" mb="5px">
-            Nombres
+            <Typography fontWeight={600} component='label' htmlFor='lastname' mb='5px' mt='25px'>
+              Apellidos
+            </Typography>
+            <CustomTextField id='lastname' variant='outlined' fullWidth value={formData.lastname} onChange={handleChange} required />
+
+            <Typography fontWeight={600} component='label' htmlFor='email' mb='5px' mt='25px'>
+              Correo electrónico
+            </Typography>
+            <CustomTextField id='email' variant='outlined' fullWidth value={formData.email} onChange={handleChange} required />
+
+            <Typography fontWeight={600} component='label' htmlFor='password' mb='5px' mt='25px'>
+              Contraseña
+            </Typography>
+            <CustomTextField id='password' type='password' variant='outlined' fullWidth value={formData.password} onChange={handleChange} required/>
+          </Stack>
+        </Box>
+      )}
+
+      {/* step 3 */}
+      {activeStep === 2 && (
+        <Box sx={{ mt: 4, textAlign: 'center' }}>
+          <Typography variant='h5' gutterBottom>
+            ¡Registro exitoso!
           </Typography>
-          <CustomTextField id="name" variant="outlined" fullWidth value={formData.name} onChange={handleChange} />
-
-          <Typography fontWeight={600} component="label" htmlFor="lastname" mb="5px" mt="25px">
-            Apellidos
+          <Typography variant='body1' mb={3}>
+            Tu cuenta ha sido creada correctamente.
           </Typography>
-          <CustomTextField id="lastname" variant="outlined" fullWidth value={formData.lastname} onChange={handleChange} />
+          <Button variant='contained' color='primary' onClick={() => redirect('/authentication/login')}>
+            Iniciar sesión
+          </Button>
+        </Box>
+      )}
 
-          <Typography fontWeight={600} component="label" htmlFor="email" mb="5px" mt="25px">
-            Correo electrónico
-          </Typography>
-          <CustomTextField id="email" variant="outlined" fullWidth value={formData.email} onChange={handleChange} />
-
-          <Typography fontWeight={600} component="label" htmlFor="birthdate" mb="5px" mt="25px">
-            Fecha de nacimiento
-          </Typography>
-          <CustomTextField id="birthdate" type="date" variant="outlined" fullWidth value={formData.birthdate} onChange={handleChange} InputLabelProps={{ shrink: true }}/>
-
-          <Typography fontWeight={600} component="label" htmlFor="phone" mb="5px" mt="25px">
-            Número telefónico
-          </Typography>
-          <CustomTextField id="phone" variant="outlined" fullWidth value={formData.phone} onChange={handleChange} />
-
-          <Typography fontWeight={600} component="label" htmlFor="userType" mb="5px" mt="25px">
-            Tipo de usuario
-          </Typography>
-          <Select id="userType" fullWidth value={formData.userType} onChange={(e) =>
-                setFormData({
-                ...formData,
-                userType: e.target.value,
-                })
-            }
-            >
-                <MenuItem value="">Selecciona un tipo</MenuItem>
-                <MenuItem value="2">Proveedor</MenuItem>
-                <MenuItem value="3">Organizador</MenuItem>
-          </Select>
-
-          <Typography fontWeight={600} component="label" htmlFor="password" mb="5px" mt="25px">
-            Contraseña
-          </Typography>
-          <CustomTextField id="password" type="password" variant="outlined" fullWidth value={formData.password} onChange={handleChange} />
-        </Stack>
-
-        <Button color="primary" variant="contained" size="large" fullWidth type="submit">
-          Registar
-        </Button>
-      </Box>
-
-      {subtitle}
-    </>
+      {/* lógica atrás siguiente */}
+      {activeStep < steps.length - 1 && (
+        <Box sx={{ display: 'flex', flexDirection: 'row', pt: 4 }}>
+          <Button color='inherit' onClick={handleBack} sx={{ mr: 1 }}>
+            Atrás
+          </Button>
+          <Box sx={{ flex: '1 1 auto' }} />
+          <Button variant='contained' onClick={handleNext} disabled={activeStep === 0 && !formData.userType}>
+            {activeStep === steps.length - 2 ? 'Finalizar' : 'Siguiente'}
+            {loading && <CircularProgress size='15px' sx={{ ml: 2 }} />}
+          </Button>
+        </Box>
+      )}
+    </Box>
   );
 };
 

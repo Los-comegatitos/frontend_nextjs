@@ -1,13 +1,15 @@
 'use client';
 
-import { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dialog, DialogTitle, DialogContent, Button, TextField, List, ListItemText, ListItem } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import CircularProgress from '@mui/material/CircularProgress';
-import { showErrorAlert } from '@/app/lib/swal';
+import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
 import { useAppContext } from '@/context/AppContext';
 import { FilteredEvent } from '@/interfaces/Event';
+import { showDate } from '@/utils/Formats';
+import { Quote } from '@/interfaces/Quote';
 
 const EventsProvidersPage = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -15,15 +17,18 @@ const EventsProvidersPage = () => {
   const [loadingTable, setLoadingTable] = useState(true);
   const [loading, setLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<FilteredEvent | null>(null);
+  // const [quote, setQuote] = useState<Quote | null>(null);
   const { token } = useAppContext();
 
-  const fetchEvents = async () => {
+  const fetchEvents = React.useCallback(async () => {
+    if (!token) return;
     try {
       setLoadingTable(true);
       const res = await fetch(`/api/event/for-providers`, { headers: { token: token as string } });
       const data = await res.json();
       if (data.message.code === '000') {
         setEvents(data.data);
+        console.log(data.data);
       } else {
         showErrorAlert(data.message.description);
       }
@@ -32,17 +37,60 @@ const EventsProvidersPage = () => {
       setLoadingTable(false);
       console.error('Error', err);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
-    if (token) {
-      fetchEvents();
-    }
-  }, [token]);
+    // if (!token) return;
+    fetchEvents();
+  }, [fetchEvents]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!token || !selectedEvent) return;
+
+     const info = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement;
+
+    const buttonId = info?.id;
+
+    const service = selectedEvent?.services.find((s) => s.name === buttonId);
+
+    console.log(events)
+
+    const formData = new FormData(event.currentTarget);
+    console.log(formData);
+    console.log(formData.keys());
+    for (const pair of formData.entries()) {
+      console.log(`${pair[0]}: ${pair[1]}`);
+    }
+    const quote : Quote = {
+      service: {
+        name: formData.get('name') as string,
+        description: formData.get('description') as string,
+        serviceTypeId: service?.serviceTypeId as string, 
+      }, 
+      price: parseFloat(formData.get('price') as string),
+      eventId: selectedEvent?.eventId as string,
+      toServiceId: service?.name as string,
+      quantity: parseInt(formData.get('quantity') as string),
+    };
+    console.log(quote);
     setLoading(true);
+    const res = await fetch(`/api/quote`, { 
+      headers: { token: token as string }, 
+      method: 'POST', body: JSON.stringify(quote) 
+    });
+    const data = await res.json();
+    if (data.message.code === '000') {
+      setLoading(false);
+      setOpenModal(false);
+      setSelectedEvent(null);
+      await showSucessAlert('La cotización fue enviada exitósamente');
+      // window.location.reload();
+      await fetchEvents();
+    } else {
+      setLoading(false);
+      await showErrorAlert(data.message.description || 'Error al enviar cotización');
+    }
   };
 
   const handleRowClick = (event: FilteredEvent) => {
@@ -64,62 +112,80 @@ const EventsProvidersPage = () => {
               <CircularProgress size='55px' className='mb-2' />
             </Box>
           ) : (
-            <Table aria-label='event table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <Typography variant='subtitle2' fontWeight={600}>
-                      Name
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant='subtitle2' fontWeight={600}>
-                      Event date
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                {events.map((event) => (
-                  <TableRow
-                    key={event.name}
-                    className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
-                    onClick={() => {
-                      handleRowClick(event);
-                    }}
-                  >
+            <>
+              <Table aria-label='event table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
+                <TableHead>
+                  <TableRow>
                     <TableCell>
-                      <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{event.name}</Typography>
+                      <Typography variant='subtitle2' fontWeight={600}>
+                        Nombre
+                      </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{event.eventDate.toString()}</Typography>
+                      <Typography variant='subtitle2' fontWeight={600}>
+                        Fecha del evento
+                      </Typography>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+
+                <TableBody>
+                  {events.map((event) => (
+                    <TableRow
+                      key={event.name}
+                      className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
+                      onClick={() => {
+                        handleRowClick(event);
+                      }}
+                    >
+                      <TableCell>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{event.name}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{showDate(event.eventDate)}</Typography>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {events.length === 0 && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: '100px',
+                  }}
+                >
+                  <Typography className='text' variant='subtitle2' fontWeight={600}>
+                    No hay eventos para mostrar.
+                  </Typography>
+                </Box>
+              )}
+            </>
           )}
         </Box>
       </DashboardCard>
 
       {/* modal */}
       <Dialog open={openModal} onClose={handleClose} maxWidth='sm' fullWidth>
-        <DialogTitle>Añadir tipo de evento</DialogTitle>
+        <DialogTitle>Enviar cotización</DialogTitle>
         <DialogContent dividers>
           {selectedEvent && (
             <Box component='form' onSubmit={handleSubmit} display='flex' flexDirection='column' gap={2} mt={1}>
-              <TextField label='Name' name='name' defaultValue={selectedEvent.name} required />
-              <TextField label='Description' name='description' defaultValue={selectedEvent.description} required />
+              <TextField label='Nombre' name='name' required />
+              <TextField label='Descripción' name='description' required />
+              <TextField type='number' label='Precio' name='price' required />
+              <TextField type='number' label='Cantidad' name='quantity' required />
               <List sx={{ width: '100%' }}>
                 {selectedEvent.services.map((service) => (
                   <ListItem
                     key={service.name}
                     alignItems='flex-start'
                     className='rounded-xl'
-                    sx={{width: '100%'}}
+                    sx={{ width: '100%' }}
                     secondaryAction={
-                      <Button variant='outlined' color='primary' onClick={() => console.log('aquí hacemos link a cotizacion (paso event id y tipo de servicio a cotizar)')}>
+                      <Button id={service.name} variant='outlined' type='submit' color='primary' onClick={() => console.log(service)}>
                         Enviar cotización
                       </Button>
                     }
@@ -128,6 +194,7 @@ const EventsProvidersPage = () => {
                       primary={<Typography sx={{ fontSize: '15px', fontWeight: 600 }}>{service.name}</Typography>}
                       secondary={
                         <Fragment>
+                          {/* <input type="hidden" name="serviceName" value={service.name} required /> */}
                           <Typography component='span' variant='body2' sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
                             {service.description}
                           </Typography>
@@ -135,7 +202,7 @@ const EventsProvidersPage = () => {
                             Cantidad: {service.quantity}
                           </Typography>
                           <Typography variant='caption' sx={{ display: 'block', color: 'text.disabled' }}>
-                            Fecha límite para enviar cotización: {service.dueDate.toString()}
+                            Fecha límite para enviar cotización: {showDate(service.dueDate)}
                           </Typography>
                         </Fragment>
                       }
@@ -146,7 +213,7 @@ const EventsProvidersPage = () => {
 
               <Box display='flex' justifyContent='center' gap={2}>
                 <Button onClick={handleClose} color='secondary' disabled={loading}>
-                  Close
+                  Cerrar
                 </Button>
               </Box>
             </Box>

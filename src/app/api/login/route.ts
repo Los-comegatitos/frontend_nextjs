@@ -21,13 +21,17 @@ export async function POST(req: Request) {
             })
         })
         console.log(data);
-        const final = await data.json()
-        console.log(final);
         if (data.status == 201) {
+            const final = await data.json()
+            console.log(final);
             return NextResponse.json({ ok: true, body: final['data']['access_token'] });
-        } else return NextResponse.json({ ok: false }, { status: 401 });
+        } else {
+            const final = await data.json()
+            console.log(final);
+            return NextResponse.json({ ok: false, body: final }, { status: 401 });
+        }
     } catch (error) {
         console.log(error);
-        return NextResponse.json({ ok: false }, { status: 401 });
+        return NextResponse.json({ ok: false, body: '¡Oh no! Ha sucedido un error, inténtalo más tarde' }, { status: 401 });
     }
 }

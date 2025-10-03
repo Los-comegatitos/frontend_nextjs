@@ -1,31 +1,32 @@
 import { Box, Typography, Chip } from '@mui/material';
 import { Event } from '@/interfaces/Event';
+import { showFormalDate } from '@/utils/Formats';
 
-const formatDate = (dateString?: string) => {
-  if (!dateString) return '—';
-  try {
-    const d = new Date(dateString);
-    return new Intl.DateTimeFormat('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(d);
-  } catch {
-    return dateString;
-  }
-};
+// const formatDate = (dateString?: string) => {
+//   if (!dateString) return '—';
+//   try {
+//     const d = new Date(dateString);
+//     return new Intl.DateTimeFormat('es-VE', {
+//       year: 'numeric',
+//       month: 'long',
+//       day: '2-digit',
+//       hour: '2-digit',
+//       minute: '2-digit',
+//     }).format(d);
+//   } catch {
+//     return dateString;
+//   }
+// };
 
 interface Props {
   event: Event;
 }
 
-const EventOverview = ({ event }: Props) => {
+const EventOverviewTab = ({ event }: Props) => {
   return (
     <Box display='grid' gridTemplateColumns={{ xs: '1fr', md: '2fr 1fr' }} gap={2}>
       <Box>
-        <Typography variant='subtitle2' fontWeight={700} gutterBottom>
+        <Typography variant='subtitle2' sx={{ fontSize: '18px', fontWeight: 700 }} gutterBottom>
           Evento
         </Typography>
 
@@ -34,7 +35,7 @@ const EventOverview = ({ event }: Props) => {
             <Typography variant='caption' color='text.secondary'>
               ID
             </Typography>
-            <Typography sx={{ fontSize: '15px', fontWeight: 600 }}>{event.id}</Typography>
+            <Typography sx={{ fontSize: '15px', fontWeight: 600 }}>{event.eventId}</Typography>
           </Box>
 
           <Box>
@@ -56,14 +57,14 @@ const EventOverview = ({ event }: Props) => {
               <Typography variant='caption' color='text.secondary'>
                 Fecha del evento
               </Typography>
-              <Typography sx={{ fontSize: '14px' }}>{formatDate(event.eventDate)}</Typography>
+              <Typography sx={{ fontSize: '14px' }}>{showFormalDate(event.eventDate)}</Typography>
             </Box>
 
             <Box>
               <Typography variant='caption' color='text.secondary'>
                 Cliente
               </Typography>
-              <Typography sx={{ fontSize: '14px' }}>{event.client?.name}</Typography>
+              <Typography sx={{ fontSize: '14px' }}>{event.client ? event.client.name : 'n/a'}</Typography>
             </Box>
 
             <Box>
@@ -107,4 +108,4 @@ const EventOverview = ({ event }: Props) => {
   );
 };
 
-export default EventOverview;
+export default EventOverviewTab;

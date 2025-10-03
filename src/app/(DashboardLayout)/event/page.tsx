@@ -1,35 +1,72 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dialog, DialogTitle, DialogContent, Button, TextField, Select, MenuItem } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dialog, DialogTitle, DialogContent, Button, TextField, Select, MenuItem, TablePagination } from '@mui/material';
+import Stepper from '@mui/material/Stepper';
+import Step from '@mui/material/Step';
+import StepLabel from '@mui/material/StepLabel';
+import CircularProgress from '@mui/material/CircularProgress';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
-import CircularProgress from '@mui/material/CircularProgress';
-import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
+import { showErrorAlert } from '@/app/lib/swal';
 import { Event } from '@/interfaces/Events';
 import { useAppContext } from '@/context/AppContext';
 import { AuxiliarType } from '@/interfaces/AuxiliarType';
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
+
+// es la interfaz auxiliar para manejar el form de los steppers. No es igual a evento porque fue necesario un campo adicional para saber si validar o no ciertos datos.
+interface EventDataAux {
+  name: string;
+  description: string;
+  eventTypeId: string;
+  eventDate: string | undefined;
+  clientMode: 'none' | 'propio' | 'cliente';
+  clientTypeId: string;
+  clientName: string;
+  clientDescription: string;
+}
 
 const EventsPage = () => {
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
   const router = useRouter();
   type ModalMode = 'add' | 'modify';
+
   const [eventTypes, setEventTypes] = useState<AuxiliarType[]>([]);
   const [clientTypes, setClientTypes] = useState<AuxiliarType[]>([]);
-
   const [events, setEvents] = useState<Event[]>([]);
   const [modalMode, setModalMode] = useState<ModalMode>('add');
   const [openModal, setOpenModal] = useState(false);
   const [loadingTable, setLoadingTable] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [eventAdded, setEventAdded] = useState<Event | null>(null);
   const { token } = useAppContext();
 
-  const fetchClientTypes = async () => {
-    try {
-      const res = await fetch(`/api/client-type`, { headers: { token: token as string } });
-      const data = await res.json();
+  // pagination
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [search, setSearch] = useState('');
 
+  // Stepper
+  const steps = ['Cuéntanos más', 'Fecha', 'Datos adicionales', 'Finalizado'];
+  const [activeStep, setActiveStep] = useState(0);
+  const [eventData, setEventData] = useState<EventDataAux>({
+    name: '',
+    description: '',
+    eventTypeId: '',
+    eventDate: '',
+    clientMode: 'none',
+    clientTypeId: '',
+    clientName: '',
+    clientDescription: '',
+  });
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // fetch client types
+  const fetchClientTypes = React.useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`/api/client-type`, {
+        headers: { token: token as string },
+      });
+      const data = await res.json();
       if (data.message.code === '000') {
         setClientTypes(data.data);
       } else {
@@ -38,13 +75,16 @@ const EventsPage = () => {
     } catch (err) {
       console.error('error:', err);
     }
-  };
+  }, [token]);
 
-  const fetchEventTypes = async () => {
+  // fetch event types
+  const fetchEventTypes = React.useCallback(async () => {
+    if (!token) return;
     try {
-      const res = await fetch(`/api/event-type`, { headers: { token: token as string } });
+      const res = await fetch(`/api/event-type`, {
+        headers: { token: token as string },
+      });
       const data = await res.json();
-
       if (data.message.code === '000') {
         setEventTypes(data.data);
       } else {
@@ -53,15 +93,17 @@ const EventsPage = () => {
     } catch (err) {
       console.error('error:', err);
     }
-  };
+  }, [token]);
 
   // fetch events
-  const fetchEvents = async () => {
+  const fetchEvents = React.useCallback(async () => {
+    if (!token) return;
     try {
       setLoadingTable(true);
-      const res = await fetch(`/api/event`, { headers: { token: token as string } });
+      const res = await fetch(`/api/event`, {
+        headers: { token: token as string },
+      });
       const data = await res.json();
-
       if (data.message.code === '000') {
         setEvents(data.data);
       } else {
@@ -72,119 +114,86 @@ const EventsPage = () => {
     } finally {
       setLoadingTable(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     if (!token) return;
     fetchEvents();
     fetchEventTypes();
     fetchClientTypes();
-  }, [token]);
+  }, [fetchClientTypes, fetchEventTypes, fetchEvents, token]);
 
-  const handleAdd = () => {
-    setSelectedEvent({
-      eventId: '',
-      name: '',
-      description: '',
-      eventDate: '',
-      eventTypeId: 0,
-      organizerUserId: 0,
-      client: { name: '', clientTypeId: 0, description: '' },
-      status: 'active',
-    });
-    setModalMode('add');
-    setOpenModal(true);
+  // pagination
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);  
+  };
+
+  const filteredEvents = events.filter((event) => event.name.toLowerCase().includes(search.toLowerCase()));
+
+  const paginatedEvents = filteredEvents.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+  const handleAdd = () => {
+    setModalMode('add');
+    setEventData({
+      name: '',
+      description: '',
+      eventTypeId: '',
+      eventDate: '',
+      clientMode: 'none',
+      clientTypeId: '',
+      clientName: '',
+      clientDescription: '',
+    });
+    setActiveStep(0);
+    setOpenModal(true);
+    setSubmitError(null);
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
+    setSubmitError(null);
 
-    const formData = new FormData(event.currentTarget);
-
-    const payload = {
-      name: formData.get('name') as string,
-      description: formData.get('description') as string,
-      eventDate: formData.get('eventDate') as string,
-      eventTypeId: parseInt(formData.get('eventTypeId') as string) as number,
-      client: {
-        name: formData.get('clientName') as string,
-        clientTypeId: parseInt(formData.get('clientTypeId') as string) as number,
-        description: formData.get('clientDescription') as string,
-      },
+    const payload: Partial<Event> = {
+      name: eventData.name,
+      description: eventData.description,
+      eventDate: eventData.eventDate,
+      eventTypeId: parseInt(eventData.eventTypeId),
     };
 
-    try {
-      let res: Response;
-      if (modalMode === 'modify') {
-        res = await fetch(`${API_BASE_URL}event/${formData.get('eventId')}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        });
-      } else {
-        res = await fetch(`/api/event`, {
-          method: 'POST',
-          headers: { token: token as string },
-          body: JSON.stringify(payload),
-        });
-      }
+    if (eventData.clientMode === 'cliente') {
+      payload.client = {
+        name: eventData.clientName,
+        clientTypeId: parseInt(eventData.clientTypeId),
+        description: eventData.clientDescription,
+      };
+    }
 
+    try {
+      const res = await fetch(`/api/event`, {
+        method: 'POST',
+        headers: { token: token as string },
+        body: JSON.stringify(payload),
+      });
       const data = await res.json();
       if (data.message.code === '000') {
-        showSucessAlert(modalMode === 'add' ? 'Evento añadido exitosamente.' : 'Evento modificado exitosamente.');
+        setActiveStep(3);
+        setEventAdded(data.data);
+        // showSucessAlert('Evento añadido exitosamente.'); ya nop
       } else {
-        showErrorAlert(data.message.description);
+        setSubmitError(data.message.description);
       }
     } catch (err) {
       console.error('Error', err);
+      setSubmitError('Ocurrió un error inesperado');
     } finally {
       fetchEvents();
       setLoading(false);
-      setOpenModal(false);
     }
-  };
-
-  const handleFinalize = async (eventId: string) => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}events/${eventId}/finalize`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: 'finalized' }),
-      });
-
-      const data = await res.json();
-
-      if (data.message.code === '000') {
-        showSucessAlert('Evento finalizado exitosamente');
-      } else {
-        showErrorAlert(data.message.description);
-      }
-    } catch (err) {
-      console.error('Error finalizando evento', err);
-    } finally {
-      fetchEvents();
-      setLoading(false);
-      setOpenModal(false);
-    }
-  };
-
-  const handleRowClick = (event: Event) => {
-
-    // TODO: Pensar en el comportamiento de esto (donde va el modificar, eliminar)
-    // TODO: Pensar técnicamente si en el dashboard se consulta evento o se pasa desde aquí? .
-    router.push(`/event/${event.eventId}`);
-    // Por ahora no va abrir modal ni nada sino redirigir al dashboard
-    // setSelectedEvent(event);
-    // setModalMode('modify');
-    // setOpenModal(true);
   };
 
   const handleClose = () => {
@@ -194,12 +203,14 @@ const EventsPage = () => {
   return (
     <PageContainer title='Eventos' description='Events Page'>
       <DashboardCard title='Eventos'>
-        <Box display='flex' justifyContent='flex-end' mb={2}>
+        <Box display='flex' justifyContent='flex-end' mb={2} gap={5}>
+          <TextField placeholder='Buscar por nombre...' variant='outlined' size='small' value={search} onChange={(e) => setSearch(e.target.value)} />
           <Button variant='contained' color='primary' onClick={handleAdd}>
             Añadir Evento
           </Button>
         </Box>
-        {}
+
+        {/* tabla */}
         <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
           {loadingTable ? (
             <Box
@@ -219,11 +230,6 @@ const EventsPage = () => {
                   <TableRow>
                     <TableCell>
                       <Typography variant='subtitle2' fontWeight={600}>
-                        ID
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant='subtitle2' fontWeight={600}>
                         Nombre
                       </Typography>
                     </TableCell>
@@ -237,25 +243,11 @@ const EventsPage = () => {
                         Estado
                       </Typography>
                     </TableCell>
-                    {/* <TableCell>
-                      <Typography variant='subtitle2' fontWeight={600}>
-                        Acciones
-                      </Typography>
-                    </TableCell> */}
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {events.map((event) => (
-                    <TableRow
-                      key={event.eventId}
-                      className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
-                      onClick={() => {
-                        handleRowClick(event);
-                      }}
-                    >
-                      <TableCell>
-                        <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{event.eventId}</Typography>
-                      </TableCell>
+                  {paginatedEvents.map((event) => (
+                    <TableRow key={event.eventId} className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200' onClick={() => router.push(`/event/${event.eventId}`)}>
                       <TableCell>
                         <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{event.name}</Typography>
                       </TableCell>
@@ -265,15 +257,11 @@ const EventsPage = () => {
                       <TableCell>
                         <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{event.status}</Typography>
                       </TableCell>
-                      {/* <TableCell>
-                        <Button variant='outlined' color='primary' component={NextLink} href={`event/${event.eventId}`}>
-                          Dashboard
-                        </Button>
-                      </TableCell> */}
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+              <TablePagination component='div' count={filteredEvents.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25, { value: -1, label: 'Todos' }]} />
 
               {events.length === 0 && (
                 <Box
@@ -294,20 +282,81 @@ const EventsPage = () => {
         </Box>
       </DashboardCard>
 
-      {/* modal */}
+      {/* modal stepper */}
       <Dialog open={openModal} onClose={handleClose} maxWidth='sm' fullWidth>
         <DialogTitle>{modalMode === 'add' ? 'Añadir evento' : 'Modificar evento'}</DialogTitle>
-        <DialogContent dividers>
-          {selectedEvent && (
-            <Box component='form' onSubmit={handleSubmit} display='flex' flexDirection='column' gap={2} mt={1}>
-              {modalMode === 'modify' && <TextField label='ID' name='eventId' defaultValue={selectedEvent.eventId} slotProps={{ input: { readOnly: true } }} />}
+        <DialogContent dividers sx={{ p: 6 }}>
+          <Stepper activeStep={activeStep} sx={{ mb: 6 }}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
 
-              <TextField label='Nombre' name='name' defaultValue={selectedEvent.name} required />
-              <TextField label='Descripción' name='description' defaultValue={selectedEvent.description} required />
-              <TextField type='date' label='Fecha' name='eventDate' defaultValue={selectedEvent.eventDate?.split('T')[0]} InputLabelProps={{ shrink: true }} required />
+          {activeStep === 0 && (
+            <Box display='flex' flexDirection='column' gap={2} mt={2}>
+              <Typography>¿Cuál es el nombre de tu evento?</Typography>
+              <TextField label='Nombre' value={eventData.name} onChange={(e) => setEventData({ ...eventData, name: e.target.value })} required />
+              <Typography>¿Alguna información adicional que quieras detallar?</Typography>
+              <TextField label='Descripción' value={eventData.description} onChange={(e) => setEventData({ ...eventData, description: e.target.value })} />
+              <Box display='flex' justifyContent='flex-end' gap={2} mt={2}>
+                <Button
+                  variant='contained'
+                  onClick={() => {
+                    if (!eventData.name.trim()) {
+                      setSubmitError('Por favor completa los campos obligatorios');
+                      return;
+                    }
+                    setSubmitError(null);
+                    setActiveStep(1);
+                  }}
+                >
+                  Siguiente
+                </Button>
+              </Box>
+              {submitError && (
+                <Typography color='error' fontSize={14} textAlign='center'>
+                  {submitError}
+                </Typography>
+              )}
+            </Box>
+          )}
 
-              <p>Tipo de evento</p>
-              <Select name='eventTypeId' defaultValue={selectedEvent.eventTypeId || ''} required>
+          {activeStep === 1 && (
+            <Box display='flex' flexDirection='column' gap={2} mt={2}>
+              <Typography>¿Qué fecha será tu evento tentativamente?</Typography>
+              <TextField type='date' label='Fecha' InputLabelProps={{ shrink: true }} value={eventData.eventDate} onChange={(e) => setEventData({ ...eventData, eventDate: e.target.value })} required />
+
+              <Box display='flex' justifyContent='space-between' mt={2}>
+                <Button onClick={() => setActiveStep(0)}>Atrás</Button>
+                <Button
+                  variant='contained'
+                  onClick={() => {
+                    if (!eventData.eventDate) {
+                      setSubmitError('Por favor completa los campos obligatorios');
+                      return;
+                    }
+                    setSubmitError(null);
+                    setActiveStep(2);
+                  }}
+                >
+                  Siguiente
+                </Button>
+              </Box>
+
+              {submitError && (
+                <Typography color='error' fontSize={14} textAlign='center'>
+                  {submitError}
+                </Typography>
+              )}
+            </Box>
+          )}
+
+          {activeStep === 2 && (
+            <Box display='flex' flexDirection='column' gap={2} mt={2}>
+              <Typography>¿De qué tipo es tu evento?</Typography>
+              <Select value={eventData.eventTypeId} onChange={(e) => setEventData({ ...eventData, eventTypeId: e.target.value })} required>
                 {eventTypes.map((t) => (
                   <MenuItem key={t.id} value={t.id}>
                     {t.name}
@@ -315,29 +364,75 @@ const EventsPage = () => {
                 ))}
               </Select>
 
-              <p>Tipo de cliente</p>
-              <Select name='clientTypeId' defaultValue={selectedEvent.client.clientTypeId || ''} required>
-                {clientTypes.map((t) => (
-                  <MenuItem key={t.id} value={t.id}>
-                    {t.name}
-                  </MenuItem>
-                ))}
-              </Select>
-              <TextField label='Client Name' name='clientName' defaultValue={selectedEvent.client?.name} required />
-              <TextField label='Client Description' name='clientDescription' defaultValue={selectedEvent.client?.description} required />
-              <Box display='flex' justifyContent='center' gap={2}>
-                {modalMode === 'modify' && (
-                  <Button variant='outlined' color='error' onClick={() => handleFinalize(selectedEvent.eventId)} disabled={loading}>
-                    Finalizar
-                    {loading && <CircularProgress size='15px' className={'ml-2'} />}
-                  </Button>
-                )}
-                <Button variant='contained' type='submit' color='primary' disabled={loading}>
-                  {modalMode === 'add' ? 'Agregar' : 'Modificar'}
-                  {loading && <CircularProgress size='15px' className={'ml-2'} />}
+              <Typography>¿Para quién es el evento?</Typography>
+              <Box display='flex' gap={2} justifyContent='center'>
+                <Button variant={eventData.clientMode === 'propio' ? 'contained' : 'outlined'} onClick={() => setEventData({ ...eventData, clientMode: 'propio' })}>
+                  Evento propio
                 </Button>
-                <Button onClick={handleClose} color='secondary' disabled={loading}>
-                  Cancelar
+                <Button variant={eventData.clientMode === 'cliente' ? 'contained' : 'outlined'} onClick={() => setEventData({ ...eventData, clientMode: 'cliente' })}>
+                  Evento para un cliente
+                </Button>
+              </Box>
+
+              {eventData.clientMode === 'cliente' && (
+                <Box display='flex' flexDirection='column' gap={2}>
+                  <p>Tipo de cliente</p>
+                  <Select value={eventData.clientTypeId} onChange={(e) => setEventData({ ...eventData, clientTypeId: e.target.value })} required>
+                    {clientTypes.map((t) => (
+                      <MenuItem key={t.id} value={t.id}>
+                        {t.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <TextField label='Nombre del cliente' value={eventData.clientName} onChange={(e) => setEventData({ ...eventData, clientName: e.target.value })} required />
+                  <TextField label='Descripción del cliente' value={eventData.clientDescription} onChange={(e) => setEventData({ ...eventData, clientDescription: e.target.value })} />
+                </Box>
+              )}
+
+              {submitError && (
+                <Typography color='error' fontSize={14} textAlign='center'>
+                  {submitError}
+                </Typography>
+              )}
+
+              <Box display='flex' justifyContent='space-between' mt={2}>
+                <Button onClick={() => setActiveStep(1)}>Atrás</Button>
+                <Button
+                  variant='contained'
+                  onClick={() => {
+                    if (eventData.clientMode !== 'cliente') {
+                      if (!eventData.eventTypeId) {
+                        setSubmitError('Por favor completa los campos obligatorios');
+                        return;
+                      }
+                    } else {
+                      if (!eventData.eventTypeId || !eventData.clientTypeId || !eventData.clientName) {
+                        setSubmitError('Por favor completa los campos obligatorios');
+                        return;
+                      }
+                    }
+                    setSubmitError(null);
+                    handleSubmit();
+                  }}
+                  disabled={loading || eventData.clientMode === 'none'}
+                >
+                  Confirmar
+                  {loading && <CircularProgress size='20px' color='secondary' className={'ml-2'} />}
+                </Button>
+              </Box>
+            </Box>
+          )}
+          {activeStep === 3 && (
+            <Box display='flex' flexDirection='column' alignItems='center' mt={3} gap={2}>
+              <Typography variant='h6' mb={2}>
+                ¡Evento registrado exitosamente!
+              </Typography>
+              <Box display='flex' gap={2}>
+                <Button variant='outlined' onClick={handleClose}>
+                  Volver
+                </Button>
+                <Button variant='contained' color='primary' onClick={() => router.push(`/event/${eventAdded?.eventId}`)}>
+                  Ver dashboard
                 </Button>
               </Box>
             </Box>

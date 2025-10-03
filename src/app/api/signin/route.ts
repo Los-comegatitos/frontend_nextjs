@@ -7,20 +7,17 @@ export async function POST(request: Request) {
         firstName, 
         lastName, 
         email, 
-        telephone, 
-        birthDate, 
         password, 
-        user_Typeid 
+        user_Typeid,
     } = body;
     const hiddenPassword = Buffer.from(password).toString('base64')
     
     if (
+        firstName.length <= 0 || 
         email.length <= 0 || 
         lastName.length <= 0 || 
-        password.length <= 0 || 
-        telephone.length <= 0 || 
-        password.length <= 0 
-    ) return NextResponse.json({ ok: false }, { status: 401 });
+        password.length <= 0 )
+        return NextResponse.json({ ok: false }, { status: 401 });
     
     try {
         const data = await fetch(`${API_BACKEND}user`, {
@@ -32,8 +29,6 @@ export async function POST(request: Request) {
                 firstName: firstName as string, 
                 lastName: lastName as string, 
                 email: email as string, 
-                telephone: telephone as string, 
-                birthDate: birthDate, 
                 password: hiddenPassword, 
                 user_Typeid: parseInt(user_Typeid as string) 
             })
@@ -43,9 +38,9 @@ export async function POST(request: Request) {
         console.log(final);
         if (data.status == 201) {
             return NextResponse.json({ ok: true, body: 'Se ha registrado en la aplicación correctamente' });
-        } else return NextResponse.json({ ok: false }, { status: 401 });
+        } else return NextResponse.json({ ok: false, body: final['message']['description'] }, { status: 401 });
     } catch (error) {
         console.log(error);
-        return NextResponse.json({ ok: false }, { status: 401 });
+        return NextResponse.json({ ok: false, body: 'Ha sucedido un error' }, { status: 401 });
     }
 }

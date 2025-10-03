@@ -1,122 +1,209 @@
-import { CalendarMonth } from "@mui/icons-material";
-import {
-  IconCopy,
-  IconLayoutDashboard,
-  IconLogin,
-  IconMoodHappy,
-  IconTypography,
-  IconUserPlus,
-  IconUserCheck,
-  IconCalendarCheck,
-  IconBook,
-  IconCakeRoll,
-  IconFileDollar,
-} from "@tabler/icons-react";
+import { CalendarMonth } from '@mui/icons-material';
+import { IconCopy, IconLayoutDashboard, IconLogin, IconMoodHappy, IconTypography, IconUserPlus, IconUserCheck, IconCalendarCheck, IconBook, IconCakeRoll, IconFileDollar, IconBackhoe } from '@tabler/icons-react';
 
-import { uniqueId } from "lodash";
+import { uniqueId } from 'lodash';
 
-const Menuitems = [
+// Ya no en uso este default item pero lo dejo para referencias, evitar errores con lo de los demás, etc.
+export const Menuitems = [
   {
     navlabel: true,
-    subheader: "HOME",
+    subheader: 'HOME',
   },
 
   {
     id: uniqueId(),
-    title: "Dashboard",
+    title: 'Dashboard',
     icon: IconLayoutDashboard,
-    href: "/",
+    href: '/',
   },
   {
     navlabel: true,
-    subheader: "UTILITIES",
+    subheader: 'UTILITIES',
   },
   {
     id: uniqueId(),
-    title: "Typography",
+    title: 'Typography',
     icon: IconTypography,
-    href: "/utilities/typography",
+    href: '/utilities/typography',
   },
   {
     id: uniqueId(),
-    title: "Shadow",
+    title: 'Shadow',
     icon: IconCopy,
-    href: "/utilities/shadow",
+    href: '/utilities/shadow',
   },
   {
     navlabel: true,
-    subheader: "AUTH",
+    subheader: 'AUTH',
   },
   {
     id: uniqueId(),
-    title: "Iniciar sesión",
+    title: 'Iniciar sesión',
     icon: IconLogin,
-    href: "/authentication/login",
+    href: '/authentication/login',
   },
   {
     id: uniqueId(),
-    title: "Registrarte",
+    title: 'Registrarte',
     icon: IconUserPlus,
-    href: "/authentication/register",
+    href: '/authentication/register',
   },
   {
     navlabel: true,
-    subheader: " EXTRA",
+    subheader: ' EXTRA',
   },
   {
     id: uniqueId(),
-    title: "Icons",
+    title: 'Icons',
     icon: IconMoodHappy,
-    href: "/icons",
+    href: '/icons',
   },
   {
     id: uniqueId(),
-    title: "Catálogo",
+    title: 'Catálogo',
     icon: IconBook,
-    href: "/catalog",
+    href: '/catalog',
   },
   {
     id: uniqueId(),
-    title: "Eventos (PROVEEDORES)",
+    title: 'Eventos (PROVEEDORES)',
     icon: IconCalendarCheck,
-    href: "/events-providers",
-  },
-  {
-  id: uniqueId(),
-  title: "Cotizaciones (Organizador)",
-  icon: IconFileDollar,
-  href: "/quote_organizer",
+    href: '/events-providers',
   },
   {
     id: uniqueId(),
-    title: "Cotizaciones (Proveedor)",
+    title: 'Cotizaciones (Organizador)',
     icon: IconFileDollar,
-    href: "/supplier_quotes",
+    href: '/quote_organizer',
   },
   {
     id: uniqueId(),
-    title: "Tipos de servicio",
+    title: 'Cotizaciones (Proveedor)',
+    icon: IconFileDollar,
+    href: '/supplier_quotes',
+  },
+  {
+    id: uniqueId(),
+    title: 'Tipos de servicio',
     icon: IconCakeRoll,
-    href: "/service-types",
+    href: '/service-types',
   },
   {
     id: uniqueId(),
-    title: "Tipos de cliente",
+    title: 'Tipos de cliente',
     icon: IconUserCheck,
-    href: "/client-types",
+    href: '/client-types',
   },
   {
-  id: 'event',
-  title: 'Eventos',
-  icon: CalendarMonth, 
-  href: '/event', 
+    id: 'event',
+    title: 'Eventos',
+    icon: CalendarMonth,
+    href: '/event',
   },
   {
     id: uniqueId(),
-    title: "Tipos de evento",
+    title: 'Tipos de evento',
     icon: IconCalendarCheck,
-    href: "/event-types",
+    href: '/event-types',
   },
 ];
 
-export default Menuitems;
+export const AdminMenuitems = [
+  {
+    navlabel: true,
+    subheader: 'Dashboard',
+  },
+  {
+    id: uniqueId(),
+    title: 'Home',
+    icon: IconLayoutDashboard,
+    href: '/',
+  },
+  {
+    id: uniqueId(),
+    title: 'Tipos de servicio',
+    icon: IconCakeRoll,
+    href: '/service-types',
+  },
+  {
+    id: uniqueId(),
+    title: 'Tipos de cliente',
+    icon: IconUserCheck,
+    href: '/client-types',
+  },
+  {
+    id: uniqueId(),
+    title: 'Tipos de evento',
+    icon: IconCalendarCheck,
+    href: '/event-types',
+  },
+  {
+    id: uniqueId(),
+    title: 'Usuarios (WIP)',
+    icon: IconBackhoe,
+    href: '/wip',
+  },
+];
+
+export const OrganizerMenuitems = [
+  {
+    navlabel: true,
+    subheader: 'Dashboard',
+  },
+  {
+    id: uniqueId(),
+    title: 'Home',
+    icon: IconLayoutDashboard,
+    href: '/',
+  },
+  {
+    id: 'event',
+    title: 'Eventos',
+    icon: CalendarMonth,
+    href: '/event',
+  },
+  {
+    id: uniqueId(),
+    title: 'Estadísticas (WIP)',
+    icon: IconBackhoe,
+    href: '/wip',
+  },
+];
+
+
+export const ProviderMenuitems = [
+  {
+    navlabel: true,
+    subheader: 'Dashboard',
+  },
+  {
+    id: uniqueId(),
+    title: 'Home',
+    icon: IconLayoutDashboard,
+    href: '/',
+  },
+    {
+    id: uniqueId(),
+    title: 'Catálogo',
+    icon: IconBook,
+    href: '/catalog',
+  },
+  {
+    id: uniqueId(),
+    title: 'Eventos',
+    icon: IconCalendarCheck,
+    href: '/events-providers',
+  },
+  {
+    id: uniqueId(),
+    title: 'Cotizaciones',
+    icon: IconFileDollar,
+    href: '/supplier_quotes',
+  },
+  {
+    id: uniqueId(),
+    title: 'Tareas (WIP)',
+    icon: IconBackhoe,
+    href: '/wip',
+  },
+];

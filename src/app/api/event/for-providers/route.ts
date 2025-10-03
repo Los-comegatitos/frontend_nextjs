@@ -6,7 +6,7 @@ import { API_BACKEND } from "@/app/lib/definitions";
 export async function GET(req: Request) {
   try {
     const token = req.headers.get('token');
-    const res = await fetch(`${API_BACKEND}events/for-provider`, {
+    const res = await fetch(`${API_BACKEND}events/for-providerr`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },

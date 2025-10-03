@@ -76,7 +76,8 @@ export default function CatalogPage() {
   const [loading, setLoading] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
-  const fetchServiceTypes = async () => {
+  const fetchServiceTypes = React.useCallback(async () => {
+    if (!token) return;
     try {
       const res = await fetch(`/api/service-type`, { headers: { 'token': token as string, }, });
       const data = await res.json();
@@ -89,9 +90,10 @@ export default function CatalogPage() {
     } catch (err) {
       console.error('error:', err);
     }
-  };
+  }, [token]);
 
-  const fetchData = async () => {
+  const fetchData = React.useCallback(async () => {
+    if (!token) return;
     try {
       setLoadingTable(true);
       const res = await fetch(`/api/catalog`, { headers: { 'token': token as string, }, });
@@ -107,14 +109,13 @@ export default function CatalogPage() {
       setLoadingTable(false);
       console.error('Error', err);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
-    if (token) {
+    if (!token) return;
       fetchData();
       fetchServiceTypes();
-    }
-  }, [token]);
+  }, [fetchData, fetchServiceTypes, token]);
 
   const handleModifyDescription = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -230,7 +231,7 @@ export default function CatalogPage() {
   };
 
   return (
-    <PageContainer title='Catálogo' description='Catalog Page'>
+    <PageContainer title='Catálogo' description='Página de catálogo'>
       <DashboardCard title='Catálogo'>
         <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
           <Typography variant='h6' fontWeight={600} mb={2}>
