@@ -11,7 +11,7 @@ type Props = {
   onRefresh: () => void;
 };
 
-export default function TasksTab({ event }: Props) {
+export default function TasksTab({ token, event, onRefresh }: Props) {
   const [openModal, setOpenModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
@@ -32,6 +32,9 @@ export default function TasksTab({ event }: Props) {
         open={openModal}
         onClose={() => setOpenModal(false)}
         initialData={selectedTask || undefined}
+        eventId={event.eventId}
+        token={token}
+        onRefresh={onRefresh}
       />
     </>
   );

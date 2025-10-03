@@ -1,3 +1,4 @@
+//src/app/(DashboardLayout)/event/[eventId]/page.tsx
 'use client';
 import React, { SyntheticEvent, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -146,7 +147,7 @@ const EventPage = () => {
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={3} loading={loadingEvent} eventData={eventData}>
-          <p>teóricamente aquí la hu que hizo david</p>
+          <OrganizerQuotesPage eventId={eventData?.eventId} />
           <ExampleTabContent event={eventData!} />
         </CustomTabPanel>
 
