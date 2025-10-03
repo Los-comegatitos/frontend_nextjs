@@ -4,11 +4,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
 //listar tareas de un evento
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, params: { params: Promise<{ id: string }> }) {
   try {
     const token = req.headers.get('token');
+    const { id } = await params.params;
 
-    const res = await fetch(`${API_BACKEND}events/${params.id}/tasks`, {
+    const res = await fetch(`${API_BACKEND}events/${id}/tasks`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -23,12 +24,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 //crear tarea
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, params: { params: Promise<{ id: string }> }) {
   try {
     const token = req.headers.get('token');
     const body = await req.json();
+    const { id } = await params.params;
 
-    const res = await fetch(`${API_BACKEND}events/${params.id}/tasks`, {
+    const res = await fetch(`${API_BACKEND}events/${id}/tasks`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

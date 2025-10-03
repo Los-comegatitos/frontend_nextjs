@@ -1,12 +1,11 @@
 'use server';
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from '@/app/lib/definitions';
 
-export async function GET(req: Request, context: { params: { id?: string } }) {
-  const providerId = context.params?.id ?? '';
-
+export async function GET(req: NextRequest, params: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params.params;
     const token = req.headers.get('token');
     if (!token) {
       return NextResponse.json(
@@ -19,7 +18,7 @@ export async function GET(req: Request, context: { params: { id?: string } }) {
     const status = url.searchParams.get('status');
     const query = status ? `?status=${status}` : '';
 
-    const res = await fetch(`${API_BACKEND}quote/sent/${providerId}${query}`, {
+    const res = await fetch(`${API_BACKEND}quote/sent/${id}${query}`, {
       headers: { 'Authorization': `Bearer ${token}` },
     });
 

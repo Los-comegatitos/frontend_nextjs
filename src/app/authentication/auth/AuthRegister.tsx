@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { JSX, useState } from 'react';
 import { Box, Typography, Button, Stepper, Step, StepLabel, Stack, CircularProgress } from '@mui/material';
 import CustomTextField from '@/app/(DashboardLayout)/components/forms/theme-elements/CustomTextField';
 import Swal from 'sweetalert2';
@@ -8,7 +8,15 @@ import { redirect } from 'next/navigation';
 
 const steps = ['Seleccionar rol', 'Completar formulario', 'Registro exitoso'];
 
-const AuthRegister = () => {
+type Props = {
+  subtext: JSX.Element,
+  subtitle: JSX.Element
+}
+
+const AuthRegister = <PROPS extends Props, >({ subtext, subtitle, ...rest }: PROPS): JSX.Element =>  {
+  console.log(subtext);
+  console.log(subtitle);
+  
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -86,7 +94,7 @@ const AuthRegister = () => {
   };
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: '100%' }} {...rest}>
       <Stepper activeStep={activeStep} alternativeLabel>
         {steps.map((label) => (
           <Step key={label}>

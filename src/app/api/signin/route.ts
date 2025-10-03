@@ -1,8 +1,8 @@
 import { API_BACKEND } from "@/app/lib/definitions";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: Request) {
-    const body = await request.json();
+export async function POST(req: NextRequest) {
+    const body = await req.json();
     const { 
         firstName, 
         lastName, 

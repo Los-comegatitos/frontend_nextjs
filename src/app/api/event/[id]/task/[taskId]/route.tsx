@@ -9,9 +9,9 @@ interface Params {
 }
 
 // Actualizar una tarea
-export async function PATCH(req: NextRequest, { params }: { params: Params }) {
+export async function PATCH(req: NextRequest, params: { params: Promise<Params> }) {
   try {
-    const { id: eventId, taskId } = params;
+    const { id: eventId, taskId } = await params.params;
     const token = req.headers.get('token');
 
     if (!token) {
@@ -44,9 +44,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Params }) {
 }
 
 // Eliminar una tarea
-export async function DELETE(req: NextRequest, { params }: { params: Params }) {
+export async function DELETE(req: NextRequest, params: { params: Promise<Params> }) {
   try {
-    const { id: eventId, taskId } = params;
+    const { id: eventId, taskId } = await params.params;
     const token = req.headers.get('token');
 
     if (!token) {
