@@ -20,7 +20,14 @@ type Props = {
   onRefresh?: () => void;
 };
 
-export default function TaskFormModal({ open, onClose, initialData, eventId, token, onRefresh }: Props) {
+export default function TaskFormModal({
+  open,
+  onClose,
+  initialData,
+  eventId,
+  token,
+  onRefresh,
+}: Props) {
   const [form, setForm] = useState<Partial<Task>>({});
   const [providerName, setProviderName] = useState<string>('Cargando...');
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -48,19 +55,61 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, tok
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleDeleteConfirmed = async () => {
-    if (!eventId || !initialData || !token) return;
+  // CREAR nueva tarea
+  const handleCreate = async () => {
+    if (!eventId || !token) return;
+
+    const payload = {
+      name: form.name,
+      description: form.description,
+      dueDate: form.dueDate,
+      reminderDate: form.reminderDate,
+    };
 
     try {
-      const res = await fetch(`${BACKEND_URL}/events/${eventId}/tasks/${initialData.id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await fetch(`${BACKEND_URL}/events/${eventId}/tasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
 
       if (data.message.code === '000') {
-        showSucessAlert(`La tarea "${initialData.name}" fue eliminada exitosamente.`);
+        showSucessAlert(`La tarea "${form.name}" fue creada exitosamente.`);
+        onRefresh?.();
+        onClose();
+      } else {
+        showErrorAlert(data.message.description || 'No se pudo crear la tarea.');
+      }
+    } catch (err) {
+      console.error('Error al crear tarea:', err);
+      showErrorAlert('Ocurrió un error interno al crear la tarea.');
+    }
+  };
+
+  // ELIMINAR
+  const handleDeleteConfirmed = async () => {
+    if (!eventId || !initialData || !token) return;
+
+    try {
+      const res = await fetch(
+        `${BACKEND_URL}/events/${eventId}/tasks/${initialData.id}`,
+        {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.message.code === '000') {
+        showSucessAlert(
+          `La tarea "${initialData.name}" fue eliminada exitosamente.`
+        );
         onRefresh?.();
         onClose();
       } else {
@@ -74,6 +123,7 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, tok
     }
   };
 
+  // FINALIZAR
   const handleFinalize = async () => {
     if (!eventId || !initialData || !token) return;
 
@@ -92,7 +142,9 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, tok
       const data = await res.json();
 
       if (data.message.code === '000') {
-        showSucessAlert(`La tarea "${initialData.name}" fue finalizada exitosamente.`);
+        showSucessAlert(
+          `La tarea "${initialData.name}" fue finalizada exitosamente.`
+        );
         onRefresh?.();
         onClose();
       } else {
@@ -104,6 +156,7 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, tok
     }
   };
 
+  // MODIFICAR
   const handleUpdate = async () => {
     if (!eventId || !initialData || !token) return;
 
@@ -115,19 +168,24 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, tok
     };
 
     try {
-      const res = await fetch(`${BACKEND_URL}/events/${eventId}/tasks/${initialData.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updatePayload),
-      });
+      const res = await fetch(
+        `${BACKEND_URL}/events/${eventId}/tasks/${initialData.id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(updatePayload),
+        }
+      );
 
       const data = await res.json();
 
       if (data.message.code === '000') {
-        showSucessAlert(`La tarea "${initialData.name}" fue modificada exitosamente.`);
+        showSucessAlert(
+          `La tarea "${initialData.name}" fue modificada exitosamente.`
+        );
         onRefresh?.();
         onClose();
       } else {
@@ -143,7 +201,9 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, tok
     <>
       {/* Modal principal */}
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle>{initialData ? 'Detalle de tarea' : 'Crear tarea'}</DialogTitle>
+        <DialogTitle>
+          {initialData ? 'Detalle de tarea' : 'Crear tarea'}
+        </DialogTitle>
         <DialogContent dividers>
           <TextField
             margin="normal"
@@ -190,26 +250,45 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, tok
           />
         </DialogContent>
         <DialogActions>
-          {initialData && (
+          {!initialData ? (
             <>
-              <Button color="primary" onClick={handleUpdate}>Modificar</Button>
-              <Button color="success" onClick={handleFinalize}>Finalizar</Button>
-              <Button color="error" onClick={() => setConfirmOpen(true)}>Eliminar</Button>
+              <Button color="primary" onClick={handleCreate}>
+                Guardar
+              </Button>
+              <Button onClick={onClose}>Cerrar</Button>
+            </>
+          ) : (
+            <>
+              <Button color="primary" onClick={handleUpdate}>
+                Modificar
+              </Button>
+              <Button color="success" onClick={handleFinalize}>
+                Finalizar
+              </Button>
+              <Button color="error" onClick={() => setConfirmOpen(true)}>
+                Eliminar
+              </Button>
+              <Button onClick={onClose}>Cerrar</Button>
             </>
           )}
-          <Button onClick={onClose}>Cerrar</Button>
         </DialogActions>
       </Dialog>
 
       {/* Modal de confirmación */}
-      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth="xs">
+      <Dialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        maxWidth="xs"
+      >
         <DialogTitle>Confirmar eliminación</DialogTitle>
         <DialogContent dividers>
           {'¿Estás seguro de eliminar la tarea "' + initialData?.name + '"?'}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmOpen(false)}>Cancelar</Button>
-          <Button color="error" onClick={handleDeleteConfirmed}>Eliminar</Button>
+          <Button color="error" onClick={handleDeleteConfirmed}>
+            Eliminar
+          </Button>
         </DialogActions>
       </Dialog>
     </>
