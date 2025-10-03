@@ -47,30 +47,29 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, tok
   };
 
   const handleDeleteConfirmed = async () => {
-  if (!eventId || !initialData || !token) return;
+    if (!eventId || !initialData || !token) return;
 
-  try {
-    const res = await fetch(`/api/event/${eventId}/task/${initialData.id}`, {
-      method: 'DELETE',
-      headers: { token },
-    });
+    try {
+      const res = await fetch(`/api/event/${eventId}/task/${initialData.id}`, {
+        method: 'DELETE',
+        headers: { token },
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (res.status === 200 && data?.message?.code === '000') {
-      onRefresh?.();
-      onClose();
-    } else {
-      alert(data?.message?.description || 'Error al eliminar');
+      if (res.status === 200 && data?.message?.code === '000') {
+        onRefresh?.();
+        onClose();
+      } else {
+        alert(data?.message?.description || 'Error al eliminar');
+      }
+    } catch (err) {
+      console.error('Error al eliminar tarea:', err);
+      alert('Error interno al eliminar');
+    } finally {
+      setConfirmOpen(false);
     }
-  } catch (err) {
-    console.error('Error al eliminar tarea:', err);
-    alert('Error interno al eliminar');
-  } finally {
-    setConfirmOpen(false);
-  }
-};
-
+  };
 
   return (
     <>
@@ -136,7 +135,7 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, tok
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth="xs">
         <DialogTitle>Confirmar eliminación</DialogTitle>
         <DialogContent dividers>
-          ¿Estás seguro de eliminar la tarea "{initialData?.name}"?
+          {'¿Estás seguro de eliminar la tarea "' + initialData?.name + '"?'}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmOpen(false)}>Cancelar</Button>
