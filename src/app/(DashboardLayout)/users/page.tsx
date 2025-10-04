@@ -6,17 +6,17 @@ import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCa
 import TablePagination from '@mui/material/TablePagination'; // NEW
 import CircularProgress from '@mui/material/CircularProgress';
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
-import { AuxiliarType } from '@/interfaces/AuxiliarType';
 import { useAppContext } from '@/context/AppContext';
+import { User } from '@/interfaces/User';
 
-const EventTypesPage = () => {
+const UsersPage = () => {
   type ModalMode = 'add' | 'modify';
-  const [eventTypes, setEventTypes] = useState<AuxiliarType[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [modalMode, setModalMode] = useState<ModalMode>('add');
   const [openModal, setOpenModal] = useState(false);
   const [loadingTable, setLoadingTable] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [selectedType, setSelectedType] = useState<AuxiliarType | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const { token } = useAppContext();
 
   // pagination
@@ -24,16 +24,19 @@ const EventTypesPage = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [search, setSearch] = useState('');
 
-  // Traer los tipos de evento de la API para mostrarlos en la tabla.
-  const fetchEventTypes = React.useCallback(async () => {
+  // fetch client types (to table)
+  const fetchClientTypes = React.useCallback(async () => {
     if (!token) return;
     try {
       setLoadingTable(true);
-      const res = await fetch(`/api/event-type`, { headers: { token: token as string } });
+      const res = await fetch('/api/user', {
+        headers: { token: token as string },
+      });
+
       const data = await res.json();
 
       if (data.message.code === '000') {
-        setEventTypes(data.data);
+        setUsers(data.data);
       } else {
         showErrorAlert(data.message.description);
       }
@@ -46,8 +49,8 @@ const EventTypesPage = () => {
 
   useEffect(() => {
     if (!token) return;
-    fetchEventTypes();
-  }, [fetchEventTypes, token]);
+    fetchClientTypes();
+  }, [fetchClientTypes, token]);
 
   // pagination
   const handleChangePage = (event: unknown, newPage: number) => {
@@ -59,11 +62,12 @@ const EventTypesPage = () => {
     setPage(0);  
   };
 
-  const filteredTypes = eventTypes.filter((type) => type.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredUsers = users.filter((user) => user.email.toLowerCase().includes(search.toLowerCase()));
 
-  const paginatedTypes = filteredTypes.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const paginatedUsers = filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
   const handleAdd = () => {
-    setSelectedType({ id: '', name: '', description: '' });
+    setUser({ id: 0, firstName: '', lastName: '', email: '', typeuser: {id:1, name:'', description: ''} });
     setModalMode('add');
     setOpenModal(true);
   };
@@ -75,22 +79,24 @@ const EventTypesPage = () => {
     const formData = new FormData(event.currentTarget);
 
     const payload = {
-      name: formData.get('name') as string,
-      description: formData.get('description') as string,
+      firstName: formData.get('firstName') as string,
+      lastName: formData.get('lastName') as string,
+      email: formData.get('email') as string,
+      password: formData.get('password') as string,
     };
 
     try {
       let res;
       if (modalMode === 'modify') {
-        res = await fetch(`/api/event-type/${formData.get('id')}`, {
-          method: 'PATCH',
+        res = await fetch(`/api/user/update-password/${formData.get('id')}`, {
+          method: 'POST',
           headers: { token: token as string },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({password: formData.get('password') as string}),
         });
       }
 
       if (modalMode === 'add') {
-        res = await fetch(`/api/event-type`, {
+        res = await fetch(`/api/user/create-admin`, {
           method: 'POST',
           headers: { token: token as string },
           body: JSON.stringify(payload),
@@ -98,45 +104,22 @@ const EventTypesPage = () => {
       }
 
       const data = await res!.json();
-      if (data.message.code === '000') {
-        showSucessAlert(modalMode === 'add' ? 'Tipo de evento añadido exitosamente.' : 'Tipo de evento modificado exitosamente.');
+      if (data.message?.code === '000' || data.ok) {
+        showSucessAlert(modalMode === 'add' ? 'Administrador registrado exitosamente.' : 'Contraseña cambiada exitosamente.');
       } else {
         showErrorAlert(data.message.description);
       }
     } catch (err) {
       console.error('Error', err);
     } finally {
-      fetchEventTypes();
+      fetchClientTypes();
       setLoading(false);
       setOpenModal(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/event-type/${id}`, {
-        method: 'DELETE',
-        headers: { token: token as string },
-      });
-      const data = await res.json();
-
-      if (data.message.code === '000') {
-        showSucessAlert('Tipo de evento eliminado exitosamente');
-      } else {
-        showErrorAlert(data.message.description);
-      }
-    } catch (err) {
-      console.error('Error', err);
-    } finally {
-      fetchEventTypes();
-      setLoading(false);
-      setOpenModal(false);
-    }
-  };
-
-  const handleRowClick = (type: AuxiliarType) => {
-    setSelectedType(type);
+  const handleRowClick = (user: User) => {
+    setUser(user);
     setModalMode('modify');
     setOpenModal(true);
   };
@@ -147,12 +130,12 @@ const EventTypesPage = () => {
   };
 
   return (
-    <PageContainer title='Tipos de evento' description='Página de tipos de eventos'>
-      <DashboardCard title='Tipos de evento'>
+    <PageContainer title='Usuario' description='Página de Usuarios'>
+      <DashboardCard title='Usuarios'>
         <Box display='flex' justifyContent='flex-end' mb={2} gap={5}>
-          <TextField placeholder='Buscar por nombre...' variant='outlined' size='small' value={search} onChange={(e) => setSearch(e.target.value)} />
+          <TextField placeholder='Buscar por email...' variant='outlined' size='small' value={search} onChange={(e) => setSearch(e.target.value)} />
           <Button variant='contained' color='primary' onClick={handleAdd}>
-            Añadir
+            Añadir administrador
           </Button>
         </Box>
         <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
@@ -162,9 +145,14 @@ const EventTypesPage = () => {
             </Box>
           ) : (
             <>
-              <Table aria-label='event table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
+              <Table aria-label='client table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
                 <TableHead>
                   <TableRow>
+                    <TableCell>
+                      <Typography variant='subtitle2' fontWeight={600}>
+                        Email
+                      </Typography>
+                    </TableCell>
                     <TableCell>
                       <Typography variant='subtitle2' fontWeight={600}>
                         Nombre
@@ -172,32 +160,35 @@ const EventTypesPage = () => {
                     </TableCell>
                     <TableCell>
                       <Typography variant='subtitle2' fontWeight={600}>
-                        Descripción
+                        Rol
                       </Typography>
                     </TableCell>
                   </TableRow>
                 </TableHead>
 
                 <TableBody>
-                  {paginatedTypes.map((type) => (
+                  {paginatedUsers.map((user) => (
                     <TableRow
-                      key={type.id}
+                      key={user.id}
                       className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
                       onClick={() => {
-                        handleRowClick(type);
+                        handleRowClick(user);
                       }}
                     >
                       <TableCell>
-                        <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{type.name}</Typography>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{user.email}</Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{type.description}</Typography>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{user.firstName}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{user.typeuser.name}</Typography>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-              <TablePagination component='div' count={filteredTypes.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25, { value: -1, label: 'Todos' }]} />
+              <TablePagination component='div' count={filteredUsers.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25, { value: -1, label: 'Todos' }]} />
             </>
           )}
         </Box>
@@ -205,22 +196,22 @@ const EventTypesPage = () => {
 
       {/* modal */}
       <Dialog open={openModal} onClose={handleClose} maxWidth='sm' fullWidth>
-        <DialogTitle>{modalMode === 'add' ? 'Añadir tipo de evento' : 'Modificar tipo de evento'}</DialogTitle>
+        <DialogTitle>{modalMode === 'add' ? 'Registrar administrador' : 'Cambiar contraseña'}</DialogTitle>
         <DialogContent dividers>
-          {selectedType && (
+          {user && (
             <Box component='form' onSubmit={handleSubmit} display='flex' flexDirection='column' gap={2} mt={1}>
-              {modalMode === 'modify' && <TextField label='ID' name='id' defaultValue={selectedType.id} slotProps={{ input: { readOnly: true } }} />}
-              <TextField label='Nombre' name='name' defaultValue={selectedType.name} required />
-              <TextField label='Descripción' name='description' defaultValue={selectedType.description} required />
+              {modalMode === 'modify' && <TextField label='ID' name='id' defaultValue={user.id} slotProps={{ input: { readOnly: true } }} />}
+              <TextField label='Nombre' name='firstName' defaultValue={user.firstName} required slotProps={{ input: { readOnly: modalMode === 'modify'} }} />
+              <TextField label='Apellido' name='lastName' defaultValue={user.lastName} required slotProps={{ input: { readOnly: modalMode === 'modify' } }}/>
+              {modalMode === 'modify' && <TextField label='Telefono' name='telephone' defaultValue={user?.telephone} slotProps={{ input: { readOnly: true } }} />}
+              {modalMode === 'modify' && <TextField label='Fecha de nacimiento' name='birthDate' defaultValue={user?.birthDate} slotProps={{ input: { readOnly: true } }} />}
+              <TextField label='Email' name='email' defaultValue={user.email} required slotProps={{ input: { readOnly: modalMode === 'modify' } }}/>
+              <TextField label={modalMode === 'modify' ? 'Nueva contraseña' : 'Contraseña'} name='password' required />
+
               <Box display='flex' justifyContent='center' gap={2}>
-                {modalMode === 'modify' && (
-                  <Button variant='outlined' color='error' onClick={() => handleDelete(selectedType.id)} disabled={loading}>
-                    Eliminar
-                    {loading && <CircularProgress size='15px' className={'ml-2'} />}
-                  </Button>
-                )}
+
                 <Button variant='contained' type='submit' color='primary' disabled={loading}>
-                  {modalMode === 'add' ? 'Agregar' : 'Modificar'}
+                  {modalMode === 'add' ? 'Registrar administrador' : 'Cambiar contraseña'}
                   {loading && <CircularProgress size='15px' className={'ml-2'} />}
                 </Button>
                 <Button onClick={handleClose} color='secondary' disabled={loading}>
@@ -235,4 +226,4 @@ const EventTypesPage = () => {
   );
 };
 
-export default EventTypesPage;
+export default UsersPage;
