@@ -12,6 +12,7 @@ import { showErrorAlert } from '@/app/lib/swal';
 type Quote = {
   id?: number;
   name?: string;
+  description?: string;
   price?: number;
   quantity?: number;
   date?: string;
@@ -156,6 +157,9 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
                 Cotización #{selectedQuote.id}
               </Typography>
               <Typography><strong>Servicio:</strong> {selectedQuote.name}</Typography>
+              {selectedQuote.description && (
+                <Typography><strong>Descripción:</strong> {selectedQuote.description}</Typography>
+              )}
               <Typography><strong>Evento:</strong> {selectedQuote.eventName}</Typography>
               <Typography><strong>Precio:</strong> {selectedQuote.price}</Typography>
               <Typography><strong>Cantidad:</strong> {selectedQuote.quantity}</Typography>
@@ -164,6 +168,7 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
               </Typography>
               <Typography><strong>Proveedor:</strong> {selectedQuote.providerId}</Typography>
               <Typography><strong>Estado:</strong> {selectedQuote.status}</Typography>
+
               <Box mt={2} display="flex" justifyContent="flex-end">
                 <Button variant="contained" onClick={handleCloseModal}>Cerrar</Button>
               </Box>

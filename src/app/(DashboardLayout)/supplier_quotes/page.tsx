@@ -30,7 +30,7 @@ const SupplierQuotesPage = () => {
   const [loadingTable, setLoadingTable] = useState(false);
 
   const fetchQuotes = React.useCallback(async () => {
-    if (!token || !user?.id || !statusFilter) return;
+    if (!token || !user?.id) return;
 
     setLoadingTable(true);
     try {
