@@ -40,11 +40,14 @@ const AuthRegister = <PROPS extends Props, >({ ...rest }: PROPS): JSX.Element =>
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const emptyFields = Object.entries(formData).filter(([_, value]) => !value);
       // console.log('funciona validacion emptyFields', emptyFields);
-      if (emptyFields.length > 0) {
+      let message = '';
+      if (emptyFields.length > 0) message = 'Por favor, llena todos los campos antes de continuar.'
+      if (formData.password.length < 8) message = 'La contraseña debe tener al menos 8 caracteres.';
+      if (message) {
         Swal.fire({
           icon: 'error',
           title: 'Campos incompletos',
-          text: 'Por favor, llena todos los campos antes de continuar.',
+          text: message,
           confirmButtonColor: '#1976d2',
         });
         setLoading(false);
