@@ -1,5 +1,5 @@
 import { CalendarMonth } from '@mui/icons-material';
-import { IconCopy, IconLayoutDashboard, IconLogin, IconMoodHappy, IconTypography, IconUserPlus, IconUserCheck, IconCalendarCheck, IconBook, IconCakeRoll, IconFileDollar, IconBackhoe } from '@tabler/icons-react';
+import { IconCopy, IconLayoutDashboard, IconLogin, IconMoodHappy, IconTypography, IconUserPlus, IconUserCheck, IconCalendarCheck, IconBook, IconCakeRoll, IconFileDollar, IconBackhoe, IconUser } from '@tabler/icons-react';
 
 import { uniqueId } from 'lodash';
 
@@ -139,9 +139,9 @@ export const AdminMenuitems = [
   },
   {
     id: uniqueId(),
-    title: 'Usuarios (WIP)',
-    icon: IconBackhoe,
-    href: '/wip',
+    title: 'Usuarios',
+    icon: IconUser,
+    href: '/users',
   },
 ];
 
