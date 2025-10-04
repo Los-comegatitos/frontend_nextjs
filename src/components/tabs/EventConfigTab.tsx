@@ -80,6 +80,7 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
     clientDescription: event.client?.description || '',
   });
 
+  //Finalizar evento
   const handleAction = async (action: 'finalize' | 'cancel' | 'delete') => {
     const confirm = await Swal.fire({
       title: '¿Seguro de esta acción?',
@@ -117,6 +118,8 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
     }
   };
 
+
+  //Modificar
   const handleModify = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
