@@ -1,14 +1,14 @@
 'use server';
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from '@/app/lib/definitions';
 
 export async function GET(
-  req: Request,
+  req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: providerId } = await context.params;
+    const { id } = await context.params;
 
     const token = req.headers.get('token');
     if (!token) {
@@ -22,7 +22,7 @@ export async function GET(
     const status = url.searchParams.get('status');
     const query = status ? `?status=${status}` : '';
 
-    const res = await fetch(`${API_BACKEND}quote/sent/${providerId}${query}`, {
+    const res = await fetch(`${API_BACKEND}quote/sent/${id}${query}`, {
       headers: { 'Authorization': `Bearer ${token}` },
     });
 
