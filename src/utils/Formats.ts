@@ -21,3 +21,12 @@ export const showFormalDate = (dateString: string) => {
         hour12: true,
     });
 }
+
+export const showDateInput = (dateString: string) => {
+    const date = new Date(dateString);
+    try {
+        return date.toISOString().split('T')[0];
+    } catch (error) {
+        return '';
+    }
+}
