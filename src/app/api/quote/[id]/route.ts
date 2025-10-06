@@ -3,9 +3,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from '@/app/lib/definitions';
 
-export async function GET(req: NextRequest, params: { params: Promise<{ id: string }> }) {
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = await params.params;
+    const { id } = await context.params;
+
     const token = req.headers.get('token');
     if (!token) {
       return NextResponse.json(
