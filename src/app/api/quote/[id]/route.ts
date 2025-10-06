@@ -1,10 +1,10 @@
 'use server';
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from '@/app/lib/definitions';
 
 export async function GET(
-  req: Request,
+  req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -19,14 +19,14 @@ export async function GET(
     }
 
     const url = new URL(req.url);
-    const status = url.searchParams.get('status');
+    const status = url.searchParams.get('status') ?? '';
     const query = status ? `?status=${status}` : '';
 
     const res = await fetch(`${API_BACKEND}quote/sent/${providerId}${query}`, {
       headers: { 'Authorization': `Bearer ${token}` },
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     return NextResponse.json(data, { status: res.status });
   } catch (err) {
     console.error('Error en route /api/quote/[id]:', err);

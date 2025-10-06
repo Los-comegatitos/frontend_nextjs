@@ -214,8 +214,8 @@ const ClientTypesPage = () => {
           {selectedType && (
             <Box component='form' onSubmit={handleSubmit} display='flex' flexDirection='column' gap={2} mt={1}>
               {modalMode === 'modify' && <TextField label='ID' name='id' defaultValue={selectedType.id} slotProps={{ input: { readOnly: true } }} />}
-              <TextField label='Name' name='name' defaultValue={selectedType.name} required />
-              <TextField label='Description' name='description' defaultValue={selectedType.description} required />
+              <TextField label='Nombre' name='name' defaultValue={selectedType.name} required />
+              <TextField label='Descripción' name='description' defaultValue={selectedType.description} required />
               <Box display='flex' justifyContent='center' gap={2}>
                 {modalMode === 'modify' && (
                   <Button variant='outlined' color='error' onClick={() => handleDelete(selectedType.id)} disabled={loading}>

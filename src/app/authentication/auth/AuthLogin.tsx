@@ -59,12 +59,12 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
     if (data.ok) {
       const body = await data.json();
       createJwt(body.body);
-      await Swal.fire({
-        icon: 'success',
-        title: 'Inicio de sesión exitoso',
-        text: '¡Iniciaste sesión correctamente!',
-        confirmButtonColor: '#1976d2',
-      });
+      // await Swal.fire({
+      //   icon: 'success',
+      //   title: 'Inicio de sesión exitoso',
+      //   text: '¡Iniciaste sesión correctamente!',
+      //   confirmButtonColor: '#1976d2',
+      // });
       // console.log('Datos enviados:', formData);
       setLoading(false);
       // redirect('/');

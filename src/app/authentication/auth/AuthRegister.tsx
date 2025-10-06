@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { JSX, useState } from 'react';
 import { Box, Typography, Button, Stepper, Step, StepLabel, Stack, CircularProgress } from '@mui/material';
 import CustomTextField from '@/app/(DashboardLayout)/components/forms/theme-elements/CustomTextField';
 import Swal from 'sweetalert2';
@@ -8,7 +8,13 @@ import { redirect } from 'next/navigation';
 
 const steps = ['Seleccionar rol', 'Completar formulario', 'Registro exitoso'];
 
-const AuthRegister = () => {
+type Props = {
+  subtext: JSX.Element,
+  subtitle: JSX.Element
+}
+
+const AuthRegister = <PROPS extends Props, >({ ...rest }: PROPS): JSX.Element =>  {
+  
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -34,11 +40,14 @@ const AuthRegister = () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const emptyFields = Object.entries(formData).filter(([_, value]) => !value);
       // console.log('funciona validacion emptyFields', emptyFields);
-      if (emptyFields.length > 0) {
+      let message = '';
+      if (emptyFields.length > 0) message = 'Por favor, llena todos los campos antes de continuar.'
+      if (formData.password.length < 8) message = 'La contraseña debe tener al menos 8 caracteres.';
+      if (message) {
         Swal.fire({
           icon: 'error',
           title: 'Campos incompletos',
-          text: 'Por favor, llena todos los campos antes de continuar.',
+          text: message,
           confirmButtonColor: '#1976d2',
         });
         setLoading(false);
@@ -86,7 +95,7 @@ const AuthRegister = () => {
   };
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: '100%' }} {...rest}>
       <Stepper activeStep={activeStep} alternativeLabel>
         {steps.map((label) => (
           <Step key={label}>
