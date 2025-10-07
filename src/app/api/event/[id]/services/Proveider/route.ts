@@ -1,13 +1,15 @@
 'use server';
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-//lista los eventos que pueden ver los proveedores
-export async function GET(req: Request) {
+//listar proveedores de un evento
+export async function GET(req: NextRequest, params : { params:  Promise<{ id: string }> }) {
   try {
     const token = req.headers.get('token');
-    const res = await fetch(`${API_BACKEND}events/for-providerr`, {
+    const { id } = await params.params;
+
+    const res = await fetch(`${API_BACKEND}events/${id}/tasks`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -20,3 +22,4 @@ export async function GET(req: Request) {
     return NextResponse.json({ message: { code: '999', description: 'Error interno' } }, { status: 500 });
   }
 }
+
