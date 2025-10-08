@@ -1,5 +1,6 @@
 export const showDate = (dateString: string) => {
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return ''
     return date.toLocaleDateString('es-VE', {
         year: 'numeric',
         month: '2-digit',
@@ -12,6 +13,7 @@ export const showDate = (dateString: string) => {
 
 export const showFormalDate = (dateString: string) => {
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return ''
     return date.toLocaleDateString('es-VE', {
         year: 'numeric',
         month: 'long',
@@ -23,10 +25,12 @@ export const showFormalDate = (dateString: string) => {
 }
 
 export const showDateInput = (dateString: string) => {
-    const date = new Date(dateString);
     try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return ''
         return date.toISOString().split('T')[0];
     } catch (error) {
+        console.log(error);
         return '';
     }
 }
