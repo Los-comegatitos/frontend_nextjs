@@ -1,13 +1,15 @@
-export interface UserInterface { 
+interface UserType {
   id: number;
   name: string;
   description: string;
-  email: string;
-  telephone: string;
-  password: string;
-  user_Typeid: number;
 }
 
-
-/*Nota: lo llamamos distinto de lo habitual para que no choque con otro
-vector que se llama así*/
+export interface User {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  telephone?: string;
+  birthDate?: string;
+  typeuser: UserType;
+}

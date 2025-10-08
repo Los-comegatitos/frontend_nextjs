@@ -1,20 +1,15 @@
 'use server';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-export async function POST(req: NextRequest) {
+export async function GET(req: Request) {
   try {
     const token = req.headers.get('token');
-    const body = await req.json();
-
-    const res = await fetch(`${API_BACKEND}catalog/services`, {
-      method: 'POST',
+    const res = await fetch(`${API_BACKEND}user`, {
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
     });
 
     const data = await res.json();
@@ -24,3 +19,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: { code: '999', description: 'Error interno' } }, { status: 500 });
   }
 }
+

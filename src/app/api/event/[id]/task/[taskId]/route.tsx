@@ -5,9 +5,9 @@ import { API_BACKEND } from "@/app/lib/definitions";
 
 
 // Actualizar una tarea
-export async function PATCH(req: NextRequest, params : { params: Promise<{ taskId: string; eventId: string }> }) {
+export async function PATCH(req: NextRequest, params : { params: Promise<{ taskId: string; id: string }> }) {
   try {
-    const { taskId, eventId } = await params.params;
+    const { taskId, id } = await params.params;
     const token = req.headers.get('token'); 
 
     if (!token) {
@@ -19,7 +19,7 @@ export async function PATCH(req: NextRequest, params : { params: Promise<{ taskI
 
     const body = await req.json();
 
-    const res = await fetch(`${API_BACKEND}events/${eventId}/tasks/${taskId}`, {
+    const res = await fetch(`${API_BACKEND}events/${id}/tasks/${taskId}`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -41,10 +41,10 @@ export async function PATCH(req: NextRequest, params : { params: Promise<{ taskI
 
 
 // Eliminar una tarea
-export async function DELETE(req: NextRequest, params : { params: Promise<{ taskId: string; eventId: string }> }) {
+export async function DELETE(req: NextRequest, params : { params: Promise<{ taskId: string; id: string }> }) {
 
   try {
-    const { taskId, eventId } = await params.params;
+    const { taskId, id } = await params.params;
     const token = req.headers.get('token');
 
     if (!token) {
@@ -54,7 +54,7 @@ export async function DELETE(req: NextRequest, params : { params: Promise<{ task
       );
     }
 
-    const res = await fetch(`${API_BACKEND}events/${eventId}/tasks/${taskId}`, {
+    const res = await fetch(`${API_BACKEND}events/${id}/tasks/${taskId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,

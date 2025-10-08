@@ -9,6 +9,7 @@ import PageContainer from '@/app/(DashboardLayout)/components/container/PageCont
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { useAppContext } from '@/context/AppContext';
 import { showErrorAlert } from '@/app/lib/swal';
+import { showDate } from '@/utils/Formats';
 
 type Quote = {
   id?: number;
@@ -30,7 +31,7 @@ const SupplierQuotesPage = () => {
   const [loadingTable, setLoadingTable] = useState(false);
 
   const fetchQuotes = React.useCallback(async () => {
-    if (!token || !user?.id || !statusFilter) return;
+    if (!token || !user?.id) return;
 
     setLoadingTable(true);
     try {
@@ -114,7 +115,7 @@ const SupplierQuotesPage = () => {
                         <TableCell>{q.price}</TableCell>
                         <TableCell>{q.quantity}</TableCell>
                         <TableCell>{q.status}</TableCell>
-                        <TableCell>{q.date ? new Date(q.date).toLocaleDateString() : '-'}</TableCell>
+                        <TableCell>{showDate(q.date!)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
-import { Box, Typography, Button, Stack, Select, MenuItem, CircularProgress } from "@mui/material";
-import CustomTextField from "@/app/(DashboardLayout)/components/forms/theme-elements/CustomTextField";
-import Swal from "sweetalert2";
-import { redirect } from "next/navigation";
+import React, { JSX, useState } from 'react';
+import { Box, Typography, Button, Stepper, Step, StepLabel, Stack, CircularProgress } from '@mui/material';
+import CustomTextField from '@/app/(DashboardLayout)/components/forms/theme-elements/CustomTextField';
+import Swal from 'sweetalert2';
+import { redirect } from 'next/navigation';
 
 interface registerType {
   title?: string;
@@ -12,7 +12,14 @@ interface registerType {
   subtext?: React.ReactNode;
 }
 
-const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
+type Props = {
+  subtext: JSX.Element,
+  subtitle: JSX.Element
+}
+
+const AuthRegister = <PROPS extends Props, >({ ...rest }: PROPS): JSX.Element =>  {
+  
+  const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -41,18 +48,36 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
     
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const emptyFields = Object.entries(formData).filter(([_, value]) => !value);
+  const handleNext = async () => {
+    if (activeStep === 1) {
+      // Validar y enviar datos solo en el segundo paso
+      setLoading(true);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const emptyFields = Object.entries(formData).filter(([_, value]) => !value);
+      // console.log('funciona validacion emptyFields', emptyFields);
+      let message = '';
+      if (emptyFields.length > 0) message = 'Por favor, llena todos los campos antes de continuar.'
+      if (formData.password.length < 8) message = 'La contraseña debe tener al menos 8 caracteres.';
+      if (message) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Campos incompletos',
+          text: message,
+          confirmButtonColor: '#1976d2',
+        });
+        setLoading(false);
+        return;
+      }
 
-    if (emptyFields.length > 0) {
-      Swal.fire({
-        icon: "error",
-        title: "Campos incompletos",
-        text: "Por favor, llena todos los campos antes de continuar.",
-        confirmButtonColor: "#1976d2",
+      const data = await fetch('/api/signin', {
+        method: 'POST',
+        body: JSON.stringify({
+          firstName: formData.name,
+          lastName: formData.lastname,
+          email: formData.email,
+          password: formData.password,
+          user_Typeid: formData.userType,
+        }),
       });
       setLoading(false);
       return;
@@ -107,11 +132,40 @@ const AuthRegister = ({ title, subtitle, subtext }: registerType) => {
   };
 
   return (
-    <>
-      {title && (
-        <Typography fontWeight="700" variant="h2" mb={1}>
-          {title}
-        </Typography>
+    <Box sx={{ width: '100%' }} {...rest}>
+      <Stepper activeStep={activeStep} alternativeLabel>
+        {steps.map((label) => (
+          <Step key={label}>
+            <StepLabel>{label}</StepLabel>
+          </Step>
+        ))}
+      </Stepper>
+
+      {/* step 1 */}
+      {activeStep === 0 && (
+        <Box sx={{ mt: 4, textAlign: 'center' }}>
+          <Typography variant='h6' mb={2}>
+            Selecciona el tipo de usuario
+          </Typography>
+          <Stack direction='row' spacing={4} justifyContent='center'>
+            <Box>
+              <Button variant='contained' color={formData.userType === '2' ? 'primary' : 'inherit'} onClick={() => setFormData({ ...formData, userType: '2' })}>
+                Proveedor
+              </Button>
+              <Typography variant='body2' mt={1}>
+                Ofrece productos o servicios para los eventos.
+              </Typography>
+            </Box>
+            <Box>
+              <Button variant='contained' color={formData.userType === '3' ? 'primary' : 'inherit'} onClick={() => setFormData({ ...formData, userType: '3' })}>
+                Organizador
+              </Button>
+              <Typography variant='body2' mt={1}>
+                Planifica y gestiona la organización de los eventos.
+              </Typography>
+            </Box>
+          </Stack>
+        </Box>
       )}
 
       {subtext}

@@ -1,20 +1,26 @@
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { API_BACKEND } from "@/app/lib/definitions";
+import { API_BACKEND } from '@/app/lib/definitions';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest, params: { params: Promise<{ id: string }> }) {
   try {
     const token = req.headers.get('token');
     const body = await req.json();
 
-    const res = await fetch(`${API_BACKEND}catalog/services`, {
+    const { password } = body;
+    const hiddenPassword = Buffer.from(password).toString('base64');
+
+    const { id } = await params.params;
+    const res = await fetch(`${API_BACKEND}user/update-password/${id}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        password: hiddenPassword,
+      }),
     });
 
     const data = await res.json();

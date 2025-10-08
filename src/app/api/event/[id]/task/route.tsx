@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
 //listar tareas de un evento
-export async function GET(req: NextRequest, params : { params:  Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, params: { params: Promise<{ id: string }> }) {
   try {
     const token = req.headers.get('token');
     const { id } = await params.params;

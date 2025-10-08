@@ -1,10 +1,9 @@
 'use server';
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-//lista los eventos que pueden ver los proveedores
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const token = req.headers.get('token');
     const res = await fetch(`${API_BACKEND}events/for-providerr`, {
