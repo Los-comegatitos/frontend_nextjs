@@ -69,8 +69,6 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
       setLoading(false);
       // redirect('/');
       router.push('/');
-      window.location.reload()
-      // router.push('/');
     } else {
       // TODO PONER ESTO CON DATA DEL BACK QUE DEVUELVA
       const final = await data.json();
