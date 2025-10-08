@@ -65,7 +65,6 @@ export default function ProviderTab({ token, event }: Props) {
   return (
     <ProviderList
       providers={providers}
-      onAdd={() => {}}
       onView={() => {}}
     />
   );
