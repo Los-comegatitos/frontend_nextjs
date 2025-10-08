@@ -1,12 +1,12 @@
-import { Box, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { ProviderWithService } from '@/interfaces/Provider';
+import { Box, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 
 type Props = {
   providers: ProviderWithService[];
+  onAdd: () => void;
   onView: (provider: ProviderWithService) => void;
 };
 
-//esto es como el html
 export default function ProviderList({ providers, onView }: Props) {
   return (
     <Box>
