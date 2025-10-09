@@ -14,3 +14,52 @@
   border-top-right-radius: 15px;
   border-bottom-right-radius: 15px;
 }
+
+/* UI de Comentarios de Tarea  */
+.task-comment-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+.task-comment-card {
+  width: 100%;
+  max-width: 800px;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+}
+
+.task-comment-title {
+  color: #2A3547;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.task-comment-upload,
+.task-comment-box {
+  margin-bottom: 1.5rem;
+}
+
+.task-comment-upload .label,
+.task-comment-box .label {
+  color: #5A6A85;
+  margin-bottom: 0.5rem;
+  display: block;
+  font-weight: 500;
+}
+
+.task-comment-actions {
+  text-align: right;
+}
+
+.task-comment-actions button {
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+}
+

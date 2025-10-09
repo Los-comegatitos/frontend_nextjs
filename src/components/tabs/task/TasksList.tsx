@@ -7,16 +7,32 @@ import {
   TableHead,
   TableRow,
   Typography,
+  IconButton,
 } from '@mui/material';
+import Image from 'next/image';
 import { Task } from '@/interfaces/Task';
+import { useRouter } from 'next/navigation';
 
 type Props = {
   tasks: Task[];
   onAdd: () => void;
   onView: (task: Task) => void;
+  eventId?: string;
 };
 
-export default function TaskList({ tasks, onAdd, onView }: Props) {
+export default function TaskList({ tasks, onAdd, onView, eventId }: Props) {
+  const router = useRouter();
+
+  
+  const handleComments = (taskId: string) => {
+    console.log('Navegando en comentarios:', { eventId, taskId });
+    if (!eventId) {
+      console.error('Error: eventId no definido.');
+      return;
+    }
+    router.push(`/events/${eventId}/tasks/${taskId}/comments`);
+  };
+
   return (
     <Box>
       <Box display="flex" justifyContent="flex-end" mb={2}>
@@ -44,6 +60,7 @@ export default function TaskList({ tasks, onAdd, onView }: Props) {
               <TableCell>Nombre</TableCell>
               <TableCell>Descripción</TableCell>
               <TableCell>Estado</TableCell>
+              <TableCell align="center">Comentarios</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -51,12 +68,24 @@ export default function TaskList({ tasks, onAdd, onView }: Props) {
               <TableRow
                 key={task.id}
                 hover
-                onClick={() => onView(task)}
                 style={{ cursor: 'pointer' }}
               >
-                <TableCell>{task.name}</TableCell>
-                <TableCell>{task.description}</TableCell>
-                <TableCell>{task.status}</TableCell>
+                <TableCell onClick={() => onView(task)}>{task.name}</TableCell>
+                <TableCell onClick={() => onView(task)}>{task.description}</TableCell>
+                <TableCell onClick={() => onView(task)}>{task.status}</TableCell>
+                <TableCell align="center">
+                  <IconButton
+                    onClick={() => handleComments(task.id)}
+                    color="primary"
+                  >
+                    <Image
+                      src="/images/icons/message_9351720.png"
+                      alt="Comentarios"
+                      width={22}
+                      height={22}
+                    />
+                  </IconButton>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

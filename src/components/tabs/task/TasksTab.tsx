@@ -14,6 +14,10 @@ type Props = {
 export default function TasksTab({ token, event, onRefresh }: Props) {
   const [openModal, setOpenModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  console.log('EVENT ID EN TASKTAB:', event.eventId);
+
+  
+
 
   const handleAdd = () => {
     setSelectedTask(null);
@@ -27,7 +31,13 @@ export default function TasksTab({ token, event, onRefresh }: Props) {
 
   return (
     <>
-      <TaskList tasks={event.tasks || []} onAdd={handleAdd} onView={handleView} />
+      <TaskList
+        tasks={event.tasks || []}
+        onAdd={handleAdd}
+        onView={handleView}
+        eventId={event.eventId}
+      />
+
       <TaskFormModal
         open={openModal}
         onClose={() => setOpenModal(false)}
