@@ -33,7 +33,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-  ],
+, "src/components/chatbot/TheChatBot.js"  ],
   "exclude": [
     "node_modules"
   ]
