@@ -4,6 +4,7 @@ import { Task } from '@/interfaces/Task';
 import { Event } from '@/interfaces/Event';
 import TaskList from './TasksList';
 import TaskFormModal from './TasksFormModal';
+import { useRouter } from 'next/navigation';
 
 type Props = {
   token: string;
@@ -14,10 +15,8 @@ type Props = {
 export default function TasksTab({ token, event, onRefresh }: Props) {
   const [openModal, setOpenModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  console.log('EVENT ID EN TASKTAB:', event.eventId);
-
-  
-
+  const router = useRouter();
+  console.log('EVENT ID EN TASKTAB:', event.eventId);  
 
   const handleAdd = () => {
     setSelectedTask(null);
@@ -29,6 +28,10 @@ export default function TasksTab({ token, event, onRefresh }: Props) {
     setOpenModal(true);
   };
 
+  const handleComment = (task: Task) => {
+    router.push(`/events/${event.eventId}/tasks/${task.id}/comments?token=${token}`);
+  };
+
   return (
     <>
       <TaskList
@@ -36,6 +39,7 @@ export default function TasksTab({ token, event, onRefresh }: Props) {
         onAdd={handleAdd}
         onView={handleView}
         eventId={event.eventId}
+        onComment={handleComment} 
       />
 
       <TaskFormModal

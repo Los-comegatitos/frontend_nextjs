@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { showSucessAlert, showErrorAlert } from '@/app/lib/swal';
+import { useSearchParams } from 'next/navigation';
 
 interface Comment {
   id: string;
@@ -29,13 +30,15 @@ interface TaskSummary {
 }
 
 export default function CommentsPage() {
-  const { eventId, taskId } = useParams<{ eventId: string; taskId: string }>();
+  const { EventId: eventId, taskId } = useParams();
   const [taskName, setTaskName] = useState<string>('Cargando...');
   const [comment, setComment] = useState<string>('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
   const UploadIcon = "/images/icons/upload.png";
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
 
 
   // Buscar nombre de la tarea
@@ -47,15 +50,29 @@ export default function CommentsPage() {
         return;
       }
       try {
-        const res = await fetch(`${API_BASE_URL}events/${eventId}/tasks`);
-        const data = await res.json();
+        const res = await fetch(`${API_BASE_URL}events/${eventId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
 
-        if (res.ok && data.data) {
-          const tasks: TaskSummary[] = data.data;
-          const found = tasks.find((t) => t.id === taskId);
-          setTaskName(found?.name || 'Tarea sin nombre');
+        const data = await res.json();
+        console.log("Resultado del fetch de evento:", data);
+
+        if (res.ok) {
+          const event = data.data ?? data;
+          const found = event?.tasks?.find((t: TaskSummary) => t.id === taskId);
+
+          if (found) {
+            setTaskName(found.name);
+          } else {
+            console.warn(`No se encontró la tarea con id ${taskId}`);
+            setTaskName('Tarea no encontrada');
+          }
         } else {
-          setTaskName('Tarea no encontrada');
+          console.error('Error HTTP al obtener evento:', res.status);
+          setTaskName('Error al obtener datos del evento');
         }
       } catch (err) {
         console.error('Error al obtener la tarea:', err);
@@ -63,8 +80,8 @@ export default function CommentsPage() {
       } finally {
         setLoading(false);
       }
-    }
 
+    }
     if (eventId && taskId) fetchTask();
   }, [eventId, taskId, API_BASE_URL]);
 
