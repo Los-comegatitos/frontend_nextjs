@@ -12,10 +12,9 @@ import {
   ListItemText,
 } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { showSucessAlert, showErrorAlert } from '@/app/lib/swal';
-import { useSearchParams } from 'next/navigation';
 
 interface Comment {
   id: string;
@@ -24,9 +23,21 @@ interface Comment {
   date: string;
 }
 
-interface TaskSummary {
+interface BackendComment {
+  _id: string;
+  description: string;
+  userType: 'organizer' | 'provider';
+  date: string;
+}
+
+interface BackendTask {
   id: string;
   name: string;
+  comments?: BackendComment[];
+}
+
+interface BackendEvent {
+  tasks: BackendTask[];
 }
 
 export default function CommentsPage() {
@@ -40,13 +51,11 @@ export default function CommentsPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
-
   // Buscar nombre de la tarea
   useEffect(() => {
     async function fetchTask() {
       if (!eventId || !taskId || !API_BASE_URL) { 
         setTaskName('Error: IDs o URL base faltantes.');
-        setLoading(false);
         return;
       }
       try {
@@ -58,34 +67,73 @@ export default function CommentsPage() {
         });
 
         const data = await res.json();
-        console.log("Resultado del fetch de evento:", data);
 
-        if (res.ok) {
-          const event = data.data ?? data;
-          const found = event?.tasks?.find((t: TaskSummary) => t.id === taskId);
+        if (res.ok && data?.data) {
+          const event: BackendEvent = data.data;
+          const found = event.tasks.find((t) => t.id === taskId);
 
           if (found) {
             setTaskName(found.name);
           } else {
-            console.warn(`No se encontró la tarea con id ${taskId}`);
             setTaskName('Tarea no encontrada');
           }
         } else {
-          console.error('Error HTTP al obtener evento:', res.status);
           setTaskName('Error al obtener datos del evento');
         }
       } catch (err) {
         console.error('Error al obtener la tarea:', err);
         setTaskName('Error al cargar tarea');
+      }
+    }
+    fetchTask();
+  }, [eventId, taskId, API_BASE_URL, token]);
+
+  // Obtener comentarios desde la tarea
+  useEffect(() => {
+    async function fetchComments() {
+      if (!eventId || !taskId || !API_BASE_URL) return;
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE_URL}events/${eventId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data?.data) {
+          setComments([]);
+          return;
+        }
+
+        const event: BackendEvent = data.data;
+        const task = event.tasks.find((t) => t.id === taskId);
+        if (!task) {
+          setComments([]);
+          return;
+        }
+
+        const mappedComments: Comment[] = (task.comments ?? []).map((c) => ({
+          id: c._id,
+          text: c.description,
+          author: c.userType === 'organizer' ? 'Organizador' : 'Proveedor',
+          date: new Date(c.date).toLocaleString(),
+        }));
+
+        setComments(mappedComments);
+      } catch (err) {
+        console.error('Error al cargar comentarios:', err);
+        setComments([]);
       } finally {
         setLoading(false);
       }
-
     }
-    if (eventId && taskId) fetchTask();
-  }, [eventId, taskId, API_BASE_URL]);
 
-  // Enviar comentario (no funciona, Ricardo le pondrá la lógica
+    fetchComments();
+  }, [eventId, taskId, API_BASE_URL, token]);
+
+  // Enviar comentario (solo añade localmente)
   const handleSendComment = async () => {
     if (!comment.trim()) {
       showErrorAlert('Escribe un comentario antes de enviarlo.');
@@ -123,12 +171,10 @@ export default function CommentsPage() {
         boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
       }}
     >
-      {/* Nombre de la tarea */}
       <Typography variant="h5" fontWeight={600} mb={3}>
         {taskName}
       </Typography>
 
-      {/* Subida de archivos */}
       <Paper
         elevation={0}
         sx={{
@@ -159,7 +205,6 @@ export default function CommentsPage() {
         />
       </Paper>
 
-      {/* Cuadro para comentar */}
       <TextField
         fullWidth
         multiline
@@ -179,7 +224,6 @@ export default function CommentsPage() {
         Enviar comentario
       </Button>
 
-      {/* Lista de comentarios */}
       <Box mt={4}>
         <Typography variant="h6" mb={2}>
           Comentarios
@@ -197,18 +241,17 @@ export default function CommentsPage() {
                 >
                   <ListItemText
                     primary={
-                      <Typography fontWeight={600}>{c.author}</Typography>
+                      <Typography component="span" fontWeight={600}>
+                        {c.author}
+                      </Typography>
                     }
                     secondary={
                       <>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography component="span" variant="body2" color="text.secondary">
                           {c.text}
                         </Typography>
-                        <Typography
-                          variant="caption"
-                          color="text.disabled"
-                          display="block"
-                        >
+                        <br />
+                        <Typography component="span" variant="caption" color="text.disabled">
                           {c.date}
                         </Typography>
                       </>
