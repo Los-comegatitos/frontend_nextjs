@@ -1,4 +1,3 @@
-// src/components/tabs/EventConfigTab.tsx
 'use client';
 import React, { useEffect, useState } from 'react';
 import { Box, Button, CircularProgress, Dialog, DialogContent, DialogTitle, MenuItem, Select, TextField, Stack } from '@mui/material';

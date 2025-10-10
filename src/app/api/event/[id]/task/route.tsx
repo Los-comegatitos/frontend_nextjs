@@ -19,6 +19,8 @@ export async function GET(req: NextRequest, params: { params: Promise<{ id: stri
     return NextResponse.json(data, { status: res.status });
   } catch (error) {
     console.error(error);
+    
+    
     return NextResponse.json({ message: { code: '999', description: 'Error interno' } }, { status: 500 });
   }
 }
