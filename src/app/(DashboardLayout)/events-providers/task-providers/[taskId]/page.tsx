@@ -51,7 +51,7 @@ export default function CommentsPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
-  // se reutiliza esta funcion para cargar comentarios
+ 
   const fetchComments = React.useCallback(async () => {
     if (!eventId || !taskId || !API_BASE_URL || !token) return;
     setLoading(true);
