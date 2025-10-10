@@ -393,7 +393,7 @@ export default function CommentsPage() {
               {files.map((c) => (
                 <ListItem
                   key={c.id}
-                  sx={{ borderBottom: '1px solid #EAEFF4', mb: 1 }}
+                  sx={{ borderBottom: '1px solid #EAEFF4', mb: 1, ":hover": { textDecorationLine: 'underline', cursor: 'pointer' } }}
                 >
                   <ListItemText
                     primary={
