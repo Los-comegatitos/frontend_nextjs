@@ -29,23 +29,24 @@ export default function TaskProvidersPage() {
   const token = searchParams.get('token');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
   const router = useRouter();
 
   useEffect(() => {
     async function fetchTasks() {
-      if (!eventId || !API_BASE_URL) return;
+      if (!eventId) return;
+      setLoading(true);
+
       try {
-        const res = await fetch(`${API_BASE_URL}events/${eventId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const res = await fetch(`/api/event/${eventId}/task/provider`, {
+          headers: { token: token || '' },
         });
+
         const data = await res.json();
 
-        if (res.ok && data?.data?.tasks) {
-          setTasks(data.data.tasks);
+        if (res.ok && Array.isArray(data?.data?.data)) {
+          setTasks(data.data.data);
         } else {
+          setTasks([]);
           showErrorAlert('No se pudieron obtener las tareas del evento.');
         }
       } catch (error) {
@@ -55,15 +56,17 @@ export default function TaskProvidersPage() {
         setLoading(false);
       }
     }
-    fetchTasks();
-  }, [eventId, API_BASE_URL, token]);
 
-  if (loading)
+    fetchTasks();
+  }, [eventId, token]);
+
+  if (loading) {
     return (
       <Box display="flex" justifyContent="center" mt={5}>
         <CircularProgress />
       </Box>
     );
+  }
 
   return (
     <Box
