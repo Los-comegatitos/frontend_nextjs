@@ -69,7 +69,7 @@ export default function TaskFormModal({
     setForm(initialData || {});
 
     const loadAssignedProvider = async () => {
-      if (!eventId || !token || !initialData?.associatedProviderId) {
+      if (!eventId || !token || !initialData?.associatedProviderId || !API_BASE_URL) {
         setProviderName("No se ha asignado un proveedor");
         return;
       }
@@ -103,7 +103,7 @@ export default function TaskFormModal({
     };
 
     loadAssignedProvider();
-  }, [initialData, eventId, token]);
+  }, [initialData, eventId, token, API_BASE_URL]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
