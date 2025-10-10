@@ -9,9 +9,10 @@ import { BackendProviderResponse } from '@/interfaces/ProviderResponse';
 type Props = {
   token: string;
   event: Event;
+  onRefresh: () => void;
 };
 
-export default function ProviderTab({ token, event }: Props) {
+export default function ProviderTab({ token, event}: Props) {
   const [providers, setProviders] = useState<ProviderWithService[]>([]);
   const [loading, setLoading] = useState(true);
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;

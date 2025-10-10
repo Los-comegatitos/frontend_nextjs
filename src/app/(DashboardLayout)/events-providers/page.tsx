@@ -126,27 +126,58 @@ const EventsProvidersPage = () => {
                         Fecha del evento
                       </Typography>
                     </TableCell>
+                    <TableCell align="center">
+                    <Typography variant='subtitle2' fontWeight={600}>
+                      Tareas
+                    </Typography>
+                  </TableCell>
                   </TableRow>
                 </TableHead>
 
                 <TableBody>
                   {events.map((event) => (
-                    <TableRow
-                      key={event.name}
-                      className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
-                      onClick={() => {
-                        handleRowClick(event);
-                      }}
-                    >
+                      <TableRow
+                        key={event.name}
+                        className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
+                        onClick={() => {
+                          handleRowClick(event);
+                        }}
+                      >
                       <TableCell>
-                        <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{event.name}</Typography>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>
+                          {event.name}
+                        </Typography>
                       </TableCell>
+
                       <TableCell>
-                        <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{showDate(event.eventDate)}</Typography>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>
+                          {showDate(event.eventDate)}
+                        </Typography>
+                      </TableCell>
+
+                      <TableCell align="center">
+                        <Button
+                          onClick={() => {
+                            window.location.href = `/events-providers/task-providers?eventId=${event.eventId}&token=${token}`;
+                          }}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <img
+                            src="/images/icons/lista-de-verificacion.png"
+                            alt="Ver tareas"
+                            width={28}
+                            height={28}
+                          />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
+
               </Table>
               {events.length === 0 && (
                 <Box
