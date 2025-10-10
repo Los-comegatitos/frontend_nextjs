@@ -10,6 +10,7 @@ import { useAppContext } from '@/context/AppContext';
 import { FilteredEvent } from '@/interfaces/Event';
 import { showDate } from '@/utils/Formats';
 import { Quote } from '@/interfaces/Quote';
+import Image from 'next/image';
 
 const EventsProvidersPage = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -166,7 +167,7 @@ const EventsProvidersPage = () => {
                             cursor: 'pointer',
                           }}
                         >
-                          <img
+                          <Image
                             src="/images/icons/lista-de-verificacion.png"
                             alt="Ver tareas"
                             width={28}

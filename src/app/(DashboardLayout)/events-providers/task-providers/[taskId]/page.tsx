@@ -11,7 +11,7 @@ import {
   ListItem,
   ListItemText,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { showSucessAlert, showErrorAlert } from '@/app/lib/swal';
@@ -52,8 +52,8 @@ export default function CommentsPage() {
   const token = searchParams.get('token');
 
   // se reutiliza esta funcion para cargar comentarios
-  const fetchComments = async () => {
-    if (!eventId || !taskId || !API_BASE_URL) return;
+  const fetchComments = React.useCallback(async () => {
+    if (!eventId || !taskId || !API_BASE_URL || !token) return;
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}events/${eventId}`, {
@@ -90,12 +90,12 @@ export default function CommentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE_URL, eventId, taskId, token]);
 
   // Buscar nombre de la tarea
   useEffect(() => {
     async function fetchTask() {
-      if (!eventId || !taskId || !API_BASE_URL) { 
+      if (!eventId || !taskId || !API_BASE_URL || !token) { 
         setTaskName('Error: IDs o URL base faltantes.');
         return;
       }
@@ -132,7 +132,7 @@ export default function CommentsPage() {
   // caragar comentarios inicialmente
   useEffect(() => {
     fetchComments();
-  }, [eventId, taskId, API_BASE_URL, token]);
+  }, [fetchComments]);
 
   // enviar comentario
   const handleSendComment = async () => {
