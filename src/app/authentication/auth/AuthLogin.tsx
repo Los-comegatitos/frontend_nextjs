@@ -6,8 +6,9 @@ import { showInfoAlert } from '@/app/lib/swal';
 import CustomTextField from '@/app/(DashboardLayout)/components/forms/theme-elements/CustomTextField';
 import Swal from 'sweetalert2';
 // import { login } from "@/actions/auth";
-import { redirect } from 'next/navigation';
+// import { redirect } from 'next/navigation';
 import { createJwt } from '@/app/lib/session';
+import { useRouter } from 'next/navigation';
 // import { login } from "@/app/actions/auth";
 // import { cookies } from "next/headers";
 // import Swal from "sweetalert2";
@@ -25,6 +26,7 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
     email: '',
     password: '',
   });
+  const router = useRouter()
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -57,22 +59,27 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
     if (data.ok) {
       const body = await data.json();
       createJwt(body.body);
-      await Swal.fire({
-        icon: 'success',
-        title: 'Inicio de sesión exitoso',
-        text: '¡Iniciaste sesión correctamente!',
-        confirmButtonColor: '#1976d2',
-      });
-      console.log('Datos enviados:', formData);
-      redirect('/');
+      // await Swal.fire({
+      //   icon: 'success',
+      //   title: 'Inicio de sesión exitoso',
+      //   text: '¡Iniciaste sesión correctamente!',
+      //   confirmButtonColor: '#1976d2',
+      // });
+      // console.log('Datos enviados:', formData);
       setLoading(false);
+      // redirect('/');
+      router.push('/');
+      window.location.reload()
+      // router.push('/');
     } else {
       // TODO PONER ESTO CON DATA DEL BACK QUE DEVUELVA
       const final = await data.json();
+      console.log(final);
+      
       Swal.fire({
         icon: 'error',
         title: '¡Oh no! Ha sucedido un error',
-        text: final.body || 'Error al iniciar sesión, por favor intenta de nuevo.',
+        text: final.body?.message?.description || 'Error al iniciar sesión, por favor intenta de nuevo.',
         confirmButtonColor: '#1976d2',
       });
       setLoading(false);
@@ -120,7 +127,7 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
       <Box>
         <Button color='primary' variant='contained' size='large' fullWidth type='submit' onClick={handleSubmit}>
           Inicia sesión
-          {loading && <CircularProgress size='15px' className={'ml-2'} />}
+          {loading && <CircularProgress size='15px' className={'ml-2'} color="secondary" />}
         </Button>
       </Box>
       {subtitle}

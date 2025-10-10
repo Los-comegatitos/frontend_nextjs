@@ -21,12 +21,14 @@ import PageContainer from '@/app/(DashboardLayout)/components/container/PageCont
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
 import { Event } from '@/interfaces/Event';
-import ExampleTabContent from '@/components/tabs/ExampleTabContent';
-import EventOverview from '@/components/tabs/EventOverview';
+import ExampleTabContent from '@/components/tabs/Event/ExampleTabContent';
+import EventOverviewTab from '@/components/tabs/Event/EventOverviewTab';
 import { useAppContext } from '@/context/AppContext';
 import ServicesTab from '@/components/tabs/ServicesTab';
-import { AuxiliarType } from '@/interfaces/AuxiliarType';
-import Swal from 'sweetalert2';
+import EventConfigTab from '@/components/tabs/Event/EventConfigTab';
+import TasksTab from '@/components/tabs/task/TasksTab';
+import OrganizerQuotesPage from '@/app/(DashboardLayout)/quote_organizer/page';
+import ProviderTab from '@/components/tabs/provider/ProTab';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -180,9 +182,7 @@ const EventPage = () => {
     // if (token && eventId) {
       
     fetchEvent();
-    fetchEventTypes();
-    fetchClientTypes();
-  }, [fetchEvent, fetchEventTypes, fetchClientTypes]);
+  }, [fetchEvent]);
 
   const handleTabChange = (event: SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -340,20 +340,20 @@ const EventPage = () => {
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={2} loading={loadingEvent} eventData={eventData}>
-          <ExampleTabContent event={eventData!} />
+          <TasksTab token={token as string} event={eventData!} onRefresh={fetchEvent} />
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={3} loading={loadingEvent} eventData={eventData}>
-          {/* <p>teóricamente aquí la hu que hizo david</p> */}
+          <OrganizerQuotesPage eventId={eventData?.eventId} />
           <ExampleTabContent event={eventData!} />
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={4} loading={loadingEvent} eventData={eventData}>
-          <ExampleTabContent event={eventData!} />
+          <ProviderTab token={token as string} event={eventData!} onRefresh={fetchEvent} />
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={5} loading={loadingEvent} eventData={eventData}>
-          <EventConfigTab token={token as string} event={eventData!} onRefresh={fetchEvent} />
+          <EventConfigTab token={token as string} event={eventData!} onRefresh={fetchEvent}/>
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={6} loading={loadingEvent} eventData={eventData}>

@@ -1,9 +1,9 @@
 'use server';
 
 import { API_BACKEND } from '@/app/lib/definitions';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     const body = await req.json();
 
     const { email, password } = body;
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
             console.log(final);
             return NextResponse.json({ ok: true, body: final['data']['access_token'] });
         } else {
-            const final = await data.text()
+            const final = await data.json()
             console.log(final);
             return NextResponse.json({ ok: false, body: final }, { status: 401 });
         }

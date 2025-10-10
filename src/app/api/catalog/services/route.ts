@@ -1,9 +1,9 @@
 'use server';
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const token = req.headers.get('token');
     const body = await req.json();

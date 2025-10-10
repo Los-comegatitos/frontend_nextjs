@@ -1,9 +1,9 @@
 'use server';
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const token = req.headers.get('token');
     const res = await fetch(`${API_BACKEND}catalog`, {
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
   }
 }
 
-export async function PATCH(req: Request) {
+export async function PATCH(req: NextRequest) {
   try {
     const token = req.headers.get('token');
     const body = await req.json();
