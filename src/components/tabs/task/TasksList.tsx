@@ -8,15 +8,20 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
+import Image from 'next/image';
 import { Task } from '@/interfaces/Task';
+
 
 type Props = {
   tasks: Task[];
   onAdd: () => void;
   onView: (task: Task) => void;
+  eventId?: string;
+  onComment: (task: Task) => void;
 };
 
-export default function TaskList({ tasks, onAdd, onView }: Props) {
+
+export default function TaskList({ tasks, onAdd, onView, onComment }: Props) {
   return (
     <Box>
       <Box display="flex" justifyContent="flex-end" mb={2}>
@@ -44,19 +49,32 @@ export default function TaskList({ tasks, onAdd, onView }: Props) {
               <TableCell>Nombre</TableCell>
               <TableCell>Descripción</TableCell>
               <TableCell>Estado</TableCell>
+              <TableCell align="center">Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {tasks.map((task) => (
-              <TableRow
-                key={task.id}
-                hover
-                onClick={() => onView(task)}
-                style={{ cursor: 'pointer' }}
-              >
-                <TableCell>{task.name}</TableCell>
-                <TableCell>{task.description}</TableCell>
-                <TableCell>{task.status}</TableCell>
+              <TableRow key={task.id} hover style={{ cursor: 'pointer' }}>
+                <TableCell onClick={() => onView(task)}>{task.name}</TableCell>
+                <TableCell onClick={() => onView(task)}>{task.description}</TableCell>
+                <TableCell onClick={() => onView(task)}>{task.status}</TableCell>
+                <TableCell align="center">
+                  <button
+                    onClick={() => onComment(task)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Image
+                      src="/images/icons/message_9351720.png"
+                      alt="Comentarios"
+                      width={24}
+                      height={24}
+                    />
+                  </button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

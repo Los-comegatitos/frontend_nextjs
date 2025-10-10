@@ -1,15 +1,9 @@
-interface UserType {
+export interface UserInterface { 
   id: number;
   name: string;
   description: string;
-}
-
-export interface User {
-  id: number;
-  firstName: string;
-  lastName: string;
   email: string;
-  telephone?: string;
-  birthDate?: string;
-  typeuser: UserType;
+  telephone: string;
+  password: string;
+  user_Typeid: number;
 }

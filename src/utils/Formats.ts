@@ -30,7 +30,7 @@ export const showDateInput = (dateString: string) => {
         if (isNaN(date.getTime())) return ''
         return date.toISOString().split('T')[0];
     } catch (error) {
-        console.log(error);
+        console.log('error en showDateInput', error)
         return '';
     }
 }

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import {
   Dialog,
   DialogTitle,
@@ -6,7 +6,11 @@ import {
   DialogActions,
   TextField,
   Button,
-} from '@mui/material';
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+} from "@mui/material";
 import { Task } from '@/interfaces/Task';
 import { useState, useEffect } from 'react';
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
@@ -20,6 +24,28 @@ type Props = {
   onRefresh?: () => void;
 };
 
+interface Quote {
+  serviceTypeId: string;
+  price: number;
+  quantity: number;
+  providerId: string;
+  date: string;
+}
+
+interface EventService {
+  serviceTypeId: string;
+  serviceTypeName: string;
+  name: string;
+  description: string;
+  quantity: number;
+  quote?: Quote;
+}
+
+interface EventResponse {
+  message: { code: string; description: string };
+  data?: { services?: EventService[] };
+}
+
 export default function TaskFormModal({
   open,
   onClose,
@@ -29,28 +55,55 @@ export default function TaskFormModal({
   onRefresh,
 }: Props) {
   const [form, setForm] = useState<Partial<Task>>({});
-  const [providerName, setProviderName] = useState<string>('Cargando...');
+  const [providerName, setProviderName] = useState<string>("Cargando...");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [providers, setProviders] = useState<{ id: string; name: string }[]>(
+    [],
+  );
+  const [selectedProvider, setSelectedProvider] = useState<string>("");
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 
   useEffect(() => {
     setForm(initialData || {});
-    if (initialData?.associatedProviderId) {
-      fetch(`/api/user/${initialData.associatedProviderId}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data?.message?.code === '000' && data.data) {
-            setProviderName(data.data.name);
+
+    const loadAssignedProvider = async () => {
+      if (!eventId || !token || !initialData?.associatedProviderId) {
+        setProviderName("No se ha asignado un proveedor");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE_URL}events/${eventId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data: EventResponse = await res.json();
+
+        if (data?.message?.code === "000" && data.data?.services) {
+          const match = data.data.services.find(
+            (s: EventService) =>
+              s.quote?.providerId === initialData.associatedProviderId,
+          );
+
+          if (match) {
+            setProviderName(match.serviceTypeName || "Servicio desconocido");
           } else {
-            setProviderName('No se ha asignado un proveedor');
+            setProviderName(
+              "Proveedor asignado no encontrado en los servicios del evento",
+            );
           }
-        })
-        .catch(() => setProviderName('No se ha asignado un proveedor'));
-    } else {
-      setProviderName('No se ha asignado un proveedor');
-    }
-  }, [initialData]);
+        } else {
+          setProviderName("No se ha asignado un proveedor");
+        }
+      } catch (err) {
+        console.error("Error al obtener proveedor asignado:", err);
+        setProviderName("No se ha asignado un proveedor");
+      }
+    };
+
+    loadAssignedProvider();
+  }, [initialData, eventId, token]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -201,6 +254,95 @@ export default function TaskFormModal({
     }
   };
 
+  const fetchProvidersFromEvent = async () => {
+    if (!eventId || !token) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}events/${eventId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data: EventResponse = await res.json();
+
+      if (data?.message?.code !== "000" || !data.data?.services) {
+        throw new Error("No se pudieron obtener los servicios del evento");
+      }
+
+      const providersWithNames = data.data.services
+        .filter(
+          (s: EventService) =>
+            !!s.quote?.providerId && !!s.serviceTypeName,
+        )
+        .map((s: EventService) => ({
+          id: s.quote!.providerId,
+          name: s.serviceTypeName,
+        }));
+
+      setProviders(providersWithNames);
+    } catch (error) {
+      console.error("Error cargando proveedores:", error);
+      showErrorAlert("No se pudieron obtener los proveedores del evento.");
+    }
+  };
+
+  const handleAssignProvider = async () => {
+    if (!eventId || !initialData || !selectedProvider || !token) return;
+
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}events/${eventId}/tasks/${eventId}/tasks/${initialData.id}/assign-provider/${selectedProvider}`,
+        {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      const data = await res.json();
+
+      if (data.message.code === "000") {
+        showSucessAlert("Proveedor asignado correctamente.");
+        onRefresh?.();
+        setAssignOpen(false);
+        onClose();
+      } else {
+        showErrorAlert(
+          data.message.description || "No se pudo asignar el proveedor.",
+        );
+      }
+    } catch (err) {
+      console.error("Error al asignar proveedor:", err);
+      showErrorAlert("Ocurrió un error interno al asignar el proveedor.");
+    }
+  };
+
+  const handleUnassignProvider = async () => {
+    if (!eventId || !initialData || !token) return;
+
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}events/${eventId}/tasks/${eventId}/tasks/${initialData.id}/unassign-provider`,
+        {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      const data = await res.json();
+
+      if (data.message.code === "000") {
+        showSucessAlert("Proveedor desasignado correctamente.");
+        onRefresh?.();
+        onClose();
+      } else {
+        showErrorAlert(
+          data.message.description || "No se pudo desasignar el proveedor.",
+        );
+      }
+    } catch (err) {
+      console.error("Error al desasignar proveedor:", err);
+      showErrorAlert("Ocurrió un error interno al desasignar el proveedor.");
+    }
+  };
+
   return (
     <>
       {/* Modal principal */}
@@ -269,6 +411,20 @@ export default function TaskFormModal({
               <Button color="success" onClick={handleFinalize}>
                 Finalizar
               </Button>
+              <Button
+                color="warning"
+                onClick={() => {
+                  fetchProvidersFromEvent();
+                  setAssignOpen(true);
+                }}
+              >
+                Asignar proveedor
+              </Button>
+              {initialData.associatedProviderId && (
+                <Button color="secondary" onClick={handleUnassignProvider}>
+                  Desasignar proveedor
+                </Button>
+              )}
               <Button color="error" onClick={() => setConfirmOpen(true)}>
                 Eliminar
               </Button>
@@ -292,6 +448,40 @@ export default function TaskFormModal({
           <Button onClick={() => setConfirmOpen(false)}>Cancelar</Button>
           <Button color="error" onClick={handleDeleteConfirmed}>
             Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal para asignar proveedor */}
+      <Dialog
+        open={assignOpen}
+        onClose={() => setAssignOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Asignar proveedor</DialogTitle>
+        <DialogContent dividers>
+          <FormControl fullWidth>
+            <InputLabel>Proveedor</InputLabel>
+            <Select
+              value={selectedProvider}
+              label="Proveedor"
+              onChange={(e) =>
+                setSelectedProvider(e.target.value as string)
+              }
+            >
+              {providers.map((p) => (
+                <MenuItem key={p.id} value={p.id}>
+                  {p.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAssignOpen(false)}>Cancelar</Button>
+          <Button color="primary" onClick={handleAssignProvider}>
+            Asignar
           </Button>
         </DialogActions>
       </Dialog>
