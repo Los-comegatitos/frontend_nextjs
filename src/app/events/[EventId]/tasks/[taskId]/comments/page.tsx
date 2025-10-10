@@ -51,6 +51,47 @@ export default function CommentsPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
+  // se reutiliza esta funcion para cargar comentarios
+  const fetchComments = async () => {
+    if (!eventId || !taskId || !API_BASE_URL) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}events/${eventId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data?.data) {
+        setComments([]);
+        return;
+      }
+
+      const event: BackendEvent = data.data;
+      const task = event.tasks.find((t) => t.id === taskId);
+      if (!task) {
+        setComments([]);
+        return;
+      }
+
+      const mappedComments: Comment[] = (task.comments ?? []).map((c) => ({
+        id: c._id,
+        text: c.description,
+        author: c.userType === 'organizer' ? 'Organizador' : 'Proveedor',
+        date: new Date(c.date).toLocaleString(),
+      }));
+
+      setComments(mappedComments);
+    } catch (err) {
+      console.error('Error al cargar comentarios:', err);
+      setComments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Buscar nombre de la tarea
   useEffect(() => {
     async function fetchTask() {
@@ -88,68 +129,53 @@ export default function CommentsPage() {
     fetchTask();
   }, [eventId, taskId, API_BASE_URL, token]);
 
-  // Obtener comentarios desde la tarea
+  // caragar comentarios inicialmente
   useEffect(() => {
-    async function fetchComments() {
-      if (!eventId || !taskId || !API_BASE_URL) return;
-      setLoading(true);
-      try {
-        const res = await fetch(`${API_BASE_URL}events/${eventId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        const data = await res.json();
-        if (!res.ok || !data?.data) {
-          setComments([]);
-          return;
-        }
-
-        const event: BackendEvent = data.data;
-        const task = event.tasks.find((t) => t.id === taskId);
-        if (!task) {
-          setComments([]);
-          return;
-        }
-
-        const mappedComments: Comment[] = (task.comments ?? []).map((c) => ({
-          id: c._id,
-          text: c.description,
-          author: c.userType === 'organizer' ? 'Organizador' : 'Proveedor',
-          date: new Date(c.date).toLocaleString(),
-        }));
-
-        setComments(mappedComments);
-      } catch (err) {
-        console.error('Error al cargar comentarios:', err);
-        setComments([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchComments();
   }, [eventId, taskId, API_BASE_URL, token]);
 
-  // Enviar comentario (solo añade localmente)
+  // enviar comentario
   const handleSendComment = async () => {
     if (!comment.trim()) {
       showErrorAlert('Escribe un comentario antes de enviarlo.');
       return;
     }
 
-    const newComment: Comment = {
-      id: `${Date.now()}`,
-      text: comment,
-      author: 'Tú',
-      date: new Date().toLocaleString(),
-    };
+    if (!eventId || !taskId || !API_BASE_URL) {
+      showErrorAlert('No se pudo enviar el comentario, faltan parámetros.');
+      return;
+    }
 
-    setComments((prev) => [...prev, newComment]);
-    setComment('');
-    showSucessAlert('Comentario enviado con éxito.');
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}events/${eventId}/tasks/${taskId}/comment/organizer`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ description: comment }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error('Error al enviar comentario:', data);
+        showErrorAlert('No se pudo enviar el comentario.');
+        return;
+      }
+
+      setComment('');
+      showSucessAlert('Comentario enviado con éxito.');
+
+      // refrescamiento de la lista de comentarios
+      fetchComments();
+    } catch (err) {
+      console.error('Error al enviar comentario:', err);
+      showErrorAlert('Error al enviar el comentario.');
+    }
   };
 
   if (loading)
