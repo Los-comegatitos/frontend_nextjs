@@ -2,19 +2,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from '@/app/lib/definitions';
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string; taskId: string } }) {
+
+//listar tareas de un proveedor
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const token = req.headers.get('token');
-  const body = await req.json();
-
-  const res = await fetch(`${API_BACKEND}events/${params.id}/tasks/${params.taskId}/comment/provider`, {
-    method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
+  const res = await fetch(`${API_BACKEND}events/${params.id}/tasks/provider`, {
+    headers: { Authorization: `Bearer ${token}` },
   });
-
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });
 }
