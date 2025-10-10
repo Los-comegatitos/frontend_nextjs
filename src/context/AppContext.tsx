@@ -7,6 +7,7 @@ import { checkJwt, getJwt } from '@/app/lib/session';
 // import { JwtPayload } from 'jsonwebtoken';
 import { redirect, usePathname } from 'next/navigation';
 // import path from 'path';
+// import path from 'path';
 // import { useRouter } from 'next/navigation';
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
@@ -45,15 +46,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
         !pathname.includes('/quote_providers') &&  
         !pathname.includes('/supplier_quotes') &&
         !pathname.includes('/events-providers') &&
-        !pathname.includes('/events'))
+        !pathname.includes('/events') && 
+        !pathname.includes('/profile'))
         || pathname.includes('/event-types'))
       ) {
         redirect('/') 
       } else if (truth && user?.role == 'organizer' && (( 
         !pathname.includes('/event') && 
-        !pathname.includes('/quote_organizer')) 
+        !pathname.includes('/quote_organizer') && 
+        !pathname.includes('/profile')) 
         || pathname.includes('/event-types'))) {
         redirect('/')
+      } else if (truth && pathname.includes('/authentication/login')) {
+        redirect('/') 
       } else if (truth) {
         
         const data = (await decrypt(getJwt())) as { sub: string, email: string, role: string }

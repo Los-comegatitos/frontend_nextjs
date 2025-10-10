@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dialog, DialogTitle, DialogContent, Button, TextField } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
+import TablePagination from '@mui/material/TablePagination'; // NEW
 import CircularProgress from '@mui/material/CircularProgress';
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
 import { AuxiliarType } from '@/interfaces/AuxiliarType';
@@ -18,17 +19,22 @@ const ClientTypesPage = () => {
   const [selectedType, setSelectedType] = useState<AuxiliarType | null>(null);
   const { token } = useAppContext();
 
+  // pagination
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [search, setSearch] = useState('');
+
   // fetch client types (to table)
   const fetchClientTypes = React.useCallback(async () => {
     if (!token) return;
     try {
       setLoadingTable(true);
       const res = await fetch('/api/client-type', {
-        headers: { 'token': token as string, },
+        headers: { token: token as string },
       });
 
       const data = await res.json();
-      
+
       if (data.message.code === '000') {
         setClientTypes(data.data);
       } else {
@@ -43,8 +49,22 @@ const ClientTypesPage = () => {
 
   useEffect(() => {
     if (!token) return;
-    fetchClientTypes()
+    fetchClientTypes();
   }, [fetchClientTypes, token]);
+
+  // pagination
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);  
+  };
+
+  const filteredTypes = clientTypes.filter((type) => type.name.toLowerCase().includes(search.toLowerCase()));
+
+  const paginatedTypes = filteredTypes.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const handleAdd = () => {
     setSelectedType({ id: '', name: '', description: '' });
@@ -68,7 +88,7 @@ const ClientTypesPage = () => {
       if (modalMode === 'modify') {
         res = await fetch(`/api/client-type/${formData.get('id')}`, {
           method: 'PATCH',
-          headers: { 'token': token as string, },
+          headers: { token: token as string },
           body: JSON.stringify(payload),
         });
       }
@@ -76,7 +96,7 @@ const ClientTypesPage = () => {
       if (modalMode === 'add') {
         res = await fetch(`/api/client-type`, {
           method: 'POST',
-          headers: { 'token': token as string, },
+          headers: { token: token as string },
           body: JSON.stringify(payload),
         });
       }
@@ -101,7 +121,7 @@ const ClientTypesPage = () => {
     try {
       const res = await fetch(`/api/client-type/${id}`, {
         method: 'DELETE',
-        headers: { 'token': token as string, },
+        headers: { token: token as string },
       });
       const data = await res.json();
 
@@ -133,7 +153,8 @@ const ClientTypesPage = () => {
   return (
     <PageContainer title='Tipos de cliente' description='Página de tipos de clientes'>
       <DashboardCard title='Tipos de cliente'>
-        <Box display='flex' justifyContent='flex-end' mb={2}>
+        <Box display='flex' justifyContent='flex-end' mb={2} gap={5}>
+          <TextField placeholder='Buscar por nombre...' variant='outlined' size='small' value={search} onChange={(e) => setSearch(e.target.value)} />
           <Button variant='contained' color='primary' onClick={handleAdd}>
             Añadir
           </Button>
@@ -144,41 +165,44 @@ const ClientTypesPage = () => {
               <CircularProgress size='55px' className='mb-2' />
             </Box>
           ) : (
-            <Table aria-label='client table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <Typography variant='subtitle2' fontWeight={600}>
-                      ID
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant='subtitle2' fontWeight={600}>
-                      Name
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                {clientTypes.map((type) => (
-                  <TableRow
-                    key={type.id}
-                    className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
-                    onClick={() => {
-                      handleRowClick(type);
-                    }}
-                  >
+            <>
+              <Table aria-label='client table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
+                <TableHead>
+                  <TableRow>
                     <TableCell>
-                      <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{type.id}</Typography>
+                      <Typography variant='subtitle2' fontWeight={600}>
+                        Nombre
+                      </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{type.name}</Typography>
+                      <Typography variant='subtitle2' fontWeight={600}>
+                        Descripción
+                      </Typography>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+
+                <TableBody>
+                  {paginatedTypes.map((type) => (
+                    <TableRow
+                      key={type.id}
+                      className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
+                      onClick={() => {
+                        handleRowClick(type);
+                      }}
+                    >
+                      <TableCell>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{type.name}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{type.description}</Typography>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <TablePagination component='div' count={filteredTypes.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25, { value: -1, label: 'Todos' }]} />
+            </>
           )}
         </Box>
       </DashboardCard>
@@ -190,8 +214,8 @@ const ClientTypesPage = () => {
           {selectedType && (
             <Box component='form' onSubmit={handleSubmit} display='flex' flexDirection='column' gap={2} mt={1}>
               {modalMode === 'modify' && <TextField label='ID' name='id' defaultValue={selectedType.id} slotProps={{ input: { readOnly: true } }} />}
-              <TextField label='Name' name='name' defaultValue={selectedType.name} required />
-              <TextField label='Description' name='description' defaultValue={selectedType.description} required />
+              <TextField label='Nombre' name='name' defaultValue={selectedType.name} required />
+              <TextField label='Descripción' name='description' defaultValue={selectedType.description} required />
               <Box display='flex' justifyContent='center' gap={2}>
                 {modalMode === 'modify' && (
                   <Button variant='outlined' color='error' onClick={() => handleDelete(selectedType.id)} disabled={loading}>
