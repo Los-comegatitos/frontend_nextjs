@@ -15,166 +15,112 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { showSucessAlert, showErrorAlert } from '@/app/lib/swal';
+import { BackendComment, TaskComment } from '@/interfaces/Task';
 
-interface Comment {
-  id: string;
-  text: string;
-  author: string;
-  date: string;
-}
-
-interface BackendComment {
-  _id: string;
-  description: string;
-  userType: 'organizer' | 'provider';
-  date: string;
-}
-
-interface BackendTask {
-  id: string;
-  name: string;
-  comments?: BackendComment[];
-}
-
-interface BackendEvent {
-  tasks: BackendTask[];
-}
 
 export default function CommentsPage() {
   const { EventId: eventId, taskId } = useParams();
   const [taskName, setTaskName] = useState<string>('Cargando...');
   const [comment, setComment] = useState<string>('');
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-  const UploadIcon = "/images/icons/upload.png";
+  const [comments, setComments] = useState<TaskComment[]>([]);  const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
- 
+  // Cargar comentarios
   const fetchComments = React.useCallback(async () => {
-    if (!eventId || !taskId || !API_BASE_URL || !token) return;
+    if (!eventId || !taskId || !token) return;
     setLoading(true);
+
     try {
-      const res = await fetch(`${API_BASE_URL}events/${eventId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+      const res = await fetch(`/api/event/${eventId}/task/${taskId}/comments`, {
+        headers: { token: token as string },
       });
-
       const data = await res.json();
-      if (!res.ok || !data?.data) {
+
+      if (res.ok && data.message.code === '000') {
+        const backendComments: BackendComment[] = data.data;
+        const mapped: TaskComment[] = backendComments.map((c) => ({
+          id: c._id,
+          text: c.description,
+          author: c.userType === 'organizer' ? 'Organizador' : 'Proveedor',
+          date: new Date(c.date).toLocaleString(),
+        }));
+        setComments(mapped);
+      }   
+      else {
         setComments([]);
-        return;
       }
-
-      const event: BackendEvent = data.data;
-      const task = event.tasks.find((t) => t.id === taskId);
-      if (!task) {
-        setComments([]);
-        return;
-      }
-
-      const mappedComments: Comment[] = (task.comments ?? []).map((c) => ({
-        id: c._id,
-        text: c.description,
-        author: c.userType === 'organizer' ? 'Organizador' : 'Proveedor',
-        date: new Date(c.date).toLocaleString(),
-      }));
-
-      setComments(mappedComments);
     } catch (err) {
       console.error('Error al cargar comentarios:', err);
-      setComments([]);
     } finally {
       setLoading(false);
     }
-  }, [API_BASE_URL, eventId, taskId, token]);
+  }, [eventId, taskId, token]);
 
-  // Buscar nombre de la tarea
+  // Obtener nombre de la tarea
   useEffect(() => {
-    async function fetchTask() {
-      if (!eventId || !taskId || !API_BASE_URL || !token) { 
-        setTaskName('Error: IDs o URL base faltantes.');
-        return;
-      }
+    async function fetchTaskName() {
       try {
-        const res = await fetch(`${API_BASE_URL}events/${eventId}/tasks/${taskId}/comment/provider`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+        const res = await fetch(`/api/event/${eventId}/task/provider`, {
+          headers: { token: token as string },
         });
-
         const data = await res.json();
 
-        if (res.ok && data?.data) {
-          const event: BackendEvent = data.data;
-          const found = event.tasks.find((t) => t.id === taskId);
+        if (res.ok && data.message.code === '000') {
 
-          if (found) {
-            setTaskName(found.name);
-          } else {
-            setTaskName('Tarea no encontrada');
-          }
+          interface BackendTask {
+          id: string;
+          name: string;
+          description?: string;
+          status?: string;
+          comments?: BackendComment[];
+        }
+
+        const backendTasks: BackendTask[] = data.data;
+        const found = backendTasks.find((t) => t.id === taskId);
+
+          setTaskName(found ? found.name : 'Tarea no encontrada');
         } else {
-          setTaskName('Error al obtener datos del evento');
+          setTaskName('Error al obtener tarea');
         }
       } catch (err) {
-        console.error('Error al obtener la tarea:', err);
+        console.error('Error al obtener tarea:', err);
         setTaskName('Error al cargar tarea');
       }
     }
-    fetchTask();
-  }, [eventId, taskId, API_BASE_URL, token]);
+    fetchTaskName();
+  }, [eventId, taskId, token]);
 
-  // caragar comentarios inicialmente
+  // Cargar comentarios al inicio
   useEffect(() => {
     fetchComments();
   }, [fetchComments]);
 
-  // enviar comentario
+  // Enviar comentario (como proveedor)
   const handleSendComment = async () => {
-    if (!comment.trim()) {
-      showErrorAlert('Escribe un comentario antes de enviarlo.');
-      return;
-    }
-
-    if (!eventId || !taskId || !API_BASE_URL) {
-      showErrorAlert('No se pudo enviar el comentario, faltan parámetros.');
-      return;
-    }
+    if (!comment.trim()) return showErrorAlert('Escribe un comentario.');
 
     try {
-      const res = await fetch(
-        `${API_BASE_URL}events/${eventId}/tasks/${taskId}/comment/organizer`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ description: comment }),
-        }
-      );
+      const res = await fetch(`/api/event/${eventId}/task/${taskId}/comments/provider`, {
+        method: 'PATCH',
+        headers: {
+          token: token as string,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ description: comment }),
+      });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        console.error('Error al enviar comentario:', data);
-        showErrorAlert('No se pudo enviar el comentario.');
-        return;
+      if (res.ok && data.message.code === '000') {
+        showSucessAlert('Comentario enviado.');
+        setComment('');
+        fetchComments();
+      } else {
+        showErrorAlert(data.message.description || 'Error al enviar el comentario.');
       }
-
-      setComment('');
-      showSucessAlert('Comentario enviado con éxito.');
-
-      // refrescamiento de la lista de comentarios
-      fetchComments();
     } catch (err) {
-      console.error('Error al enviar comentario:', err);
-      showErrorAlert('Error al enviar el comentario.');
+      console.error(err);
+      showErrorAlert('Error al enviar comentario.');
     }
   };
 
@@ -186,21 +132,12 @@ export default function CommentsPage() {
     );
 
   return (
-    <Box
-      sx={{
-        p: 4,
-        maxWidth: 700,
-        mx: 'auto',
-        mt: 5,
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-      }}
-    >
+    <Box sx={{ p: 4, maxWidth: 700, mx: 'auto', mt: 5, backgroundColor: 'white', borderRadius: '12px' }}>
       <Typography variant="h5" fontWeight={600} mb={3}>
         {taskName}
       </Typography>
 
+      {/* Subida de archivo */}
       <Paper
         elevation={0}
         sx={{
@@ -214,7 +151,7 @@ export default function CommentsPage() {
         }}
       >
         <label htmlFor="file-upload" style={{ cursor: 'pointer' }}>
-          <Image src={UploadIcon} alt="Subir archivo" width={50} height={50} />
+          <Image src="/images/icons/upload.png" alt="Subir archivo" width={50} height={50} />
           <Typography variant="body1" mt={1}>
             Haz clic o arrastra un archivo aquí para subirlo
           </Typography>
@@ -231,6 +168,7 @@ export default function CommentsPage() {
         />
       </Paper>
 
+      {/* Campo de comentario */}
       <TextField
         fullWidth
         multiline
@@ -241,43 +179,30 @@ export default function CommentsPage() {
         onChange={(e) => setComment(e.target.value)}
       />
 
-      <Button
-        variant="contained"
-        color="primary"
-        sx={{ mt: 2 }}
-        onClick={handleSendComment}
-      >
+      <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={handleSendComment}>
         Enviar comentario
       </Button>
 
+      {/* Listado de comentarios */}
       <Box mt={4}>
         <Typography variant="h6" mb={2}>
           Comentarios
         </Typography>
-
         {comments.length === 0 ? (
           <Typography color="text.secondary">Aún no hay comentarios.</Typography>
         ) : (
           <Paper elevation={0} sx={{ p: 2, border: '1px solid #EAEFF4' }}>
             <List>
               {comments.map((c) => (
-                <ListItem
-                  key={c.id}
-                  sx={{ borderBottom: '1px solid #EAEFF4', mb: 1 }}
-                >
+                <ListItem key={c.id} sx={{ borderBottom: '1px solid #EAEFF4', mb: 1 }}>
                   <ListItemText
-                    primary={
-                      <Typography component="span" fontWeight={600}>
-                        {c.author}
-                      </Typography>
-                    }
+                    primary={<Typography fontWeight={600}>{c.author}</Typography>}
                     secondary={
                       <>
-                        <Typography component="span" variant="body2" color="text.secondary">
+                        <Typography variant="body2" color="text.secondary">
                           {c.text}
                         </Typography>
-                        <br />
-                        <Typography component="span" variant="caption" color="text.disabled">
+                        <Typography variant="caption" color="text.disabled">
                           {c.date}
                         </Typography>
                       </>
