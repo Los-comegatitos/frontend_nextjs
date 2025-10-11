@@ -355,24 +355,36 @@ export default function CommentsPage() {
               {comments.map((c) => (
                 <ListItem
                   key={c.id}
-                  sx={{ borderBottom: '1px solid #EAEFF4', mb: 1 }}
+                  sx={{ borderBottom: '1px solid #EAEFF4', mb: 1, alignItems: 'flex-start' }}
                 >
                   <ListItemText
                     primary={
-                      <Typography component="span" fontWeight={600}>
-                        {c.author}
+                      <Typography
+                        component="span"
+                        sx={{ fontSize: '1rem', display: 'block' }}
+                      >
+                        <Typography
+                          component="span"
+                          sx={{ fontWeight: 600, mr: 1 }}
+                        >
+                          {c.author}:
+                        </Typography>
+                        <Typography
+                          component="span"
+                          sx={{ fontWeight: 400 }}
+                        >
+                          {c.text}
+                        </Typography>
                       </Typography>
                     }
                     secondary={
-                      <>
-                        <Typography component="span" variant="body2" color="text.secondary">
-                          {c.text}
-                        </Typography>
-                        <br />
-                        <Typography component="span" variant="caption" color="text.disabled">
-                          {c.date}
-                        </Typography>
-                      </>
+                      <Typography
+                        component="span"
+                        color="text.disabled"
+                        sx={{ display: 'block', mt: 0.5, fontSize: '0.8rem', fontWeight: 600 }}
+                      >
+                        {c.date}
+                      </Typography>
                     }
                   />
                 </ListItem>

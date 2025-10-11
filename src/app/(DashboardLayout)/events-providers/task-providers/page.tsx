@@ -11,7 +11,14 @@ import {
   Typography,
   CircularProgress,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Divider,
+  IconButton,
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { showErrorAlert } from '@/app/lib/swal';
@@ -29,6 +36,7 @@ export default function TaskProvidersPage() {
   const token = searchParams.get('token');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -97,21 +105,30 @@ export default function TaskProvidersPage() {
           </TableHead>
           <TableBody>
             {tasks.map((task) => (
-              <TableRow key={task.id} hover>
+              <TableRow
+                key={task.id}
+                hover
+                sx={{ cursor: 'pointer' }}
+                onClick={() => setSelectedTask(task)}
+              >
                 <TableCell>{task.name}</TableCell>
                 <TableCell>{task.description}</TableCell>
                 <TableCell>{task.status}</TableCell>
-                <TableCell align="center">
+                <TableCell
+                  align="center"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(
+                      `/events-providers/task-providers/${task.id}?eventId=${eventId}&token=${token}`
+                    );
+                  }}
+                >
                   <Button
-                    onClick={() =>
-                      router.push(
-                        `/events-providers/task-providers/${task.id}?eventId=${eventId}&token=${token}`
-                      )
-                    }
                     sx={{
                       background: 'transparent',
                       border: 'none',
-                      cursor: 'pointer',
+                      minWidth: 'auto',
+                      padding: 0,
                     }}
                   >
                     <Image
@@ -127,6 +144,68 @@ export default function TaskProvidersPage() {
           </TableBody>
         </Table>
       )}
+
+      {/* Modal de detalles de tarea */}
+      <Dialog
+        open={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: '12px', p: 1 },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            pb: 0,
+            backgroundColor: '#f5f5f5',
+            borderBottom: '1px solid #e0e0e0',
+            borderTopLeftRadius: '12px',
+            borderTopRightRadius: '12px',
+          }}
+        >
+          <Typography component="span" variant="h6" fontWeight={600}>
+            Detalles de la tarea
+          </Typography>
+          <IconButton onClick={() => setSelectedTask(null)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent dividers sx={{ mt: 1 }}>
+          {selectedTask && (
+            <Box>
+              <Typography variant="subtitle1" fontWeight={600}>
+                Nombre:
+              </Typography>
+              <Typography mb={2}>{selectedTask.name}</Typography>
+
+              <Divider sx={{ my: 2 }} />
+
+              <Typography variant="subtitle1" fontWeight={600}>
+                Descripción:
+              </Typography>
+              <Typography mb={2}>{selectedTask.description}</Typography>
+
+              <Divider sx={{ my: 2 }} />
+
+              <Typography variant="subtitle1" fontWeight={600}>
+                Estado:
+              </Typography>
+              <Typography>{selectedTask.status}</Typography>
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setSelectedTask(null)} color="primary">
+            Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

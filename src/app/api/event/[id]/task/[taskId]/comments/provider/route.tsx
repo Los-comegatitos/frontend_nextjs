@@ -1,14 +1,18 @@
 'use server';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from '@/app/lib/definitions';
 
-
-//comentar como proveedor
-export async function PATCH(req: NextRequest, { params }: { params: { id: string; taskId: string } }) {
+// Comentar como proveedor
+export async function PATCH(
+  req: NextRequest,
+  context: { params: Promise<{ id: string; taskId: string }> }
+) {
+  const { id, taskId } = await context.params;
   const token = req.headers.get('token');
   const body = await req.json();
 
-  const res = await fetch(`${API_BACKEND}events/${params.id}/tasks/${params.taskId}/comment/provider`, {
+  const res = await fetch(`${API_BACKEND}events/${id}/tasks/${taskId}/comment/provider`, {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,
