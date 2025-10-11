@@ -47,4 +47,7 @@ export async function POST(req: NextRequest, params: { params: Promise<{ id: str
      console.error(error);
     return NextResponse.json({ message: { code: '999', description: 'Error interno' } }, { status: 500 });
   }
+
+
+
 }
