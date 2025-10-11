@@ -57,7 +57,7 @@ export default function TaskCommentsPage() {
 
   const UploadIcon = "/images/icons/upload.png";
 
-  // nombre de la tarea, comentarios y archivos
+  // nombre de tarea y comentarios
   const fetchTaskAndComments = useCallback(async () => {
     if (!eventId || !token || !taskId) return;
 
@@ -107,7 +107,6 @@ export default function TaskCommentsPage() {
     fetchTaskAndComments();
   }, [fetchTaskAndComments]);
 
-  // enviar comentario
   const handleSendComment = async () => {
     if (!comment.trim()) {
       showErrorAlert('Escribe un comentario antes de enviarlo.');
@@ -144,7 +143,6 @@ export default function TaskCommentsPage() {
     }
   };
 
-  // subir archivo
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
@@ -185,7 +183,6 @@ export default function TaskCommentsPage() {
     }
   };
 
-  // descargar archivo
   const handleDownload = async (id: string) => {
     try {
       const res = await fetch(`/api/event/${eventId}/task/${taskId}/files/${id}`, {
@@ -236,7 +233,6 @@ export default function TaskCommentsPage() {
         {taskName}
       </Typography>
 
-      {/* 📎 Subir archivo */}
       <Paper
         elevation={0}
         sx={{
@@ -273,7 +269,6 @@ export default function TaskCommentsPage() {
         </form>
       </Paper>
 
-      {/* Campo de comentario */}
       <TextField
         fullWidth
         multiline
@@ -293,7 +288,6 @@ export default function TaskCommentsPage() {
         Enviar comentario
       </Button>
 
-      {/* Comentarios */}
       <Box mt={4}>
         <Typography variant="h6" mb={2}>
           Comentarios
@@ -337,7 +331,6 @@ export default function TaskCommentsPage() {
         )}
       </Box>
 
-      {/* Archivos adjuntos */}
       <Box mt={4}>
         <Typography variant="h6" mb={2}>
           Archivos adjuntos

@@ -63,7 +63,6 @@ export default function CommentsPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
-  // se reutiliza esta funcion para cargar comentarios
   const fetchComments = React.useCallback(async () => {
     if (!EventId || !taskId || !API_BASE_URL || !token) return;
     setLoading(true);
@@ -144,7 +143,7 @@ export default function CommentsPage() {
     fetchTask();
   }, [EventId, taskId, API_BASE_URL, token]);
 
-  // caragar comentarios inicialmente
+  // cargar comentarios
   useEffect(() => {
     fetchComments();
   }, [fetchComments]);
@@ -185,7 +184,7 @@ export default function CommentsPage() {
       setComment('');
       showSucessAlert('Comentario enviado con éxito.');
 
-      // refrescamiento de la lista de comentarios
+      // refrescamos la lista
       fetchComments();
     } catch (err) {
       console.error('Error al enviar comentario:', err);
@@ -348,7 +347,7 @@ export default function CommentsPage() {
         </Typography>
 
         {comments.length === 0 ? (
-          <Typography color="text.secondary">Aún no hay comentarios.</Typography>
+          <Typography color="text.secondary">Aun no hay comentarios.</Typography>
         ) : (
           <Paper elevation={0} sx={{ p: 2, border: '1px solid #EAEFF4' }}>
             <List>
@@ -399,7 +398,7 @@ export default function CommentsPage() {
         </Typography>
 
         {files.length === 0 ? (
-          <Typography color="text.secondary">Aún no hay comentarios.</Typography>
+          <Typography color="text.secondary">Aun no hay comentarios.</Typography>
         ) : (
           <Paper elevation={0} sx={{ p: 2, border: '1px solid #EAEFF4' }}>
             <List>
