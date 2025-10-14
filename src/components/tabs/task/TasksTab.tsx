@@ -16,7 +16,6 @@ export default function TasksTab({ token, event, onRefresh }: Props) {
   const [openModal, setOpenModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const router = useRouter();
-  console.log('EVENT ID EN TASKTAB:', event.eventId);  
 
   const handleAdd = () => {
     setSelectedTask(null);
@@ -29,7 +28,7 @@ export default function TasksTab({ token, event, onRefresh }: Props) {
   };
 
   const handleComment = (task: Task) => {
-    router.push(`/events/${event.eventId}/tasks/${task.id}/comments?token=${token}`);
+    router.push(`/event/${event.eventId}/tasks/${task.id}/comments`);
   };
 
   return (
@@ -39,7 +38,7 @@ export default function TasksTab({ token, event, onRefresh }: Props) {
         onAdd={handleAdd}
         onView={handleView}
         eventId={event.eventId}
-        onComment={handleComment} 
+        onComment={handleComment}
       />
 
       <TaskFormModal
