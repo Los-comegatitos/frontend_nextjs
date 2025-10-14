@@ -171,9 +171,12 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
               <Typography><strong>Proveedor:</strong> {selectedQuote.providerId}</Typography>
               <Typography><strong>Estado:</strong> {selectedQuote.status}</Typography>
 
-              <Box mt={2} display="flex" justifyContent="flex-end">
+              <Box mt={2} display="flex" justifyContent="space-evenly">
+                <Button variant="contained" onClick={handleCloseModal}>Aceptar</Button>
+                <Button variant="contained" onClick={handleCloseModal}>Rechazar</Button>
                 <Button variant="contained" onClick={handleCloseModal}>Cerrar</Button>
               </Box>
+              
             </>
           )}
         </Box>
