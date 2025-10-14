@@ -2,8 +2,18 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Table, TableHead, TableBody, TableRow, TableCell, Typography,
-  CircularProgress, Select, MenuItem, FormControl, InputLabel,
+  Box,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Typography,
+  CircularProgress,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
@@ -48,7 +58,7 @@ const SupplierQuotesPage = () => {
       if (resp.data && Object.keys(resp.data).length > 0) {
         setQuotes(resp.data);
       } else {
-        showErrorAlert(resp.message?.description || 'No hay cotizaciones para mostrar');
+        //showErrorAlert(resp.message?.description || 'No hay cotizaciones para mostrar');
         setQuotes({});
       }
     } catch (err) {
@@ -63,6 +73,14 @@ const SupplierQuotesPage = () => {
   useEffect(() => {
     fetchQuotes();
   }, [fetchQuotes]);
+
+  const cellStyle = {
+    textAlign: 'center',
+    padding: '8px',
+    whiteSpace: 'normal',
+    wordBreak: 'break-word',
+    verticalAlign: 'middle',
+  };
 
   return (
     <PageContainer title="Cotizaciones Enviadas" description="Listado de cotizaciones enviadas por proveedor">
@@ -91,37 +109,44 @@ const SupplierQuotesPage = () => {
           ) : Object.keys(quotes).length === 0 ? (
             <Typography>No hay cotizaciones para mostrar</Typography>
           ) : (
-            Object.keys(quotes).map((serviceType) => (
-              <Box key={serviceType} mb={4}>
-                <Typography variant="h6" mb={1}>{serviceType}</Typography>
-                <Table>
-                  <TableHead>
+            <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
+              <colgroup>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <col key={i} style={{ width: `${100 / 6}%` }} />
+                ))}
+              </colgroup>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={cellStyle}>Servicio</TableCell>
+                  <TableCell sx={cellStyle}>Evento</TableCell>
+                  <TableCell sx={cellStyle}>Precio</TableCell>
+                  <TableCell sx={cellStyle}>Cantidad</TableCell>
+                  <TableCell sx={cellStyle}>Status</TableCell>
+                  <TableCell sx={cellStyle}>Fecha</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {Object.keys(quotes).map((serviceType) => (
+                  <React.Fragment key={serviceType}>
                     <TableRow>
-                      <TableCell>ID</TableCell>
-                      <TableCell>Servicio</TableCell>
-                      <TableCell>Evento</TableCell>
-                      <TableCell>Precio</TableCell>
-                      <TableCell>Cantidad</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Fecha</TableCell>
+                      <TableCell colSpan={6} sx={{ ...cellStyle, fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>
+                        {serviceType}
+                      </TableCell>
                     </TableRow>
-                  </TableHead>
-                  <TableBody>
                     {quotes[serviceType].map((q: Quote) => (
                       <TableRow key={q.id}>
-                        <TableCell>{q.id}</TableCell>
-                        <TableCell>{q.name}</TableCell>
-                        <TableCell>{q.eventName}</TableCell>
-                        <TableCell>{q.price}</TableCell>
-                        <TableCell>{q.quantity}</TableCell>
-                        <TableCell>{q.status}</TableCell>
-                        <TableCell>{showDate(q.date!)}</TableCell>
+                        <TableCell sx={cellStyle}>{q.name}</TableCell>
+                        <TableCell sx={cellStyle}>{q.eventName}</TableCell>
+                        <TableCell sx={cellStyle}>{q.price}</TableCell>
+                        <TableCell sx={cellStyle}>{q.quantity}</TableCell>
+                        <TableCell sx={cellStyle}>{q.status}</TableCell>
+                        <TableCell sx={cellStyle}>{showDate(q.date!)}</TableCell>
                       </TableRow>
                     ))}
-                  </TableBody>
-                </Table>
-              </Box>
-            ))
+                  </React.Fragment>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </Box>
       </DashboardCard>
