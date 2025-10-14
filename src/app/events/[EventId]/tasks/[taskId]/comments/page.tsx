@@ -259,7 +259,7 @@ export default function CommentsPage() {
           showErrorAlert('Un error ha sucedido en la descarga');
       }
     } catch (error) {
-      
+      console.log('error', error)
     }
   }
 
