@@ -171,31 +171,38 @@ export default function TaskFormModal({
     };
 
   //Finalizar tarea de un evento
-  const handleFinalize = async () => {
+   const handleFinalize = async () => {
     if (!eventId || !initialData || !token) return;
 
+    //payload por si el backend espera algo adicional
     const payload = { status: 'finished' };
 
     try {
-      const res = await fetch(`/api/event/${eventId}/task/${initialData.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'token': token as string,
-        },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        `/api/event/${eventId}/task/${initialData.id}/finalize`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            token: token as string,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       const data = await res.json();
 
       if (data.message.code === '000') {
-        showSucessAlert(`La tarea "${initialData.name}" fue finalizada exitosamente.`);
+        showSucessAlert(
+          `La tarea "${initialData.name}" fue finalizada exitosamente.`
+        );
         onRefresh?.();
         onClose();
       } else {
         showErrorAlert(data.message.description || 'No se pudo finalizar la tarea.');
       }
-    } catch {
+    } catch (err) {
+      console.error('Error al finalizar tarea:', err);
       showErrorAlert('Ocurrió un error interno al finalizar la tarea.');
     }
   };
