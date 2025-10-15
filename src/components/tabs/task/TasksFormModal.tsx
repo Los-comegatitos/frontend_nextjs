@@ -69,7 +69,7 @@ export default function TaskFormModal({
     setForm(initialData || {});
 
     const loadAssignedProvider = async () => {
-      if (!eventId || !token || !initialData?.associatedProviderId) {
+      if (!eventId || !token || !initialData?.associatedProviderId || !API_BASE_URL) {
         setProviderName("No se ha asignado un proveedor");
         return;
       }
@@ -103,7 +103,7 @@ export default function TaskFormModal({
     };
 
     loadAssignedProvider();
-  }, [initialData, eventId, token]);
+  }, [initialData, eventId, token, API_BASE_URL]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -292,20 +292,22 @@ export default function TaskFormModal({
         `${API_BASE_URL}events/${eventId}/tasks/${eventId}/tasks/${initialData.id}/assign-provider/${selectedProvider}`,
         {
           method: "PATCH",
-          headers: { Authorization: `Bearer ${token}` },
-        },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       const data = await res.json();
 
-      if (data.message.code === "000") {
+      if (data.message?.code === "000") {
         showSucessAlert("Proveedor asignado correctamente.");
         onRefresh?.();
         setAssignOpen(false);
         onClose();
       } else {
         showErrorAlert(
-          data.message.description || "No se pudo asignar el proveedor.",
+          data.message?.description || "No se pudo asignar el proveedor."
         );
       }
     } catch (err) {
@@ -322,19 +324,21 @@ export default function TaskFormModal({
         `${API_BASE_URL}events/${eventId}/tasks/${eventId}/tasks/${initialData.id}/unassign-provider`,
         {
           method: "PATCH",
-          headers: { Authorization: `Bearer ${token}` },
-        },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       const data = await res.json();
 
-      if (data.message.code === "000") {
+      if (data.message?.code === "000") {
         showSucessAlert("Proveedor desasignado correctamente.");
         onRefresh?.();
         onClose();
       } else {
         showErrorAlert(
-          data.message.description || "No se pudo desasignar el proveedor.",
+          data.message?.description || "No se pudo desasignar el proveedor."
         );
       }
     } catch (err) {
@@ -411,20 +415,27 @@ export default function TaskFormModal({
               <Button color="success" onClick={handleFinalize}>
                 Finalizar
               </Button>
-              <Button
-                color="warning"
-                onClick={() => {
-                  fetchProvidersFromEvent();
-                  setAssignOpen(true);
-                }}
-              >
-                Asignar proveedor
-              </Button>
+
+              {/* Mostrar el botón solo si NO hay proveedor asignado */}
+              {!initialData.associatedProviderId && (
+                <Button
+                  color="warning"
+                  onClick={() => {
+                    fetchProvidersFromEvent();
+                    setAssignOpen(true);
+                  }}
+                >
+                  Asignar proveedor
+                </Button>
+              )}
+
+              {/* Mostrar el botón de desasignar solo si SÍ hay proveedor */}
               {initialData.associatedProviderId && (
                 <Button color="secondary" onClick={handleUnassignProvider}>
                   Desasignar proveedor
                 </Button>
               )}
+
               <Button color="error" onClick={() => setConfirmOpen(true)}>
                 Eliminar
               </Button>
@@ -433,7 +444,6 @@ export default function TaskFormModal({
           )}
         </DialogActions>
       </Dialog>
-
       {/* Modal de confirmación */}
       <Dialog
         open={confirmOpen}

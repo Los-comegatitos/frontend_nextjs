@@ -2,8 +2,16 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Table, TableHead, TableBody, TableRow, TableCell, Typography,
-  CircularProgress, Modal, Button,
+  Box,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Typography,
+  CircularProgress,
+  Modal,
+  Button,
 } from '@mui/material';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { useAppContext } from '@/context/AppContext';
@@ -61,17 +69,15 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
 
       const resp = await res.json();
       console.log(resp);
-      
+
       if (resp.data && Object.keys(resp.data).length > 0) {
         const filtered: GroupedQuotes = {};
-
         Object.keys(resp.data).forEach((serviceType) => {
           const filteredQuotes = resp.data[serviceType].filter(
             (q: Quote) => q.eventId?.toString() === eventId
           );
           if (filteredQuotes.length) filtered[serviceType] = filteredQuotes;
         });
-
         setQuotes(filtered);
       } else {
         setQuotes({});
@@ -87,6 +93,14 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
   useEffect(() => {
     fetchQuotes();
   }, [fetchQuotes]);
+
+  const cellStyle = {
+    textAlign: 'center',
+    padding: '8px',
+    whiteSpace: 'normal',
+    wordBreak: 'break-word',
+    verticalAlign: 'middle',
+  };
 
   return (
     <DashboardCard title="Cotizaciones Recibidas">
@@ -104,39 +118,50 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
       ) : Object.keys(quotes).length === 0 ? (
         <Typography>No hay cotizaciones para este evento</Typography>
       ) : (
-        Object.keys(quotes).map((serviceType) => (
-          <Box key={serviceType} mb={4}>
-            <Typography variant="h6" mb={1}>
-              {serviceType}
-            </Typography>
-            <Table>
-              <TableHead>
+        <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
+          <colgroup>
+            {Array.from({ length: 2 }).map((_, i) => (
+              <col key={i} style={{ width: `${100 / 2}%` }} />
+            ))}
+          </colgroup>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={cellStyle}>Servicio</TableCell>
+              <TableCell sx={cellStyle}>Precio</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {Object.keys(quotes).map((serviceType) => (
+              <React.Fragment key={serviceType}>
                 <TableRow>
-                  <TableCell>Servicio</TableCell>
-                  <TableCell>Precio</TableCell>
+                  <TableCell
+                    colSpan={2}
+                    sx={{ ...cellStyle, fontWeight: 'bold', backgroundColor: '#f5f5f5' }}
+                  >
+                    {serviceType}
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
                 {quotes[serviceType].map((q: Quote) => (
                   <TableRow
                     key={q.id}
                     onClick={() => handleOpenModal(q)}
                     sx={{
                       cursor: 'pointer',
-                      backgroundColor: selectedQuote?.id === q.id ? 'rgba(63, 81, 181, 0.1)' : 'inherit',
+                      backgroundColor:
+                        selectedQuote?.id === q.id ? 'rgba(63, 81, 181, 0.1)' : 'inherit',
                       '&:hover': {
                         backgroundColor: 'rgba(63, 81, 181, 0.2)',
                       },
                     }}
                   >
-                    <TableCell>{q.name}</TableCell>
-                    <TableCell>{q.price}</TableCell>
+                    <TableCell sx={cellStyle}>{q.name}</TableCell>
+                    <TableCell sx={cellStyle}>{q.price}</TableCell>
                   </TableRow>
                 ))}
-              </TableBody>
-            </Table>
-          </Box>
-        ))
+              </React.Fragment>
+            ))}
+          </TableBody>
+        </Table>
       )}
 
       <Modal open={modalOpen} onClose={handleCloseModal}>
@@ -146,7 +171,7 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: { xs: '90%', sm: 400 },
+            width: { xs: '90%', sm: 450 },
             bgcolor: 'background.paper',
             boxShadow: 24,
             p: 4,
@@ -155,29 +180,57 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
         >
           {selectedQuote && (
             <>
-              <Typography variant="h6" mb={2}>
-                Cotización #{selectedQuote.id}
+              <Typography variant="h6" mb={2} textAlign="center">
+                Detalle de Cotización
               </Typography>
-              <Typography><strong>Servicio:</strong> {selectedQuote.name}</Typography>
-              {selectedQuote.description && (
-                <Typography><strong>Descripción:</strong> {selectedQuote.description}</Typography>
-              )}
-              <Typography><strong>Evento:</strong> {selectedQuote.eventName}</Typography>
-              <Typography><strong>Precio:</strong> {selectedQuote.price}</Typography>
-              <Typography><strong>Cantidad:</strong> {selectedQuote.quantity}</Typography>
-              <Typography>
-                <strong>Fecha:</strong> {selectedQuote.date ? new Date(selectedQuote.date).toLocaleString() : '-'}
-              </Typography>
-              <Typography><strong>Proveedor:</strong> {selectedQuote.providerId}</Typography>
-              <Typography><strong>Estado:</strong> {selectedQuote.status}</Typography>
 
-              <Box mt={2} display="flex" justifyContent="flex-end">
-                <Button variant="contained" onClick={handleCloseModal}>Cerrar</Button>
+              <Box display="flex" flexDirection="column" gap={1.5}>
+                <Typography>
+                  <strong>Servicio:</strong> {selectedQuote.name}
+                </Typography>
+
+                {selectedQuote.description && (
+                  <Typography>
+                    <strong>Descripción:</strong> {selectedQuote.description}
+                  </Typography>
+                )}
+
+                <Typography>
+                  <strong>Evento:</strong> {selectedQuote.eventName}
+                </Typography>
+
+                <Typography>
+                  <strong>Precio:</strong> {selectedQuote.price?.toLocaleString('es-VE', { style: 'currency', currency: 'USD' }) ?? '-'}
+                </Typography>
+
+                <Typography>
+                  <strong>Cantidad:</strong> {selectedQuote.quantity ?? '-'}
+                </Typography>
+
+                <Typography>
+                  <strong>Fecha:</strong>{' '}
+                  {selectedQuote.date ? new Date(selectedQuote.date).toLocaleString() : '-'}
+                </Typography>
+
+                <Typography>
+                  <strong>Proveedor:</strong> {selectedQuote.providerId ?? '-'}
+                </Typography>
+
+                <Typography>
+                  <strong>Estado:</strong> {selectedQuote.status ?? '-'}
+                </Typography>
+              </Box>
+
+              <Box mt={3} display="flex" justifyContent="flex-end">
+                <Button variant="contained" onClick={handleCloseModal}>
+                  Cerrar
+                </Button>
               </Box>
             </>
           )}
         </Box>
       </Modal>
+
     </DashboardCard>
   );
 };

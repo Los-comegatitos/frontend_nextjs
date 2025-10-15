@@ -229,7 +229,7 @@ const TheChatBot = () => {
           outputType: 'character',
         },
       } as LlmConnectorBlock,
-    }), [apiKey]);
+    }), [apiKey, initPrompt]);
 
   return <ChatBot flow={flow} plugins={plugins} settings={botSettings}/>;
 };

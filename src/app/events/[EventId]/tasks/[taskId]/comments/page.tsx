@@ -11,8 +11,8 @@ import {
   ListItem,
   ListItemText,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { showSucessAlert, showErrorAlert } from '@/app/lib/swal';
 
@@ -23,69 +23,245 @@ interface Comment {
   date: string;
 }
 
-interface TaskSummary {
+interface File {
+  id: string; 
+  fileName: string;
+}
+
+interface BackendComment {
+  _id: string;
+  description: string;
+  userType: 'organizer' | 'provider';
+  date: string;
+}
+
+interface BackendTask {
+  attachments: File[];
   id: string;
   name: string;
+  comments?: BackendComment[];
+}
+
+interface BackendEvent {
+  tasks: BackendTask[];
 }
 
 export default function CommentsPage() {
-  const { eventId, taskId } = useParams<{ eventId: string; taskId: string }>();
+  const { EventId, taskId } = useParams<{ EventId: string, taskId: string }>();
+  const [visible, setVisible] = useState(false);
   const [taskName, setTaskName] = useState<string>('Cargando...');
   const [comment, setComment] = useState<string>('');
+  // const [file, setFile] = useState<File>({
+  //   id: '', 
+  //   name: ''
+  // });
   const [comments, setComments] = useState<Comment[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(true);
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
   const UploadIcon = "/images/icons/upload.png";
+  const searchParams = useSearchParams();
+  const token = searchParams.get('token');
 
+  const fetchComments = React.useCallback(async () => {
+    if (!EventId || !taskId || !API_BASE_URL || !token) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}events/${EventId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await res.json();
+      console.log(data);
+      
+      if (!res.ok || !data?.data) {
+        setComments([]);
+        return;
+      }
+
+      const event: BackendEvent = data.data;
+      const task = event.tasks.find((t) => t.id === taskId);
+      if (!task) {
+        setComments([]);
+        return;
+      }
+
+      const mappedComments: Comment[] = (task.comments ?? []).map((c) => ({
+        id: c._id,
+        text: c.description,
+        author: c.userType === 'organizer' ? 'Organizador' : 'Proveedor',
+        date: new Date(c.date).toLocaleString(),
+      }));
+
+      setComments(mappedComments);
+      setFiles(task.attachments)
+    } catch (err) {
+      console.error('Error al cargar comentarios:', err);
+      setComments([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [API_BASE_URL, EventId, taskId, token]);
 
   // Buscar nombre de la tarea
   useEffect(() => {
     async function fetchTask() {
-      if (!eventId || !taskId || !API_BASE_URL) { 
+      if (!EventId || !taskId || !API_BASE_URL) { 
         setTaskName('Error: IDs o URL base faltantes.');
-        setLoading(false);
         return;
       }
       try {
-        const res = await fetch(`${API_BASE_URL}events/${eventId}/tasks`);
+        const res = await fetch(`${API_BASE_URL}events/${EventId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
         const data = await res.json();
 
-        if (res.ok && data.data) {
-          const tasks: TaskSummary[] = data.data;
-          const found = tasks.find((t) => t.id === taskId);
-          setTaskName(found?.name || 'Tarea sin nombre');
+        if (res.ok && data?.data) {
+          const event: BackendEvent = data.data;
+          const found = event.tasks.find((t) => t.id === taskId);
+
+          if (found) {
+            setTaskName(found.name);
+          } else {
+            setTaskName('Tarea no encontrada');
+          }
         } else {
-          setTaskName('Tarea no encontrada');
+          setTaskName('Error al obtener datos del evento');
         }
       } catch (err) {
         console.error('Error al obtener la tarea:', err);
         setTaskName('Error al cargar tarea');
-      } finally {
-        setLoading(false);
       }
     }
+    fetchTask();
+  }, [EventId, taskId, API_BASE_URL, token]);
 
-    if (eventId && taskId) fetchTask();
-  }, [eventId, taskId, API_BASE_URL]);
+  // cargar comentarios
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
-  // Enviar comentario (no funciona, Ricardo le pondrá la lógica
+  // enviar comentario
   const handleSendComment = async () => {
     if (!comment.trim()) {
       showErrorAlert('Escribe un comentario antes de enviarlo.');
       return;
     }
 
-    const newComment: Comment = {
-      id: `${Date.now()}`,
-      text: comment,
-      author: 'Tú',
-      date: new Date().toLocaleString(),
-    };
+    if (!EventId || !taskId || !API_BASE_URL) {
+      showErrorAlert('No se pudo enviar el comentario, faltan parámetros.');
+      return;
+    }
 
-    setComments((prev) => [...prev, newComment]);
-    setComment('');
-    showSucessAlert('Comentario enviado con éxito.');
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}events/${EventId}/tasks/${taskId}/comment/organizer`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ description: comment }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error('Error al enviar comentario:', data);
+        showErrorAlert('No se pudo enviar el comentario.');
+        return;
+      }
+
+      setComment('');
+      showSucessAlert('Comentario enviado con éxito.');
+
+      // refrescamos la lista
+      fetchComments();
+    } catch (err) {
+      console.error('Error al enviar comentario:', err);
+      showErrorAlert('Error al enviar el comentario.');
+    }
   };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      setLoading(true);
+  
+      const input = document.getElementById('file') as HTMLInputElement;
+      const file = input?.files?.[0];
+      console.log(file);
+      
+
+      if (!file) {
+        console.log('Algo está muy mal');
+        
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file); 
+      try {
+  
+        const res = await fetch(`/api/event/${EventId}/task/${taskId}/files`, {
+          method: 'POST',
+          headers: { 
+            // 'Content-Type': 'multipart/form-data',
+            'token': token as string,
+          },
+          body: formData,
+        });
+        const data = await res.json();
+  
+        if (data.message.code === '000') {
+          setVisible(false)
+          await showSucessAlert(`El archivo se adjuntó exitosamente`); 
+          await fetchComments()
+        } else {
+          showErrorAlert(data.message.description);
+        }
+      } catch (err) {
+        console.error('Error saving service:', err);
+      } finally {
+        setLoading(false);
+      }
+  };
+
+  const handleDownload = async (id : string) => {
+    try {
+      const res = await fetch(`/api/event/${EventId}/task/${taskId}/files/${id}`, {
+        method: 'GET',
+        headers: { 'token': token as string },
+      });
+
+      const blob = await res.blob();
+
+      if (res.ok) {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = id;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.URL.revokeObjectURL(url);
+
+      } else {
+          showErrorAlert('Un error ha sucedido en la descarga');
+      }
+    } catch (error) {
+      console.log(error);
+      
+    }
+  }
 
   if (loading)
     return (
@@ -106,12 +282,10 @@ export default function CommentsPage() {
         boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
       }}
     >
-      {/* Nombre de la tarea */}
       <Typography variant="h5" fontWeight={600} mb={3}>
         {taskName}
       </Typography>
 
-      {/* Subida de archivos */}
       <Paper
         elevation={0}
         sx={{
@@ -124,25 +298,30 @@ export default function CommentsPage() {
           '&:hover': { backgroundColor: '#f5f8ff' },
         }}
       >
-        <label htmlFor="file-upload" style={{ cursor: 'pointer' }}>
-          <Image src={UploadIcon} alt="Subir archivo" width={50} height={50} />
-          <Typography variant="body1" mt={1}>
-            Haz clic o arrastra un archivo aquí para subirlo
-          </Typography>
-        </label>
-        <input
-          id="file-upload"
-          type="file"
-          style={{ display: 'none' }}
-          onChange={(e) =>
-            e.target.files?.length
-              ? showSucessAlert(`Archivo "${e.target.files[0].name}" cargado correctamente.`)
-              : null
-          }
-        />
+        <form onSubmit={handleSubmit}>
+          <label htmlFor="file" style={{ cursor: 'pointer' }}>
+            <Image src={UploadIcon} alt="Subir archivo" width={50} height={50} />
+            <Typography variant="body1" mt={1}>
+              Haz clic o arrastra un archivo aquí para subirlo
+            </Typography>
+          </label>
+          <input
+            id="file"
+            type="file"
+            style={{ display: 'none' }}
+            onChange={async (e) => {
+              if (e.target.files?.length) {
+                await showSucessAlert(`Archivo "${e.target.files[0].name}" cargado correctamente.`); 
+                setVisible(true)
+              } else {
+                setVisible(false)
+              }
+            }}
+          />
+          {visible && <Button type='submit'>Subir archivo</Button>}
+        </form>
       </Paper>
 
-      {/* Cuadro para comentar */}
       <TextField
         fullWidth
         multiline
@@ -162,40 +341,91 @@ export default function CommentsPage() {
         Enviar comentario
       </Button>
 
-      {/* Lista de comentarios */}
       <Box mt={4}>
         <Typography variant="h6" mb={2}>
           Comentarios
         </Typography>
 
         {comments.length === 0 ? (
-          <Typography color="text.secondary">Aún no hay comentarios.</Typography>
+          <Typography color="text.secondary">Aun no hay comentarios.</Typography>
         ) : (
           <Paper elevation={0} sx={{ p: 2, border: '1px solid #EAEFF4' }}>
             <List>
               {comments.map((c) => (
                 <ListItem
                   key={c.id}
-                  sx={{ borderBottom: '1px solid #EAEFF4', mb: 1 }}
+                  sx={{ borderBottom: '1px solid #EAEFF4', mb: 1, alignItems: 'flex-start' }}
                 >
                   <ListItemText
                     primary={
-                      <Typography fontWeight={600}>{c.author}</Typography>
-                    }
-                    secondary={
-                      <>
-                        <Typography variant="body2" color="text.secondary">
-                          {c.text}
+                      <Typography
+                        component="span"
+                        sx={{ fontSize: '1rem', display: 'block' }}
+                      >
+                        <Typography
+                          component="span"
+                          sx={{ fontWeight: 600, mr: 1 }}
+                        >
+                          {c.author}:
                         </Typography>
                         <Typography
-                          variant="caption"
-                          color="text.disabled"
-                          display="block"
+                          component="span"
+                          sx={{ fontWeight: 400 }}
                         >
-                          {c.date}
+                          {c.text}
                         </Typography>
-                      </>
+                      </Typography>
                     }
+                    secondary={
+                      <Typography
+                        component="span"
+                        color="text.disabled"
+                        sx={{ display: 'block', mt: 0.5, fontSize: '0.8rem', fontWeight: 600 }}
+                      >
+                        {c.date}
+                      </Typography>
+                    }
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </Paper>
+        )}
+      </Box>
+      <Box mt={4}>
+        <Typography variant="h6" mb={2}>
+          Archivos adjuntos
+        </Typography>
+
+        {files.length === 0 ? (
+          <Typography color="text.secondary">Aun no hay comentarios.</Typography>
+        ) : (
+          <Paper elevation={0} sx={{ p: 2, border: '1px solid #EAEFF4' }}>
+            <List>
+              {files.map((c) => (
+                <ListItem
+                  key={c.id}
+                  sx={{ borderBottom: '1px solid #EAEFF4', mb: 1, ":hover": { textDecorationLine: 'underline', cursor: 'pointer' } }}
+                >
+                  <ListItemText
+                    primary={
+                      <Typography component="span" fontWeight={600} onClick={async () => {
+                        await handleDownload(c.id)
+                      }}>
+                        {c.fileName}
+                      </Typography>
+                    }
+                    // secondary={
+                    //   <>
+                    //     <Typography component="span" variant="body2" color="text.secondary">
+                    //       {c.text}
+                    //     </Typography>
+                    //     <br />
+                    //     <Typography component="span" variant="caption" color="text.disabled">
+                    //       {c.date}
+                    //     </Typography>
+                    //   </>
+                    // }
                   />
                 </ListItem>
               ))}
