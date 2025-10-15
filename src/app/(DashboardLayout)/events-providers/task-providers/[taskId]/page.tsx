@@ -233,6 +233,7 @@ export default function TaskCommentsPage() {
         {taskName}
       </Typography>
 
+      {/* 📎 Subir archivo */}
       <Paper
         elevation={0}
         sx={{
@@ -269,6 +270,7 @@ export default function TaskCommentsPage() {
         </form>
       </Paper>
 
+      {/* Campo de comentario */}
       <TextField
         fullWidth
         multiline
@@ -288,6 +290,7 @@ export default function TaskCommentsPage() {
         Enviar comentario
       </Button>
 
+      {/* Comentarios */}
       <Box mt={4}>
         <Typography variant="h6" mb={2}>
           Comentarios

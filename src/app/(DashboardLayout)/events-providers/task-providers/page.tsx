@@ -145,6 +145,7 @@ export default function TaskProvidersPage() {
         </Table>
       )}
 
+      {/* Modal de detalles de tarea */}
       <Dialog
         open={!!selectedTask}
         onClose={() => setSelectedTask(null)}
