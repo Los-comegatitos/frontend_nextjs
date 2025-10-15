@@ -49,19 +49,19 @@ export async function PATCH(
     if (body?.unassign) {
       endpoint = `${API_BACKEND}events/${eventId}/tasks/${eventId}/tasks/${taskId}/unassign-provider`;
     } else {
-      if (!providerId && !body.providerId) {
+      const assignedProviderId = providerId || body.providerId;
+      if (!assignedProviderId) {
         return NextResponse.json(
           { message: 'Falta providerId para asignar' },
           { status: 400 }
         );
       }
-      endpoint = `${API_BACKEND}events/${eventId}/tasks/${eventId}/tasks/${taskId}/assign-provider/${body.providerId}`;
+      endpoint = `${API_BACKEND}events/${eventId}/tasks/${eventId}/tasks/${taskId}/assign-provider/${assignedProviderId}`;
     }
 
     const res = await fetch(endpoint, {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
     });
