@@ -63,7 +63,6 @@ export default function CommentsPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
-  // se reutiliza esta funcion para cargar comentarios
   const fetchComments = React.useCallback(async () => {
     if (!EventId || !taskId || !API_BASE_URL || !token) return;
     setLoading(true);
@@ -144,7 +143,7 @@ export default function CommentsPage() {
     fetchTask();
   }, [EventId, taskId, API_BASE_URL, token]);
 
-  // caragar comentarios inicialmente
+  // cargar comentarios
   useEffect(() => {
     fetchComments();
   }, [fetchComments]);
@@ -185,7 +184,7 @@ export default function CommentsPage() {
       setComment('');
       showSucessAlert('Comentario enviado con éxito.');
 
-      // refrescamiento de la lista de comentarios
+      // refrescamos la lista
       fetchComments();
     } catch (err) {
       console.error('Error al enviar comentario:', err);
@@ -347,31 +346,43 @@ export default function CommentsPage() {
         </Typography>
 
         {comments.length === 0 ? (
-          <Typography color="text.secondary">Aún no hay comentarios.</Typography>
+          <Typography color="text.secondary">Aun no hay comentarios.</Typography>
         ) : (
           <Paper elevation={0} sx={{ p: 2, border: '1px solid #EAEFF4' }}>
             <List>
               {comments.map((c) => (
                 <ListItem
                   key={c.id}
-                  sx={{ borderBottom: '1px solid #EAEFF4', mb: 1 }}
+                  sx={{ borderBottom: '1px solid #EAEFF4', mb: 1, alignItems: 'flex-start' }}
                 >
                   <ListItemText
                     primary={
-                      <Typography component="span" fontWeight={600}>
-                        {c.author}
+                      <Typography
+                        component="span"
+                        sx={{ fontSize: '1rem', display: 'block' }}
+                      >
+                        <Typography
+                          component="span"
+                          sx={{ fontWeight: 600, mr: 1 }}
+                        >
+                          {c.author}:
+                        </Typography>
+                        <Typography
+                          component="span"
+                          sx={{ fontWeight: 400 }}
+                        >
+                          {c.text}
+                        </Typography>
                       </Typography>
                     }
                     secondary={
-                      <>
-                        <Typography component="span" variant="body2" color="text.secondary">
-                          {c.text}
-                        </Typography>
-                        <br />
-                        <Typography component="span" variant="caption" color="text.disabled">
-                          {c.date}
-                        </Typography>
-                      </>
+                      <Typography
+                        component="span"
+                        color="text.disabled"
+                        sx={{ display: 'block', mt: 0.5, fontSize: '0.8rem', fontWeight: 600 }}
+                      >
+                        {c.date}
+                      </Typography>
                     }
                   />
                 </ListItem>
@@ -386,7 +397,7 @@ export default function CommentsPage() {
         </Typography>
 
         {files.length === 0 ? (
-          <Typography color="text.secondary">Aún no hay comentarios.</Typography>
+          <Typography color="text.secondary">Aun no hay comentarios.</Typography>
         ) : (
           <Paper elevation={0} sx={{ p: 2, border: '1px solid #EAEFF4' }}>
             <List>
