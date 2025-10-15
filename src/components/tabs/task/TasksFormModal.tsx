@@ -58,20 +58,24 @@ export default function TaskFormModal({
   const [providerName, setProviderName] = useState<string>("Cargando...");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
-  const [providers, setProviders] = useState<{ id: string; name: string }[]>([]);
+  const [providers, setProviders] = useState<{ id: string; name: string }[]>(
+    [],
+  );
   const [selectedProvider, setSelectedProvider] = useState<string>("");
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 
   useEffect(() => {
     setForm(initialData || {});
 
     const loadAssignedProvider = async () => {
-      if (!eventId || !token || !initialData?.associatedProviderId) {
+      if (!eventId || !token || !initialData?.associatedProviderId || !API_BASE_URL) {
         setProviderName("No se ha asignado un proveedor");
         return;
       }
 
       try {
-        const res = await fetch(`/api/events/${eventId}`, {
+        const res = await fetch(`${API_BASE_URL}events/${eventId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data: EventResponse = await res.json();
@@ -79,29 +83,34 @@ export default function TaskFormModal({
         if (data?.message?.code === "000" && data.data?.services) {
           const match = data.data.services.find(
             (s: EventService) =>
-              s.quote?.providerId === initialData.associatedProviderId
+              s.quote?.providerId === initialData.associatedProviderId,
           );
 
           if (match) {
             setProviderName(match.serviceTypeName || "Servicio desconocido");
           } else {
-            setProviderName("Proveedor asignado no encontrado en los servicios del evento");
+            setProviderName(
+              "Proveedor asignado no encontrado en los servicios del evento",
+            );
           }
         } else {
           setProviderName("No se ha asignado un proveedor");
         }
-      } catch {
+      } catch (err) {
+        console.error("Error al obtener proveedor asignado:", err);
         setProviderName("No se ha asignado un proveedor");
       }
     };
 
     loadAssignedProvider();
-  }, [initialData, eventId, token]);
+  }, [initialData, eventId, token, API_BASE_URL]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+
+  //Crear tarea de un evento
   const handleCreate = async () => {
     if (!eventId || !token) return;
 
@@ -113,7 +122,7 @@ export default function TaskFormModal({
     };
 
     try {
-      const res = await fetch(`/api/events/${eventId}/tasks`, {
+      const res = await fetch(`${API_BASE_URL}events/${eventId}/tasks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,65 +140,83 @@ export default function TaskFormModal({
       } else {
         showErrorAlert(data.message.description || 'No se pudo crear la tarea.');
       }
-    } catch {
+    } catch (err) {
+      console.error('Error al crear tarea:', err);
       showErrorAlert('Ocurrió un error interno al crear la tarea.');
     }
   };
 
+  //Eliminar tarea de un evento
   const handleDeleteConfirmed = async () => {
     if (!eventId || !initialData || !token) return;
 
     try {
-      const res = await fetch(`/api/events/${eventId}/tasks/${initialData.id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${API_BASE_URL}events/${eventId}/tasks/${initialData.id}`,
+        {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       const data = await res.json();
 
       if (data.message.code === '000') {
-        showSucessAlert(`La tarea "${initialData.name}" fue eliminada exitosamente.`);
+        showSucessAlert(
+          `La tarea "${initialData.name}" fue eliminada exitosamente.`
+        );
         onRefresh?.();
         onClose();
       } else {
         showErrorAlert(data.message.description || 'No se pudo eliminar la tarea.');
       }
-    } catch {
+    } catch (err) {
+      console.error('Error al eliminar tarea:', err);
       showErrorAlert('Ocurrió un error interno al eliminar la tarea.');
     } finally {
       setConfirmOpen(false);
     }
   };
 
+  //Finalizar tarea de un evento
   const handleFinalize = async () => {
     if (!eventId || !initialData || !token) return;
 
+    //payload por si el backend espera algo adicional
     const payload = { status: 'finished' };
 
     try {
-      const res = await fetch(`/api/events/${eventId}/tasks/${initialData.id}/finalize`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        `${API_BASE_URL}events/${eventId}/tasks/${initialData.id}/finalize`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       const data = await res.json();
 
       if (data.message.code === '000') {
-        showSucessAlert(`La tarea "${initialData.name}" fue finalizada exitosamente.`);
+        showSucessAlert(
+          `La tarea "${initialData.name}" fue finalizada exitosamente.`
+        );
         onRefresh?.();
         onClose();
       } else {
         showErrorAlert(data.message.description || 'No se pudo finalizar la tarea.');
       }
-    } catch {
+    } catch (err) {
+      console.error('Error al finalizar tarea:', err);
       showErrorAlert('Ocurrió un error interno al finalizar la tarea.');
     }
   };
 
+
+  //Modificar
   const handleUpdate = async () => {
     if (!eventId || !initialData || !token) return;
 
@@ -201,7 +228,7 @@ export default function TaskFormModal({
     };
 
     try {
-      const res = await fetch(`/api/events/${eventId}/tasks/${initialData.id}`, {
+      const res = await fetch(`${API_BASE_URL}events/${eventId}/tasks/${initialData.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -213,13 +240,16 @@ export default function TaskFormModal({
       const data = await res.json();
 
       if (data.message.code === '000') {
-        showSucessAlert(`La tarea "${initialData.name}" fue modificada exitosamente.`);
+        showSucessAlert(
+          `La tarea "${initialData.name}" fue modificada exitosamente.`
+        );
         onRefresh?.();
         onClose();
       } else {
         showErrorAlert(data.message.description || 'No se pudo modificar la tarea.');
       }
-    } catch {
+    } catch (err) {
+      console.error('Error al modificar tarea:', err);
       showErrorAlert('Ocurrió un error interno al modificar la tarea.');
     }
   };
@@ -228,7 +258,7 @@ export default function TaskFormModal({
     if (!eventId || !token) return;
 
     try {
-      const res = await fetch(`/api/events/${eventId}`, {
+      const res = await fetch(`${API_BASE_URL}events/${eventId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data: EventResponse = await res.json();
@@ -238,14 +268,18 @@ export default function TaskFormModal({
       }
 
       const providersWithNames = data.data.services
-        .filter((s: EventService) => !!s.quote?.providerId && !!s.serviceTypeName)
+        .filter(
+          (s: EventService) =>
+            !!s.quote?.providerId && !!s.serviceTypeName,
+        )
         .map((s: EventService) => ({
           id: s.quote!.providerId,
           name: s.serviceTypeName,
         }));
 
       setProviders(providersWithNames);
-    } catch {
+    } catch (error) {
+      console.error("Error cargando proveedores:", error);
       showErrorAlert("No se pudieron obtener los proveedores del evento.");
     }
   };
@@ -255,24 +289,29 @@ export default function TaskFormModal({
 
     try {
       const res = await fetch(
-        `/api/events/${eventId}/tasks/${initialData.id}/assign-provider/${selectedProvider}`,
+        `${API_BASE_URL}events/${eventId}/tasks/${eventId}/tasks/${initialData.id}/assign-provider/${selectedProvider}`,
         {
           method: "PATCH",
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
       const data = await res.json();
 
-      if (data.message.code === "000") {
+      if (data.message?.code === "000") {
         showSucessAlert("Proveedor asignado correctamente.");
         onRefresh?.();
         setAssignOpen(false);
         onClose();
       } else {
-        showErrorAlert(data.message.description || "No se pudo asignar el proveedor.");
+        showErrorAlert(
+          data.message?.description || "No se pudo asignar el proveedor."
+        );
       }
-    } catch {
+    } catch (err) {
+      console.error("Error al asignar proveedor:", err);
       showErrorAlert("Ocurrió un error interno al asignar el proveedor.");
     }
   };
@@ -282,31 +321,39 @@ export default function TaskFormModal({
 
     try {
       const res = await fetch(
-        `/events/${eventId}/tasks/${initialData.id}/unassign-provider`,
+        `${API_BASE_URL}events/${eventId}/tasks/${eventId}/tasks/${initialData.id}/unassign-provider`,
         {
           method: "PATCH",
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
       const data = await res.json();
 
-      if (data.message.code === "000") {
+      if (data.message?.code === "000") {
         showSucessAlert("Proveedor desasignado correctamente.");
         onRefresh?.();
         onClose();
       } else {
-        showErrorAlert(data.message.description || "No se pudo desasignar el proveedor.");
+        showErrorAlert(
+          data.message?.description || "No se pudo desasignar el proveedor."
+        );
       }
-    } catch {
+    } catch (err) {
+      console.error("Error al desasignar proveedor:", err);
       showErrorAlert("Ocurrió un error interno al desasignar el proveedor.");
     }
   };
 
   return (
     <>
+      {/* Modal principal */}
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle>{initialData ? 'Detalle de tarea' : 'Crear tarea'}</DialogTitle>
+        <DialogTitle>
+          {initialData ? 'Detalle de tarea' : 'Crear tarea'}
+        </DialogTitle>
         <DialogContent dividers>
           <TextField
             margin="normal"
@@ -368,20 +415,27 @@ export default function TaskFormModal({
               <Button color="success" onClick={handleFinalize}>
                 Finalizar
               </Button>
-              <Button
-                color="warning"
-                onClick={() => {
-                  fetchProvidersFromEvent();
-                  setAssignOpen(true);
-                }}
-              >
-                Asignar proveedor
-              </Button>
+
+              {/* Mostrar el botón solo si NO hay proveedor asignado */}
+              {!initialData.associatedProviderId && (
+                <Button
+                  color="warning"
+                  onClick={() => {
+                    fetchProvidersFromEvent();
+                    setAssignOpen(true);
+                  }}
+                >
+                  Asignar proveedor
+                </Button>
+              )}
+
+              {/* Mostrar el botón de desasignar solo si SÍ hay proveedor */}
               {initialData.associatedProviderId && (
                 <Button color="secondary" onClick={handleUnassignProvider}>
                   Desasignar proveedor
                 </Button>
               )}
+
               <Button color="error" onClick={() => setConfirmOpen(true)}>
                 Eliminar
               </Button>
@@ -390,8 +444,12 @@ export default function TaskFormModal({
           )}
         </DialogActions>
       </Dialog>
-
-      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth="xs">
+      {/* Modal de confirmación */}
+      <Dialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        maxWidth="xs"
+      >
         <DialogTitle>Confirmar eliminación</DialogTitle>
         <DialogContent dividers>
           {'¿Estás seguro de eliminar la tarea "' + initialData?.name + '"?'}
@@ -404,7 +462,13 @@ export default function TaskFormModal({
         </DialogActions>
       </Dialog>
 
-      <Dialog open={assignOpen} onClose={() => setAssignOpen(false)} maxWidth="xs" fullWidth>
+      {/* Modal para asignar proveedor */}
+      <Dialog
+        open={assignOpen}
+        onClose={() => setAssignOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle>Asignar proveedor</DialogTitle>
         <DialogContent dividers>
           <FormControl fullWidth>
@@ -412,7 +476,9 @@ export default function TaskFormModal({
             <Select
               value={selectedProvider}
               label="Proveedor"
-              onChange={(e) => setSelectedProvider(e.target.value as string)}
+              onChange={(e) =>
+                setSelectedProvider(e.target.value as string)
+              }
             >
               {providers.map((p) => (
                 <MenuItem key={p.id} value={p.id}>

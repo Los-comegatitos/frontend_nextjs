@@ -3,6 +3,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
+
+//listar tareas
 export async function GET(req: NextRequest) {
   try {
     const token = req.headers.get('token');
@@ -20,6 +22,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
+//crear tarea
 export async function POST(req: NextRequest) {
   try {
     const token = req.headers.get('token');

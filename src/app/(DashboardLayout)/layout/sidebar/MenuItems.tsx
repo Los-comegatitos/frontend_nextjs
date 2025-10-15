@@ -111,7 +111,7 @@ export const Menuitems = [
 export const AdminMenuitems = [
   {
     navlabel: true,
-    subheader: 'Dashboard',
+    subheader: 'Menú',
   },
   {
     id: uniqueId(),
@@ -148,7 +148,7 @@ export const AdminMenuitems = [
 export const OrganizerMenuitems = [
   {
     navlabel: true,
-    subheader: 'Dashboard',
+    subheader: 'Menú',
   },
   {
     id: uniqueId(),
@@ -162,19 +162,13 @@ export const OrganizerMenuitems = [
     icon: CalendarMonth,
     href: '/event',
   },
-  {
-    id: uniqueId(),
-    title: 'Estadísticas (WIP)',
-    icon: IconBackhoe,
-    href: '/wip',
-  },
 ];
 
 
 export const ProviderMenuitems = [
   {
     navlabel: true,
-    subheader: 'Dashboard',
+    subheader: 'Menú',
   },
   {
     id: uniqueId(),

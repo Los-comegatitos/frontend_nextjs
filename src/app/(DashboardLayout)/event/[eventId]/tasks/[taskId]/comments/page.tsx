@@ -266,8 +266,7 @@ const { eventId, taskId } = useParams<{ eventId: string, taskId: string }>();
           showErrorAlert('Un error ha sucedido en la descarga');
       }
     } catch (error) {
-      console.log(error);
-      
+      console.log('error', error)
     }
   }
 
