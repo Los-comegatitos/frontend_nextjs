@@ -146,7 +146,6 @@ const EventPage = () => {
 
         <CustomTabPanel value={tabValue} index={3} loading={loadingEvent} eventData={eventData}>
           <OrganizerQuotesPage eventId={eventData?.eventId} />
-          {/* <ExampleTabContent event={eventData!} /> */}
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={4} loading={loadingEvent} eventData={eventData}>
