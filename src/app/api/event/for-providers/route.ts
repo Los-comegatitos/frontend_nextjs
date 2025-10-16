@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
+//listar los ventos de u proveedor
 export async function GET(req: NextRequest) {
   try {
     const token = req.headers.get('token');

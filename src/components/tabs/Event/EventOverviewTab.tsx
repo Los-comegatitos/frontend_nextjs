@@ -1,22 +1,21 @@
 import { Box, Typography, Chip } from '@mui/material';
 import { Event } from '@/interfaces/Event';
-import { showFormalDate } from '@/utils/Formats';
 
-// const formatDate = (dateString?: string) => {
-//   if (!dateString) return '—';
-//   try {
-//     const d = new Date(dateString);
-//     return new Intl.DateTimeFormat('es-VE', {
-//       year: 'numeric',
-//       month: 'long',
-//       day: '2-digit',
-//       hour: '2-digit',
-//       minute: '2-digit',
-//     }).format(d);
-//   } catch {
-//     return dateString;
-//   }
-// };
+const formatDate = (dateString?: string) => {
+  if (!dateString) return '—';
+  try {
+    const d = new Date(dateString);
+    return new Intl.DateTimeFormat('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(d);
+  } catch {
+    return dateString;
+  }
+};
 
 interface Props {
   event: Event;
@@ -57,14 +56,14 @@ const EventOverviewTab = ({ event }: Props) => {
               <Typography variant='caption' color='text.secondary'>
                 Fecha del evento
               </Typography>
-              <Typography sx={{ fontSize: '14px' }}>{showFormalDate(event.eventDate)}</Typography>
+              <Typography sx={{ fontSize: '14px' }}>{formatDate(event.eventDate)}</Typography>
             </Box>
 
             <Box>
               <Typography variant='caption' color='text.secondary'>
                 Cliente
               </Typography>
-              <Typography sx={{ fontSize: '14px' }}>{event.client ? event.client.name : 'n/a'}</Typography>
+              <Typography sx={{ fontSize: '14px' }}>{event.client?.name}</Typography>
             </Box>
 
             <Box>
