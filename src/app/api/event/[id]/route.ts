@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
+//buscar un evento
 export async function GET(req: NextRequest, params: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params.params;
@@ -24,6 +25,7 @@ export async function GET(req: NextRequest, params: { params: Promise<{ id: stri
   }
 }
 
+//modificar un evento
 export async function PUT(req: NextRequest, params: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params.params;

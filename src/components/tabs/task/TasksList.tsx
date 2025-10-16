@@ -1,6 +1,7 @@
 'use client';
 import {
   Box,
+  Button,
   Table,
   TableBody,
   TableCell,
@@ -11,7 +12,6 @@ import {
 import Image from 'next/image';
 import { Task } from '@/interfaces/Task';
 
-
 type Props = {
   tasks: Task[];
   onAdd: () => void;
@@ -20,26 +20,17 @@ type Props = {
   onComment: (task: Task) => void;
 };
 
-
 export default function TaskList({ tasks, onAdd, onView, onComment }: Props) {
   return (
     <Box>
+      {/* Botón superior */}
       <Box display="flex" justifyContent="flex-end" mb={2}>
-        <button
-          onClick={onAdd}
-          style={{
-            backgroundColor: '#1976d2',
-            color: 'white',
-            padding: '6px 12px',
-            borderRadius: '4px',
-            border: 'none',
-            cursor: 'pointer',
-          }}
-        >
-          ➕ Añadir tarea
-        </button>
+        <Button variant="contained" color="primary" onClick={onAdd}>
+          Añadir tarea
+        </Button>
       </Box>
 
+      {/* Tabla de tareas*/}
       {tasks.length === 0 ? (
         <Typography>No hay tareas registradas.</Typography>
       ) : (
