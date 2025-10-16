@@ -248,7 +248,7 @@ export default function TaskFormModal({
     if (!eventId || !token) return;
 
     try {
-      const res = await fetch(`$/api/event/${eventId}`, {
+      const res = await fetch(`/api/event/${eventId}`, {
         headers: { 'token': token as string },
       });
       const data: EventResponse = await res.json();
@@ -279,7 +279,7 @@ export default function TaskFormModal({
 
     try {
       const res = await fetch(
-        `$/api/event/${eventId}/task/${eventId}/task/${initialData.id}/assign-provider/${selectedProvider}`,
+        `/api/event/${eventId}/task/${initialData.id}/assign-provider/${selectedProvider}`,
         {
           method: "PATCH",
           headers: {
@@ -311,11 +311,11 @@ export default function TaskFormModal({
 
     try {
       const res = await fetch(
-        `$/api/event/${eventId}/task/${eventId}/task/${initialData.id}/unassign-provider`,
+        `/api/event/${eventId}/task/${initialData.id}/unassign-provider`,
         {
           method: "PATCH",
           headers: {
-            Authorization: `Bearer ${token}`,
+            'token': token as string,
           },
         }
       );

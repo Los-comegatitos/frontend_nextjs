@@ -4,10 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from '@/app/lib/definitions';
 
 //ruta para finalizar la tarea
-export async function PATCH(req: NextRequest, { params }: { params: { id: string; taskId: string } }) {
+export async function PATCH(req: NextRequest,  params: { params: Promise<{ id: string; taskId: string }> }) {
   try {
     const token = req.headers.get('token');
-    const { id, taskId } = params;
+    const { id, taskId } = await params.params;
 
     if (!token) {
       return NextResponse.json(
