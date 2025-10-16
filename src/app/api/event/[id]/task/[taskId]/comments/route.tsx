@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from '@/app/lib/definitions';
 
+//listar comentarios
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string; taskId: string }> }
@@ -28,6 +29,7 @@ export async function GET(
   }
 }
 
+//hacer un comentario
 export async function PATCH(
   req: NextRequest,
   context: { params: Promise<{ id: string; taskId: string }> }

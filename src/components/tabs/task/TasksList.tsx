@@ -1,6 +1,15 @@
 'use client';
-import React, { useState } from 'react';
-import { Box, Table, TableBody, TableCell, TableHead, TableRow, Typography, Card } from '@mui/material';
+import { useState } from 'react';
+import {
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Typography,
+  Card,
+} from '@mui/material';
 import Image from 'next/image';
 import { Task } from '@/interfaces/Task';
 import FullCalendar from '@fullcalendar/react';

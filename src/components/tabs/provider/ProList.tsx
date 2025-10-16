@@ -10,9 +10,7 @@ type Props = {
 export default function ProviderList({ providers, onView }: Props) {
   return (
     <Box>
-      <Box display="flex" justifyContent="flex-end" mb={2}>
-      </Box>
-
+      <Box display="flex" justifyContent="flex-end" mb={2}></Box>
       {providers.length === 0 ? (
         <Typography>No hay proveedores relacionados al evento.</Typography>
       ) : (
