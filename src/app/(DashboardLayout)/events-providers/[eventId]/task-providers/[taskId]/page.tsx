@@ -12,9 +12,10 @@ import {
   ListItemText,
 } from '@mui/material';
 import React, { useEffect, useState, useCallback } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { showSucessAlert, showErrorAlert } from '@/app/lib/swal';
+import { useAppContext } from '@/context/AppContext';
 
 interface Comment {
   id: string;
@@ -43,11 +44,8 @@ interface BackendTask {
 }
 
 export default function TaskCommentsPage() {
-  const { taskId } = useParams<{ taskId: string }>();
-  const searchParams = useSearchParams();
-  const eventId = searchParams.get('eventId');
-  const token = searchParams.get('token');
-
+  const { eventId, taskId } = useParams<{ eventId: string, taskId: string }>();
+  const { token } = useAppContext();
   const [taskName, setTaskName] = useState<string>('Cargando...');
   const [comments, setComments] = useState<Comment[]>([]);
   const [files, setFiles] = useState<FileItem[]>([]);
@@ -57,7 +55,7 @@ export default function TaskCommentsPage() {
 
   const UploadIcon = "/images/icons/upload.png";
 
-  // nombre de tarea y comentarios
+  // nombre de la tarea, comentarios y archivos
   const fetchTaskAndComments = useCallback(async () => {
     if (!eventId || !token || !taskId) return;
 
@@ -107,6 +105,7 @@ export default function TaskCommentsPage() {
     fetchTaskAndComments();
   }, [fetchTaskAndComments]);
 
+  // enviar comentario
   const handleSendComment = async () => {
     if (!comment.trim()) {
       showErrorAlert('Escribe un comentario antes de enviarlo.');
@@ -143,6 +142,7 @@ export default function TaskCommentsPage() {
     }
   };
 
+  // subir archivo
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
@@ -183,6 +183,7 @@ export default function TaskCommentsPage() {
     }
   };
 
+  // descargar archivo
   const handleDownload = async (id: string) => {
     try {
       const res = await fetch(`/api/event/${eventId}/task/${taskId}/files/${id}`, {
@@ -334,6 +335,7 @@ export default function TaskCommentsPage() {
         )}
       </Box>
 
+      {/* Archivos adjuntos */}
       <Box mt={4}>
         <Typography variant="h6" mb={2}>
           Archivos adjuntos

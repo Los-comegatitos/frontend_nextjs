@@ -64,8 +64,7 @@ function a11yProps(index: number) {
 
 // Este es técnicamente el dashboard
 const EventPage = () => {
-  const params = useParams() as { eventId?: string };
-  const eventId = params?.eventId ?? '';
+  const { eventId } = useParams<{ eventId: string }>();
   const { token } = useAppContext();
 
   const [eventData, setEventData] = useState<Event | null>(null);
