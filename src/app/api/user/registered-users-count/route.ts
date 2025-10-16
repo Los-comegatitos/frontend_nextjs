@@ -1,13 +1,12 @@
 'use server';
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
-//listar los ventos de u proveedor
-export async function GET(req: NextRequest) {
+export async function GET(req: Request) {
   try {
     const token = req.headers.get('token');
-    const res = await fetch(`${API_BACKEND}events/for-providerr`, {
+    const res = await fetch(`${API_BACKEND}user/registered-users-count`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -20,3 +19,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: { code: '999', description: 'Error interno' } }, { status: 500 });
   }
 }
+

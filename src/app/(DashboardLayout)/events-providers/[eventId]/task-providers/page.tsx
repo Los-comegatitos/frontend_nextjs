@@ -20,8 +20,9 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import Image from 'next/image';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { showErrorAlert } from '@/app/lib/swal';
+import { useAppContext } from '@/context/AppContext';
 
 interface Task {
   id: string;
@@ -31,13 +32,14 @@ interface Task {
 }
 
 export default function TaskProvidersPage() {
-  const searchParams = useSearchParams();
-  const eventId = searchParams.get('eventId');
-  const token = searchParams.get('token');
+  const { token } = useAppContext();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const router = useRouter();
+  
+  const { eventId } = useParams<{ eventId: string }>();
+  
 
   useEffect(() => {
     async function fetchTasks() {
@@ -55,7 +57,7 @@ export default function TaskProvidersPage() {
           setTasks(data.data.data);
         } else {
           setTasks([]);
-          //showErrorAlert('No se pudieron obtener las tareas del evento.');
+          showErrorAlert('No se pudieron obtener las tareas del evento.');
         }
       } catch (error) {
         console.error('Error al obtener tareas:', error);
@@ -118,9 +120,7 @@ export default function TaskProvidersPage() {
                   align="center"
                   onClick={(e) => {
                     e.stopPropagation();
-                    router.push(
-                      `/events-providers/task-providers/${task.id}?eventId=${eventId}&token=${token}`
-                    );
+                    router.push(`/events-providers/${eventId}/task-providers/${task.id}`);
                   }}
                 >
                   <Button
@@ -145,6 +145,7 @@ export default function TaskProvidersPage() {
         </Table>
       )}
 
+      {/* Modal de detalles de tarea */}
       <Dialog
         open={!!selectedTask}
         onClose={() => setSelectedTask(null)}
@@ -205,6 +206,6 @@ export default function TaskProvidersPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Box> 
   );
 }

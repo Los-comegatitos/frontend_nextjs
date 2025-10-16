@@ -3,6 +3,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from "@/app/lib/definitions";
 
+
+//agregar servicio de un evento
 export async function PATCH(req: NextRequest, params: { params: Promise<{ id: string, serviceName: string }> }) {
   try {
     const { id, serviceName } = await params.params;
@@ -26,6 +28,7 @@ export async function PATCH(req: NextRequest, params: { params: Promise<{ id: st
   }
 }
 
+//eliminar servicio de un evento
 export async function DELETE(req: NextRequest, params: { params: Promise<{ id: string, serviceName: string }> }) {
   try {
     const token = req.headers.get('token');
