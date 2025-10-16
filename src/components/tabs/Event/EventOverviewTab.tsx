@@ -115,7 +115,7 @@ const EventOverviewTab = ({ event }: Props) => {
               {todayTasks?.map((task, idx) => {
                 const type = getTaskType(task);
                 return (
-                  <Card key={idx} variant='outlined' sx={{ p: 2, borderLeft: `5px solid ${type.color}` }}>
+                  <Card key={idx} variant='outlined' sx={{ p: 2, borderLeft: `5px solid ${type?.color}` }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                       <Typography variant='subtitle1' fontWeight='bold'>
                         {task.name}

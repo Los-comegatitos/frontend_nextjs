@@ -19,10 +19,8 @@ export default function ProviderTab({ token, event }: Props) {
   useEffect(() => {
     async function fetchProviders() {
       try {
-        const res = await fetch(`/api/event/accepted/${event.eventId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const res = await fetch(`/api/event/${event.eventId}/services/Providers`, {
+          headers: { 'token': token as string },
         });
 
         const result = await res.json();

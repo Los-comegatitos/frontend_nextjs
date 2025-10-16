@@ -5,7 +5,6 @@ import Swal from 'sweetalert2';
 import { Event } from '@/interfaces/Event';
 import { AuxiliarType } from '@/interfaces/AuxiliarType';
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
-import { useRouter } from 'next/navigation';
 
 type EventConfigTabProps = {
   token: string;
@@ -21,12 +20,10 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
   const [eventTypes, setEventTypes] = useState<AuxiliarType[]>([]);
   const [clientTypes, setClientTypes] = useState<AuxiliarType[]>([]);
 
-  const router = useRouter();
-
   const fetchEventTypes = React.useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`/api/event-type`, {
+      const res = await fetch(`/api/service-type`, {
         headers: { token },
       });
       const data = await res.json();
@@ -42,14 +39,14 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
 
   useEffect(() => {
     if (token) {
-      fetchEventTypes();
+    fetchEventTypes();
     }
   }, [fetchEventTypes, token]);
 
   const fetchClientTypes = React.useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`/api/client-type`, {
+      const res = await fetch(`/api/service-type`, {
         headers: { token },
       });
       const data = await res.json();
@@ -65,7 +62,7 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
 
   useEffect(() => {
     if (token) {
-      fetchClientTypes();
+    fetchClientTypes();
     }
   }, [fetchClientTypes, token]);
 
@@ -74,16 +71,15 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
     description: event.description,
     eventDate: event.eventDate?.split('T')[0] || '',
     eventTypeId: event.eventTypeId.toString(),
-    clientTypeId: event.client?.clientTypeId.toString(),
-    clientName: event.client?.name,
-    clientDescription: event.client?.description || '',
+    clientTypeId: event.client.clientTypeId.toString(),
+    clientName: event.client.name,
+    clientDescription: event.client.description || '',
   });
 
-  //Finalizar evento
-  const handleAction = async (action: 'finalize' | 'cancel' | 'delete') => {
+  const handleAction = async (action: 'finalize' | 'cancel') => {
     const confirm = await Swal.fire({
       title: '¿Seguro de esta acción?',
-      text: action === 'finalize' ? '¿Está seguro de que desea finalizar este evento?' : action === 'cancel' ? '¿Está seguro de que desea cancelar este evento?' : '¿Está seguro de que desea eliminar este evento?',
+      text: action === 'finalize' ? '¿Está seguro de que desea finalizar este evento?' : '¿Está seguro de que desea cancelar este evento?',
       icon: 'question',
       showDenyButton: true,
       showConfirmButton: true,
@@ -104,21 +100,18 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
       });
       const data = await res.json();
       if (data.message.code === '000') {
-        await showSucessAlert(action === 'finalize' ? 'Evento finalizado exitosamente' : action === 'cancel' ? 'Evento cancelado exitosamente' : 'Evento eliminado exitosamente');
-        if (action === 'delete') router.push('/event');
-        else onRefresh();
+        await showSucessAlert(action === 'finalize' ? 'Evento finalizado exitosamente' : 'Evento cancelado exitosamente');
+        onRefresh();
       } else {
         await showErrorAlert(data.message.description);
       }
     } catch (err) {
-      console.error('Error', err);
+      console.error(`Error al ${action === 'finalize' ? 'finalizar' : 'cancelar'} evento`, err);
     } finally {
       setLoading(false);
     }
   };
 
-
-  //Modificar
   const handleModify = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -162,7 +155,7 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
   return (
     <Stack>
       <Box display='flex' justifyContent='center' gap={4}>
-        <Button variant='outlined' color='primary' onClick={() => {setOpenModal(true)}} disabled={loading}>
+        <Button variant='outlined' color='primary' onClick={() => setOpenModal(true)} disabled={loading}>
           Modificar evento
         </Button>
 
@@ -171,9 +164,6 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
         </Button>
         <Button variant='contained' color='error' onClick={() => handleAction('cancel')} disabled={loading}>
           Cancelar evento
-        </Button>
-        <Button variant='outlined' color='error' onClick={() => handleAction('delete')} disabled={loading}>
-          Eliminar evento
         </Button>
       </Box>
 
@@ -196,7 +186,7 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
             </Select>
 
             <p>Tipo de cliente</p>
-            <Select value={formValues.clientTypeId} onChange={(e) => setFormValues({ ...formValues, clientTypeId: e.target.value })} >
+            <Select value={formValues.clientTypeId} onChange={(e) => setFormValues({ ...formValues, clientTypeId: e.target.value })} required>
               {clientTypes.map((t) => (
                 <MenuItem key={t.id} value={t.id.toString()}>
                   {t.name}
@@ -204,8 +194,8 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
               ))}
             </Select>
 
-            <TextField label='Nombre del cliente' value={formValues.clientName} onChange={(e) => setFormValues({ ...formValues, clientName: e.target.value })} />
-            <TextField label='Descripción del cliente' value={formValues.clientDescription} onChange={(e) => setFormValues({ ...formValues, clientDescription: e.target.value })} />
+            <TextField label='Nombre del cliente' value={formValues.clientName} onChange={(e) => setFormValues({ ...formValues, clientName: e.target.value })} required />
+            <TextField label='Descripción del cliente' value={formValues.clientDescription} onChange={(e) => setFormValues({ ...formValues, clientDescription: e.target.value })} required />
 
             <Box display='flex' justifyContent='center' gap={2}>
               <Button variant='contained' type='submit' color='primary' disabled={loading}>
