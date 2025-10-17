@@ -7,7 +7,6 @@ export async function PATCH(req: NextRequest, params: { params: Promise<{ userId
     const body = await req.json();
 
     const { userId } = await params.params;
-
     const res = await fetch(`${API_BACKEND}client-type/${userId}`, {
       method: 'PATCH',
       headers: {

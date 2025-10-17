@@ -12,18 +12,15 @@ type Props = {
   onRefresh: () => void;
 };
 
-export default function ProviderTab({ token, event}: Props) {
+export default function ProviderTab({ token, event }: Props) {
   const [providers, setProviders] = useState<ProviderWithService[]>([]);
   const [loading, setLoading] = useState(true);
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   useEffect(() => {
     async function fetchProviders() {
       try {
-        const res = await fetch(`${API_BASE_URL}events/accepted/${event.eventId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const res = await fetch(`/api/event/${event.eventId}/services/Providers`, {
+          headers: { 'token': token as string },
         });
 
         const result = await res.json();
@@ -59,15 +56,9 @@ export default function ProviderTab({ token, event}: Props) {
     }
 
     fetchProviders();
-  }, [event.eventId, token, API_BASE_URL]);
+  }, [event.eventId, token]);
 
   if (loading) return <p>Cargando proveedores...</p>;
 
-  return (
-    <ProviderList
-      providers={providers}
-      onAdd={() => {}}
-      onView={() => {}}
-    />
-  );
+  return <ProviderList providers={providers} onAdd={() => {}} onView={() => {}} />;
 }

@@ -12,9 +12,10 @@ import {
   ListItemText,
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { showSucessAlert, showErrorAlert } from '@/app/lib/swal';
+import { useAppContext } from '@/context/AppContext';
 
 interface Comment {
   id: string;
@@ -47,10 +48,11 @@ interface BackendEvent {
 }
 
 export default function CommentsPage() {
-  const { EventId, taskId } = useParams<{ EventId: string, taskId: string }>();
+const { eventId, taskId } = useParams<{ eventId: string, taskId: string }>();
   const [visible, setVisible] = useState(false);
   const [taskName, setTaskName] = useState<string>('Cargando...');
   const [comment, setComment] = useState<string>('');
+  
   // const [file, setFile] = useState<File>({
   //   id: '', 
   //   name: ''
@@ -58,20 +60,17 @@ export default function CommentsPage() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(true);
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
   const UploadIcon = "/images/icons/upload.png";
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token');
-
-  // se reutiliza esta funcion para cargar comentarios
+  const { token } = useAppContext();
+  
+   // se reutiliza esta funcion para cargar comentarios
   const fetchComments = React.useCallback(async () => {
-    if (!EventId || !taskId || !API_BASE_URL || !token) return;
+    if (!eventId || !taskId  || !token) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}events/${EventId}`, {
+      const res = await fetch(`/api/event/${eventId}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          'token': token as string, 
         },
       });
 
@@ -105,23 +104,26 @@ export default function CommentsPage() {
     } finally {
       setLoading(false);
     }
-  }, [API_BASE_URL, EventId, taskId, token]);
+  }, [ eventId, taskId, token]);
+
+
+
 
   // Buscar nombre de la tarea
   useEffect(() => {
     async function fetchTask() {
-      if (!EventId || !taskId || !API_BASE_URL) { 
+      if (!eventId || !taskId ) { 
         setTaskName('Error: IDs o URL base faltantes.');
         return;
       }
       try {
-        const res = await fetch(`${API_BASE_URL}events/${EventId}`, {
+        const res = await fetch(`$/api/event/${eventId}`, {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
+          'token': token as string,
           },
         });
 
+        
         const data = await res.json();
 
         if (res.ok && data?.data) {
@@ -142,12 +144,16 @@ export default function CommentsPage() {
       }
     }
     fetchTask();
-  }, [EventId, taskId, API_BASE_URL, token]);
+  }, [eventId, taskId, token]);
+
+
+
 
   // caragar comentarios inicialmente
   useEffect(() => {
     fetchComments();
   }, [fetchComments]);
+
 
   // enviar comentario
   const handleSendComment = async () => {
@@ -156,19 +162,17 @@ export default function CommentsPage() {
       return;
     }
 
-    if (!EventId || !taskId || !API_BASE_URL) {
+    if (!eventId || !taskId ) {
       showErrorAlert('No se pudo enviar el comentario, faltan parámetros.');
       return;
     }
 
     try {
-      const res = await fetch(
-        `${API_BASE_URL}events/${EventId}/tasks/${taskId}/comment/organizer`,
+      const res = await fetch(`$/api/event/${eventId}/tasks/${taskId}/comment/organizer`,
         {
           method: 'PATCH',
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
+            'token': token as string, 
           },
           body: JSON.stringify({ description: comment }),
         }
@@ -193,6 +197,9 @@ export default function CommentsPage() {
     }
   };
 
+
+
+  //adjuntar un documento  a la tarea
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       setLoading(true);
@@ -211,8 +218,7 @@ export default function CommentsPage() {
       const formData = new FormData();
       formData.append('file', file); 
       try {
-  
-        const res = await fetch(`/api/event/${EventId}/task/${taskId}/files`, {
+        const res = await fetch(`/api/event/${eventId}/task/${taskId}/files`, {
           method: 'POST',
           headers: { 
             // 'Content-Type': 'multipart/form-data',
@@ -236,9 +242,10 @@ export default function CommentsPage() {
       }
   };
 
+  //descargar dsocumento adjuntado a la tarea
   const handleDownload = async (id : string) => {
     try {
-      const res = await fetch(`/api/event/${EventId}/task/${taskId}/files/${id}`, {
+      const res = await fetch(`/api/event/${eventId}/task/${taskId}/files/${id}`, {
         method: 'GET',
         headers: { 'token': token as string },
       });
@@ -259,8 +266,7 @@ export default function CommentsPage() {
           showErrorAlert('Un error ha sucedido en la descarga');
       }
     } catch (error) {
-      console.log(error);
-      
+      console.log('error', error)
     }
   }
 

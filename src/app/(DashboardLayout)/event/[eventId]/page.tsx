@@ -64,8 +64,7 @@ function a11yProps(index: number) {
 
 // Este es técnicamente el dashboard
 const EventPage = () => {
-  const params = useParams() as { eventId?: string };
-  const eventId = params?.eventId ?? '';
+  const { eventId } = useParams<{ eventId: string }>();
   const { token } = useAppContext();
 
   const [eventData, setEventData] = useState<Event | null>(null);
@@ -146,7 +145,6 @@ const EventPage = () => {
 
         <CustomTabPanel value={tabValue} index={3} loading={loadingEvent} eventData={eventData}>
           <OrganizerQuotesPage eventId={eventData?.eventId} />
-          <ExampleTabContent event={eventData!} />
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={4} loading={loadingEvent} eventData={eventData}>

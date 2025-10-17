@@ -12,9 +12,10 @@ import {
   ListItemText,
 } from '@mui/material';
 import React, { useEffect, useState, useCallback } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { showSucessAlert, showErrorAlert } from '@/app/lib/swal';
+import { useAppContext } from '@/context/AppContext';
 
 interface Comment {
   id: string;
@@ -43,11 +44,8 @@ interface BackendTask {
 }
 
 export default function TaskCommentsPage() {
-  const { taskId } = useParams<{ taskId: string }>();
-  const searchParams = useSearchParams();
-  const eventId = searchParams.get('eventId');
-  const token = searchParams.get('token');
-
+  const { eventId, taskId } = useParams<{ eventId: string, taskId: string }>();
+  const { token } = useAppContext();
   const [taskName, setTaskName] = useState<string>('Cargando...');
   const [comments, setComments] = useState<Comment[]>([]);
   const [files, setFiles] = useState<FileItem[]>([]);
