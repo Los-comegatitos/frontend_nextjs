@@ -57,7 +57,7 @@ export default function TaskProvidersPage() {
           setTasks(data.data.data);
         } else {
           setTasks([]);
-          showErrorAlert('No se pudieron obtener las tareas del evento.');
+          //showErrorAlert('No se pudieron obtener las tareas del evento.');
         }
       } catch (error) {
         console.error('Error al obtener tareas:', error);
