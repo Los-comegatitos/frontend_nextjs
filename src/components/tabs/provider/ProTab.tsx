@@ -118,9 +118,13 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
 
     const method = hasScore ? 'PATCH' : 'POST';
     const url = `/api/event/${event.eventId}/provider/${selectedProvider.id}/evaluation`;
-    
-    const payload: { score: number; organizerUserId?: string } = { score: Number(rating) };
-    if (!hasScore) payload.organizerUserId = event.organizerUserId.toString();
+
+    const payload = {
+      score: Number(rating),
+      organizerUserId: !hasScore ? event.organizerUserId.toString() : undefined,
+      eventId: event.eventId.toString(),
+      providerId: selectedProvider.id.toString(),
+    };
 
     try {
       const res = await fetch(url, {
@@ -135,6 +139,7 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
         showErrorAlert(result.message?.description || 'Error al calificar proveedor.');
       } else {
         showSucessAlert(`Proveedor "${selectedProvider.name}" calificado correctamente.`);
+        // Actualizar el score local
         setProviders(prev =>
           prev.map(p => p.id === selectedProvider.id ? { ...p, score: Number(rating) } : p)
         );

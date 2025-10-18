@@ -58,16 +58,16 @@ export default function TaskFormModal({
   const [providerName, setProviderName] = useState<string>("Cargando...");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
-  const [providers, setProviders] = useState<{ id: string; name: string }[]>(
-    [],
-  );
+  const [providers, setProviders] = useState<{ id: string; name: string }[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<string>("");
   const { token } = useAppContext();
+
+  const isFinalized = initialData?.status === 'completed';
 
   useEffect(() => {
     setForm(initialData || {});
 
-      const loadAssignedProvider = async () => {
+    const loadAssignedProvider = async () => {
       if (!eventId || !token || !initialData?.associatedProviderId) {
         setProviderName("No se ha asignado un proveedor");
         return;
@@ -75,7 +75,7 @@ export default function TaskFormModal({
 
       try {
         const res = await fetch(`/api/event/${eventId}`, {
-          headers: { 'token': token as string, },
+          headers: { 'token': token as string },
         });
         const data: EventResponse = await res.json();
 
@@ -101,12 +101,9 @@ export default function TaskFormModal({
     loadAssignedProvider();
   }, [initialData, eventId, token]);
 
-
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-
 
   //Crear tarea de un evento
   const handleCreate = async () => {
@@ -124,7 +121,7 @@ export default function TaskFormModal({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-           'token': token as string,
+          'token': token as string,
         },
         body: JSON.stringify(payload),
       });
@@ -145,36 +142,34 @@ export default function TaskFormModal({
 
   //Eliminar tarea de un evento
   const handleDeleteConfirmed = async () => {
-      if (!eventId || !initialData || !token) return;
-
-      try {
-        const res = await fetch(`/api/event/${eventId}/task/${initialData.id}`, {
-          method: 'DELETE',
-          headers: { 'token': token as string, },
-
-        });
-
-        const data = await res.json();
-
-        if (data.message.code === '000') {
-          showSucessAlert(`La tarea "${initialData.name}" fue eliminada exitosamente.`);
-          onRefresh?.();
-          onClose();
-        } else {
-          showErrorAlert(data.message.description || 'No se pudo eliminar la tarea.');
-        }
-      } catch {
-        showErrorAlert('Ocurrió un error interno al eliminar la tarea.');
-      } finally {
-        setConfirmOpen(false);
-      }
-    };
-
-  //Finalizar tarea de un evento
-   const handleFinalize = async () => {
     if (!eventId || !initialData || !token) return;
 
-    //payload por si el backend espera algo adicional
+    try {
+      const res = await fetch(`/api/event/${eventId}/task/${initialData.id}`, {
+        method: 'DELETE',
+        headers: { 'token': token as string },
+      });
+
+      const data = await res.json();
+
+      if(data.mege.code === '000') {
+        showSucessAlert(`La tarea "${initialData.name}" fue eliminada exitosamente.`);
+        onRefresh?.();
+        onClose();
+      } else {
+        showErrorAlert(data.message.description || 'No se pudo eliminar la tarea.');
+      }
+    } catch {
+      showErrorAlert('Ocurrió un error interno al eliminar la tarea.');
+    } finally {
+      setConfirmOpen(false);
+    }
+  };
+
+  //Finalizar tarea de un evento
+  const handleFinalize = async () => {
+    if (!eventId || !initialData || !token) return;
+
     const payload = { status: 'finished' };
 
     try {
@@ -207,8 +202,7 @@ export default function TaskFormModal({
     }
   };
 
-
-  //Modificar
+  // Modificar
   const handleUpdate = async () => {
     if (!eventId || !initialData || !token) return;
 
@@ -242,7 +236,6 @@ export default function TaskFormModal({
       showErrorAlert('Ocurrió un error interno al modificar la tarea.');
     }
   };
-
 
   const fetchProvidersFromEvent = async () => {
     if (!eventId || !token) return;
@@ -352,6 +345,7 @@ export default function TaskFormModal({
             name="name"
             value={form.name || ''}
             onChange={handleChange}
+            disabled={isFinalized}
           />
           <TextField
             margin="normal"
@@ -360,6 +354,7 @@ export default function TaskFormModal({
             name="description"
             value={form.description || ''}
             onChange={handleChange}
+            disabled={isFinalized}
           />
           <TextField
             margin="normal"
@@ -370,6 +365,7 @@ export default function TaskFormModal({
             value={form.dueDate?.split('T')[0] || ''}
             onChange={handleChange}
             InputLabelProps={{ shrink: true }}
+            disabled={isFinalized}
           />
           <TextField
             margin="normal"
@@ -380,6 +376,7 @@ export default function TaskFormModal({
             value={form.reminderDate?.split('T')[0] || ''}
             onChange={handleChange}
             InputLabelProps={{ shrink: true }}
+            disabled={isFinalized}
           />
           <TextField
             margin="normal"
@@ -399,41 +396,50 @@ export default function TaskFormModal({
             </>
           ) : (
             <>
-              <Button color="primary" onClick={handleUpdate}>
-                Modificar
-              </Button>
-              <Button color="success" onClick={handleFinalize}>
-                Finalizar
-              </Button>
+              {/* Solo mostramos las acciones si la tarea NO está finalizada */}
+              {!isFinalized && (
+                <>
+                  <Button color="primary" onClick={handleUpdate}>
+                    Modificar
+                  </Button>
+                  <Button color="success" onClick={handleFinalize}>
+                    Finalizar
+                  </Button>
 
-              {/* Mostrar el botón solo si NO hay proveedor asignado */}
-              {!initialData.associatedProviderId && (
-                <Button
-                  color="warning"
-                  onClick={() => {
-                    fetchProvidersFromEvent();
-                    setAssignOpen(true);
-                  }}
-                >
-                  Asignar proveedor
-                </Button>
+                  {/* Mostrar el botón solo si NO hay proveedor asignado */}
+                  {!initialData.associatedProviderId && (
+                    <Button
+                      color="warning"
+                      onClick={() => {
+                        fetchProvidersFromEvent();
+                        setAssignOpen(true);
+                      }}
+                    >
+                      Asignar proveedor
+                    </Button>
+                  )}
+
+                  {/* Mostrar el botón de desasignar solo si SÍ hay proveedor */}
+                  {initialData.associatedProviderId && (
+                    <Button
+                      color="secondary"
+                      onClick={handleUnassignProvider}
+                    >
+                      Desasignar
+                    </Button>
+                  )}
+
+                  <Button color="error" onClick={() => setConfirmOpen(true)}>
+                    Eliminar
+                  </Button>
+                </>
               )}
-
-              {/* Mostrar el botón de desasignar solo si SÍ hay proveedor */}
-              {initialData.associatedProviderId && (
-                <Button color="secondary" onClick={handleUnassignProvider}>
-                  Desasignar proveedor
-                </Button>
-              )}
-
-              <Button color="error" onClick={() => setConfirmOpen(true)}>
-                Eliminar
-              </Button>
               <Button onClick={onClose}>Cerrar</Button>
             </>
           )}
         </DialogActions>
       </Dialog>
+
       {/* Modal de confirmación */}
       <Dialog
         open={confirmOpen}
