@@ -103,7 +103,7 @@ const Profile = () => {
             fullWidth
             onClick={handlelogout}
           >
-            Logout
+            Cerrar sesión
           </Button>
         </Box>
       </Menu>
