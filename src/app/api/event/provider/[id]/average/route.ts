@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from '@/app/lib/definitions';
 
 // Obtener el promedio de calificaciones de un proveedor
-export async function GET(req: NextRequest, params: { params: Promise<{ providerId: string }> }) {
+export async function GET(req: NextRequest, params: { params: Promise<{ id: string }> }) {
   try {
     const token = req.headers.get('token');
 
@@ -15,9 +15,9 @@ export async function GET(req: NextRequest, params: { params: Promise<{ provider
       );
     }
 
-    const { providerId } = await params.params;
+    const { id } = await params.params;
 
-    const res = await fetch(`${API_BACKEND}providers/${providerId}/average`, {
+    const res = await fetch(`${API_BACKEND}events/providers/${id}/average`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,

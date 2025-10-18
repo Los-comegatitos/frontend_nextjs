@@ -41,7 +41,7 @@ const ProfilePage = () => {
   const obtainAverage = React.useCallback(async () => {
     if (!token || user?.role !== 'provider') return;
     try {
-      const res = await fetch(`/api/providers/${user.id}/average`, {
+      const res = await fetch(`/api/event/provider/${user.id}/average`, {
         headers: { token },
       });
       if (res.ok) {
