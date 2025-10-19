@@ -4,12 +4,14 @@ import PropTypes from 'prop-types';
 // components
 import Profile from './Profile';
 import { IconBellRinging, IconMenu } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
 
 interface ItemType {
   toggleMobileSidebar:  (event: React.MouseEvent<HTMLElement>) => void;
 }
 
 const Header = ({toggleMobileSidebar}: ItemType) => {
+  const router = useRouter()
 
   // const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
   // const lgDown = useMediaQuery((theme) => theme.breakpoints.down('lg'));
@@ -55,7 +57,9 @@ const Header = ({toggleMobileSidebar}: ItemType) => {
           aria-haspopup="true"
         >
           <Badge variant="dot" color="primary">
-            <IconBellRinging size="21" stroke="1.5" />
+            <IconBellRinging size="21" stroke="1.5" onClick={() => {
+              router.push('/notifications')
+            }} />
           </Badge>
 
         </IconButton>

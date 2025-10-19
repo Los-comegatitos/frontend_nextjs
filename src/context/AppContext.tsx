@@ -47,14 +47,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         !pathname.includes('/supplier_quotes') &&
         !pathname.includes('/events-providers') &&
         !pathname.includes('/events') && 
-        !pathname.includes('/profile'))
+        !pathname.includes('/profile')) && 
+        !pathname.includes('/notifications')
         || pathname.includes('/event-types'))
       ) {
         redirect('/') 
       } else if (truth && user?.role == 'organizer' && (( 
         !pathname.includes('/event') && 
         !pathname.includes('/quote_organizer') && 
-        !pathname.includes('/profile')) 
+        !pathname.includes('/profile'))  && 
+        !pathname.includes('/notifications')
         || pathname.includes('/event-types'))) {
         redirect('/')
       } else if (truth && pathname.includes('/authentication/login')) {
