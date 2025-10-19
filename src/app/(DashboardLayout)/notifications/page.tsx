@@ -1,13 +1,11 @@
 'use client';
-import { Typography, Grid, CardContent, Button, Checkbox } from '@mui/material';
+import { Typography, Grid, CardContent, Checkbox, Container } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import BlankCard from '@/app/(DashboardLayout)/components/shared/BlankCard';
 import React, { useEffect, useState } from 'react';
 import { useAppContext } from '@/context/AppContext';
-import { showDateInput, showFormalDate } from '@/utils/Formats';
-import CustomTextField from '../components/forms/theme-elements/CustomTextField';
-import Swal from 'sweetalert2';
+import { showFormalDate } from '@/utils/Formats';
 import { Notification } from '@/interfaces/Notification';
 import { showErrorAlert } from '@/app/lib/swal';
 import { useRouter } from 'next/navigation';
@@ -83,13 +81,18 @@ const NotificationsPage = () => {
                     info.map((e) => (
                         <BlankCard key={e.id}>
                             <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <div onClick={() => {
+                                <Container sx={{
+                                    ":hover": {
+                                        textDecorationLine: 'underline', 
+                                        cursor: 'pointer'
+                                    }
+                                }} onClick={() => {
                                     router.push(e.url)
                                 }}>
                                     <Typography variant='h3'>{e.name}</Typography> <br/>
                                     <Typography>{e.description}</Typography>
                                     <Typography variant='caption'>{showFormalDate(e.date)}</Typography>
-                                </div>
+                                </Container>
                                 <Checkbox onChange={() => {
                                     setSelectedId(e.id)
                                 }} />

@@ -16,6 +16,8 @@ type AppContextType = {
   setUser: (user: User) => void;
   token: string | null;
   setToken: (token: string) => void;
+  hasNotifications: boolean;
+  setHasNotifications: (hasNotifications : boolean) => void;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -23,11 +25,28 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [hasNotifications, setHasNotifications] = useState<boolean>(false)
 
   const pathname = usePathname()
 
   useEffect(() => {
     if (!pathname) return
+    async function showPing() {
+      try {
+          const response = await fetch('/api/notification', { headers: { token: token as string } });
+          if (!response.ok) {
+            setHasNotifications(false)
+            return;
+          }
+          const data = await response.json();
+          if (data?.data.length) setHasNotifications(true)
+          else setHasNotifications(false)
+      } catch (error) {
+          console.error(error);
+          setHasNotifications(false)
+      }
+    }
+
     async function obtain() {
       const truth = checkJwt()
       
@@ -83,7 +102,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       }
     }
+    
     obtain();
+    showPing()
   }, [pathname, user?.role]);
 
   useEffect(() => {
@@ -99,7 +120,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [user, token]);
 
   return (
-    <AppContext.Provider value={{ user, setUser, token, setToken }}>
+    <AppContext.Provider value={{ user, setUser, token, setToken, hasNotifications, setHasNotifications }}>
       {children}
     </AppContext.Provider>
   );
