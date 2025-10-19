@@ -1,16 +1,26 @@
+'use client';
+
+import {
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Typography,
+  Button,
+} from '@mui/material';
 import { ProviderWithService } from '@/interfaces/Provider';
-import { Box, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 
 type Props = {
-  providers: ProviderWithService[];
-  onAdd: () => void;
+  providers: (ProviderWithService & { score?: number })[];
   onView: (provider: ProviderWithService) => void;
+  onRate: (provider: ProviderWithService) => void;
 };
 
-export default function ProviderList({ providers, onView }: Props) {
+export default function ProviderList({ providers, onView, onRate }: Props) {
   return (
     <Box>
-      <Box display="flex" justifyContent="flex-end" mb={2}></Box>
       {providers.length === 0 ? (
         <Typography>No hay proveedores relacionados al evento.</Typography>
       ) : (
@@ -19,6 +29,7 @@ export default function ProviderList({ providers, onView }: Props) {
             <TableRow>
               <TableCell>Nombre</TableCell>
               <TableCell>Servicio proporcionado</TableCell>
+              <TableCell align="center">Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -31,6 +42,19 @@ export default function ProviderList({ providers, onView }: Props) {
               >
                 <TableCell>{provider.name}</TableCell>
                 <TableCell>{provider.service?.name || 'No asignado'}</TableCell>
+
+                <TableCell align="center">
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRate(provider);
+                    }}
+                  >
+                    {provider.score ? 'Editar calificación' : 'Calificar'}
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
