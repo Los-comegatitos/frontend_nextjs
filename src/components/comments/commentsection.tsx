@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -11,11 +12,10 @@ import {
   ListItem,
   ListItemText,
 } from '@mui/material';
-import React, { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'next/navigation';
 import Image from 'next/image';
-import { showSucessAlert, showErrorAlert } from '@/app/lib/swal';
 import { useAppContext } from '@/context/AppContext';
+import { showSucessAlert, showErrorAlert } from '@/app/lib/swal';
+import './comments.css';
 
 interface Comment {
   id: string;
@@ -31,7 +31,7 @@ interface FileItem {
 
 interface BackendComment {
   _id: string;
-  description: string;
+  description: string; 
   userType: 'organizer' | 'provider';
   date: string;
 }
@@ -43,69 +43,70 @@ interface BackendTask {
   attachments?: FileItem[];
 }
 
-export default function TaskCommentsPage() {
-  const { eventId, taskId } = useParams<{ eventId: string, taskId: string }>();
+interface Props {
+  eventId: string;
+  taskId: string;
+  role: 'organizer' | 'provider';
+}
+
+export default function CommentsInterface({ eventId, taskId, role }: Props) {
   const { token } = useAppContext();
-  const [taskName, setTaskName] = useState<string>('Cargando...');
+  const [taskName, setTaskName] = useState('Cargando...');
   const [comments, setComments] = useState<Comment[]>([]);
   const [files, setFiles] = useState<FileItem[]>([]);
   const [comment, setComment] = useState('');
-  const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const UploadIcon = '/images/icons/upload.png';
 
-  const UploadIcon = "/images/icons/upload.png";
+  const fetchTaskData = useCallback(async () => {
+    if (!eventId || !taskId || !token) return;
 
-  // nombre de la tarea, comentarios y archivos
-  const fetchTaskAndComments = useCallback(async () => {
-    if (!eventId || !token || !taskId) return;
-
+    setLoading(true);
     try {
-      setLoading(true);
-      const res = await fetch(`/api/event/${eventId}/task/provider`, {
-        headers: { token },
-      });
+      const url =
+        role === 'organizer'
+          ? `/api/event/${eventId}`
+          : `/api/event/${eventId}/task/provider`;
 
+      const res = await fetch(url, { headers: { token } });
       const data = await res.json();
 
-      if (!res.ok || !data?.data?.data) {
-        showErrorAlert('No se pudo cargar la información de la tarea.');
-        return;
-      }
+      if (!res.ok || !data?.data) throw new Error('Error al obtener datos');
 
-      const tasks: BackendTask[] = data.data.data;
-      const selected = tasks.find((t) => t.id === taskId);
+      const tasks: BackendTask[] =
+        role === 'organizer' ? data.data.tasks : data.data.data;
 
-      if (!selected) {
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) {
         setTaskName('Tarea no encontrada');
         setComments([]);
         setFiles([]);
         return;
       }
 
-      setTaskName(selected.name);
-
-      const mappedComments: Comment[] = (selected.comments ?? []).map((c) => ({
-        id: c._id,
-        text: c.description,
-        author: c.userType === 'organizer' ? 'Organizador' : 'Proveedor',
-        date: new Date(c.date).toLocaleString(),
-      }));
-
-      setComments(mappedComments);
-      setFiles(selected.attachments ?? []);
+      setTaskName(task.name);
+      setFiles(task.attachments ?? []);
+      setComments(
+        (task.comments ?? []).map((c) => ({
+          id: c._id,
+          text: c.description,
+          author: c.userType === 'organizer' ? 'Organizador' : 'Proveedor',
+          date: new Date(c.date).toLocaleString(),
+        }))
+      );
     } catch (err) {
-      console.error('Error al obtener comentarios:', err);
-      showErrorAlert('Error al cargar los comentarios.');
+      console.error(err);
+      showErrorAlert('Error al cargar información.');
     } finally {
       setLoading(false);
     }
-  }, [eventId, taskId, token]);
+  }, [eventId, taskId, token, role]);
 
   useEffect(() => {
-    fetchTaskAndComments();
-  }, [fetchTaskAndComments]);
+    fetchTaskData();
+  }, [fetchTaskData]);
 
-  // enviar comentario
   const handleSendComment = async () => {
     if (!comment.trim()) {
       showErrorAlert('Escribe un comentario antes de enviarlo.');
@@ -113,43 +114,38 @@ export default function TaskCommentsPage() {
     }
 
     try {
-      const res = await fetch(
-        `/api/event/${eventId}/task/${taskId}/comments/provider`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            token: token || '',
-          },
-          body: JSON.stringify({ description: comment }),
-        }
-      );
+      const url = `/api/event/${eventId}/task/${taskId}/comments/${role}`;
+      const res = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          token: token || '',
+        },
+        body: JSON.stringify({ description: comment }),
+      });
 
       const data = await res.json();
 
       if (!res.ok) {
-        console.error('Error al enviar comentario:', data);
-        showErrorAlert('No se pudo enviar el comentario.');
+        showErrorAlert(data.message || 'Error al enviar comentario.');
         return;
       }
 
       setComment('');
-      showSucessAlert('Comentario enviado con éxito.');
-      fetchTaskAndComments();
+      await showSucessAlert('Comentario enviado con éxito.');
+      fetchTaskData();
     } catch (err) {
-      console.error('Error al enviar comentario:', err);
-      showErrorAlert('Error al enviar el comentario.');
+      console.error(err);
+      showErrorAlert('Error al enviar comentario.');
     }
   };
 
-  // subir archivo
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
 
     const input = document.getElementById('file') as HTMLInputElement;
     const file = input?.files?.[0];
-
     if (!file) {
       showErrorAlert('Selecciona un archivo para subir.');
       setLoading(false);
@@ -167,30 +163,27 @@ export default function TaskCommentsPage() {
       });
 
       const data = await res.json();
-
       if (data.message?.code === '000') {
         setVisible(false);
-        await showSucessAlert(`El archivo se adjuntó exitosamente`);
-        await fetchTaskAndComments();
+        await showSucessAlert('El archivo se adjuntó exitosamente.');
+        await fetchTaskData();
       } else {
         showErrorAlert(data.message?.description || 'Error al subir archivo.');
       }
     } catch (err) {
-      console.error('Error subiendo archivo:', err);
+      console.error(err);
       showErrorAlert('Error al subir archivo.');
     } finally {
       setLoading(false);
     }
   };
 
-  // descargar archivo
   const handleDownload = async (id: string) => {
     try {
       const res = await fetch(`/api/event/${eventId}/task/${taskId}/files/${id}`, {
         method: 'GET',
         headers: { token: token || '' },
       });
-
       const blob = await res.blob();
 
       if (res.ok) {
@@ -203,50 +196,28 @@ export default function TaskCommentsPage() {
         link.remove();
         window.URL.revokeObjectURL(url);
       } else {
-        showErrorAlert('Un error ha sucedido en la descarga');
+        showErrorAlert('Error al descargar el archivo.');
       }
-    } catch (error) {
-      console.error('Error en la descarga:', error);
+    } catch (err) {
+      console.error(err);
+      showErrorAlert('Error en la descarga.');
     }
   };
 
-  if (loading) {
+  if (loading)
     return (
       <Box display="flex" justifyContent="center" mt={5}>
         <CircularProgress />
       </Box>
     );
-  }
 
   return (
-    <Box
-      sx={{
-        p: 4,
-        maxWidth: 700,
-        mx: 'auto',
-        mt: 5,
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-      }}
-    >
-      <Typography variant="h5" fontWeight={600} mb={3}>
+    <div className="comments-container">
+      <Typography variant="h5" className="comments-title">
         {taskName}
       </Typography>
 
-      {/* 📎 Subir archivo */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 3,
-          mb: 3,
-          border: '2px dashed #5D87FF',
-          borderRadius: '10px',
-          textAlign: 'center',
-          cursor: 'pointer',
-          '&:hover': { backgroundColor: '#f5f8ff' },
-        }}
-      >
+      <Paper elevation={0} className="dropzone">
         <form onSubmit={handleSubmit}>
           <label htmlFor="file" style={{ cursor: 'pointer' }}>
             <Image src={UploadIcon} alt="Subir archivo" width={50} height={50} />
@@ -271,7 +242,6 @@ export default function TaskCommentsPage() {
         </form>
       </Paper>
 
-      {/* Campo de comentario */}
       <TextField
         fullWidth
         multiline
@@ -282,65 +252,39 @@ export default function TaskCommentsPage() {
         onChange={(e) => setComment(e.target.value)}
       />
 
-      <Button
-        variant="contained"
-        color="primary"
-        sx={{ mt: 2 }}
-        onClick={handleSendComment}
-      >
+      <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={handleSendComment}>
         Enviar comentario
       </Button>
 
-      {/* Comentarios */}
       <Box mt={4}>
         <Typography variant="h6" mb={2}>
           Comentarios
         </Typography>
-
         {comments.length === 0 ? (
           <Typography color="text.secondary">Aún no hay comentarios.</Typography>
         ) : (
-          <Paper elevation={0} sx={{ p: 2, border: '1px solid #EAEFF4' }}>
-            <List>
-              {comments.map((c) => (
-                <ListItem
-                  key={c.id}
-                  sx={{ borderBottom: '1px solid #EAEFF4', mb: 1, alignItems: 'flex-start' }}
-                >
-                  <ListItemText
-                    primary={
-                      <Typography component="span" sx={{ fontSize: '1rem', display: 'block' }}>
-                        <Typography component="span" sx={{ fontWeight: 600, mr: 1 }}>
-                          {c.author}:
-                        </Typography>
-                        <Typography component="span" sx={{ fontWeight: 400 }}>
-                          {c.text}
-                        </Typography>
-                      </Typography>
-                    }
-                    secondary={
-                      <Typography
-                        component="span"
-                        color="text.disabled"
-                        sx={{ display: 'block', mt: 0.5, fontSize: '0.8rem', fontWeight: 600 }}
-                      >
-                        {c.date}
-                      </Typography>
-                    }
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
+          <div className="comments-list">
+            {comments.map((c) => (
+              <div
+                key={c.id}
+                className={`comment-bubble ${
+                  c.author === 'Organizador' ? 'comment-left' : 'comment-right'
+                }`}
+              >
+                <strong>{c.author}:</strong> {c.text}
+                <div style={{ fontSize: '0.8rem', color: '#5a6a85', marginTop: '0.2rem' }}>
+                  {c.date}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </Box>
 
-      {/* Archivos adjuntos */}
       <Box mt={4}>
         <Typography variant="h6" mb={2}>
           Archivos adjuntos
         </Typography>
-
         {files.length === 0 ? (
           <Typography color="text.secondary">No hay archivos adjuntos.</Typography>
         ) : (
@@ -372,6 +316,6 @@ export default function TaskCommentsPage() {
           </Paper>
         )}
       </Box>
-    </Box>
+    </div>
   );
 }

@@ -6,11 +6,6 @@
 
 .comments-title {
   font-weight: 600 !important;
-  margin-bottom: 0.5rem !important;
-}
-
-.comments-subtitle {
-  color: #5a6a85;
   margin-bottom: 1rem !important;
 }
 
@@ -22,6 +17,7 @@
   color: #5a6a85;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  margin-bottom: 1rem;
 }
 
 .dropzone:hover {
@@ -29,19 +25,12 @@
   border-color: #4570ea;
 }
 
-.dropzone-icon {
-  font-size: 3rem !important;
-  color: #5d87ff;
-  margin-bottom: 0.5rem;
-}
-
 .comments-list {
-  max-height: 250px;
-  overflow-y: auto;
   background-color: #f2f6fa;
   border-radius: 10px;
   padding: 1rem;
-  margin-bottom: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .comment-bubble {
