@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { useAppContext } from '@/context/AppContext';
-import { showErrorAlert } from '@/app/lib/swal';
+import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
 
 type Quote = {
   id?: number;
@@ -53,6 +53,64 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
     setSelectedQuote(null);
     setModalOpen(false);
   };
+
+  const handleAproveModal = React.useCallback(async () => {
+    if (!token || !selectedQuote) return
+    console.log(selectedQuote);
+    setLoadingTable(true);
+    try {
+      const res = await fetch(`/api/quote/${selectedQuote.id}?${new URLSearchParams({
+        state: 'accept'
+      })}`, 
+        { 
+          method: 'POST', 
+          headers: { token } 
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        showErrorAlert(errorData.message?.description || 'Error al aceptar cotizacións');
+        return;
+      }
+
+      await showSucessAlert('Se aceptó la cotización exitosamente')
+    } catch (error) {
+      console.error(error);
+      await showErrorAlert('Error interno al aceptar cotización');
+    } finally {
+      handleCloseModal()
+      setLoadingTable(false);
+    }
+  }, [token, selectedQuote]);
+
+  const handleDisaproveModal = React.useCallback(async () => {
+    if (!token || !selectedQuote) return
+    console.log(selectedQuote);
+    setLoadingTable(true);
+    try {
+      const res = await fetch(`/api/quote/${selectedQuote.id}?${new URLSearchParams({
+        state: 'reject'
+      })}`, 
+        { 
+          method: 'POST', 
+          headers: { token } 
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        await showErrorAlert(errorData.message?.description || 'Error al rechazar cotización');
+        return;
+      }
+
+      await showSucessAlert('Se rechazó la cotización exitosamente')
+    } catch (error) {
+      console.error(error);
+      await showErrorAlert('Error interno al rechazar cotizaciones');
+    } finally {
+      handleCloseModal()
+      setLoadingTable(false);
+    }
+  }, [token, selectedQuote]);
 
   const fetchQuotes = React.useCallback(async () => {
     if (!token || !user?.id || !eventId) return;
@@ -95,11 +153,17 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
   }, [fetchQuotes]);
 
   const cellStyle = {
-    textAlign: 'center',
+    textAlign: 'center' as const,
     padding: '8px',
-    whiteSpace: 'normal',
-    wordBreak: 'break-word',
-    verticalAlign: 'middle',
+    whiteSpace: 'normal' as const,
+    wordBreak: 'break-word' as const,
+    verticalAlign: 'middle' as const,
+  };
+
+  const statusLabels: Record<string, string> = {
+    pending: 'Pendiente',
+    accepted: 'Aceptada',
+    rejected: 'Rechazada',
   };
 
   return (
@@ -200,7 +264,11 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
                 </Typography>
 
                 <Typography>
-                  <strong>Precio:</strong> {selectedQuote.price?.toLocaleString('es-VE', { style: 'currency', currency: 'USD' }) ?? '-'}
+                  <strong>Precio:</strong>{' '}
+                  {selectedQuote.price?.toLocaleString('es-VE', {
+                    style: 'currency',
+                    currency: 'USD',
+                  }) ?? '-'}
                 </Typography>
 
                 <Typography>
@@ -217,20 +285,33 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
                 </Typography>
 
                 <Typography>
-                  <strong>Estado:</strong> {selectedQuote.status ?? '-'}
+                  <strong>Estado:</strong>{' '}
+                  {statusLabels[selectedQuote.status ?? ''] || selectedQuote.status || '-'}
                 </Typography>
               </Box>
 
-              <Box mt={3} display="flex" justifyContent="flex-end">
+              <Box mt={3} display="flex" justifyContent="space-evenly">
+                {/* <Button variant="contained" onClick={handleCloseModal}>
+                  Aceptar
+                </Button>
+                <Button variant="contained" onClick={handleCloseModal}>
+                  Rechazar
+                </Button> */}
+                <Button variant='contained' color='success' onClick={handleAproveModal} disabled={loadingTable}>
+                  Aceptar
+                </Button>
+                <Button variant='contained' color='error' onClick={handleDisaproveModal} disabled={loadingTable}>
+                  Rechazar
+                </Button>
                 <Button variant="contained" onClick={handleCloseModal}>
                   Cerrar
                 </Button>
               </Box>
+              
             </>
           )}
         </Box>
       </Modal>
-
     </DashboardCard>
   );
 };
