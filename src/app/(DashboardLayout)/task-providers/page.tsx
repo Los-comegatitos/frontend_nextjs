@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, {  useEffect, useState } from 'react';
 import {
   Box,
   Table,
@@ -9,7 +9,6 @@ import {
   TableHead,
   TableRow,
   Typography,
-  CircularProgress,
   Button,
   Dialog,
   DialogTitle,
@@ -23,59 +22,42 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { showErrorAlert } from '@/app/lib/swal';
 import { useAppContext } from '@/context/AppContext';
-
-interface ProviderTask {
-  eventId: string;
-  eventName: string;
-  task: {
-    id: string;
-    name: string;
-    description: string;
-    status: string;
-  };
-}
+import { ProviderTask } from '@/interfaces/ProviderTask';
 
 export default function TaskProvidersPage() {
   const { token } = useAppContext();
   const [tasks, setTasks] = useState<ProviderTask[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoadingTable] = useState(true);
   const [selectedTask, setSelectedTask] = useState<ProviderTask | null>(null);
   const router = useRouter();
+  
 
-  useEffect(() => {
-    async function fetchTasks() {
-      setLoading(true);
+    // fetch task provider
+    const fetchTaskProvider = React.useCallback(async () => {
+      if (!token) return;
       try {
-        const res = await fetch('/api/task/provider', {
-          headers: { 'token': token as string },
-        });
-
+        setLoadingTable(true);
+        const res = await fetch(`/api/task/provider`, 
+        { headers: { token: token as string } });
         const data = await res.json();
-
-        if (res.ok && Array.isArray(data?.data)) {
+  
+        if (data.message.code === '000') {
           setTasks(data.data);
         } else {
-          setTasks([]);
-          showErrorAlert('No se pudieron obtener las tareas asignadas.');
+          showErrorAlert(data.message.description);
         }
-      } catch (error) {
-        console.error('Error al obtener tareas:', error);
-        showErrorAlert('Error al cargar las tareas.');
-      } finally {
-        setLoading(false);
+        setLoadingTable(false);
+      } catch (err) {
+        setLoadingTable(false);
+        console.error('error:', err);
       }
-    }
-
-    fetchTasks();
-  }, [token]);
-
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={5}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+    }, [token]);
+  
+    useEffect(() => {
+      if (!token) return;
+      fetchTaskProvider();
+    }, [fetchTaskProvider, token]);
+  
 
   return (
     <Box
