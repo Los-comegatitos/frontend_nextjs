@@ -102,10 +102,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       }
     }
-    
+
     obtain();
     showPing()
-  }, [pathname, user?.role]);
+  }, [token, pathname, user?.role]);
 
   useEffect(() => {
     if (user) {
