@@ -153,11 +153,17 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
   }, [fetchQuotes]);
 
   const cellStyle = {
-    textAlign: 'center',
+    textAlign: 'center' as const,
     padding: '8px',
-    whiteSpace: 'normal',
-    wordBreak: 'break-word',
-    verticalAlign: 'middle',
+    whiteSpace: 'normal' as const,
+    wordBreak: 'break-word' as const,
+    verticalAlign: 'middle' as const,
+  };
+
+  const statusLabels: Record<string, string> = {
+    pending: 'Pendiente',
+    accepted: 'Aceptada',
+    rejected: 'Rechazada',
   };
 
   return (
@@ -258,7 +264,11 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
                 </Typography>
 
                 <Typography>
-                  <strong>Precio:</strong> {selectedQuote.price?.toLocaleString('es-VE', { style: 'currency', currency: 'USD' }) ?? '-'}
+                  <strong>Precio:</strong>{' '}
+                  {selectedQuote.price?.toLocaleString('es-VE', {
+                    style: 'currency',
+                    currency: 'USD',
+                  }) ?? '-'}
                 </Typography>
 
                 <Typography>
@@ -275,7 +285,8 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
                 </Typography>
 
                 <Typography>
-                  <strong>Estado:</strong> {selectedQuote.status ?? '-'}
+                  <strong>Estado:</strong>{' '}
+                  {statusLabels[selectedQuote.status ?? ''] || selectedQuote.status || '-'}
                 </Typography>
               </Box>
 
@@ -301,7 +312,6 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
           )}
         </Box>
       </Modal>
-
     </DashboardCard>
   );
 };

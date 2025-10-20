@@ -58,7 +58,6 @@ const SupplierQuotesPage = () => {
       if (resp.data && Object.keys(resp.data).length > 0) {
         setQuotes(resp.data);
       } else {
-        //showErrorAlert(resp.message?.description || 'No hay cotizaciones para mostrar');
         setQuotes({});
       }
     } catch (err) {
@@ -75,11 +74,17 @@ const SupplierQuotesPage = () => {
   }, [fetchQuotes]);
 
   const cellStyle = {
-    textAlign: 'center',
+    textAlign: 'center' as const,
     padding: '8px',
-    whiteSpace: 'normal',
-    wordBreak: 'break-word',
-    verticalAlign: 'middle',
+    whiteSpace: 'normal' as const,
+    wordBreak: 'break-word' as const,
+    verticalAlign: 'middle' as const,
+  };
+
+  const statusLabels: Record<string, string> = {
+    pending: 'Pendiente',
+    accepted: 'Aceptada',
+    rejected: 'Rechazada',
   };
 
   return (
@@ -87,10 +92,10 @@ const SupplierQuotesPage = () => {
       <DashboardCard title="Cotizaciones enviadas">
         <Box mb={2} display="flex" justifyContent="flex-end" gap={2}>
           <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel>Status</InputLabel>
+            <InputLabel>Estado</InputLabel>
             <Select
               value={statusFilter}
-              label="Status"
+              label="Estado"
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <MenuItem value="">Todos</MenuItem>
@@ -121,7 +126,7 @@ const SupplierQuotesPage = () => {
                   <TableCell sx={cellStyle}>Evento</TableCell>
                   <TableCell sx={cellStyle}>Precio</TableCell>
                   <TableCell sx={cellStyle}>Cantidad</TableCell>
-                  <TableCell sx={cellStyle}>Status</TableCell>
+                  <TableCell sx={cellStyle}>Estado</TableCell>
                   <TableCell sx={cellStyle}>Fecha</TableCell>
                 </TableRow>
               </TableHead>
@@ -139,7 +144,7 @@ const SupplierQuotesPage = () => {
                         <TableCell sx={cellStyle}>{q.eventName}</TableCell>
                         <TableCell sx={cellStyle}>{q.price}</TableCell>
                         <TableCell sx={cellStyle}>{q.quantity}</TableCell>
-                        <TableCell sx={cellStyle}>{q.status}</TableCell>
+                        <TableCell sx={cellStyle}>{statusLabels[q.status ?? ''] || q.status}</TableCell>
                         <TableCell sx={cellStyle}>{showDate(q.date!)}</TableCell>
                       </TableRow>
                     ))}
