@@ -193,7 +193,7 @@ export default function CatalogPage() {
       const data = await res.json();
 
       if (data.message.code === '000') {
-        showSucessAlert(modalMode === 'add' ? 'Service added successfully' : 'Service modified successfully');
+        showSucessAlert(modalMode === 'add' ? 'Servicio añadido exitosamente' : 'Servicio modificado exitosamente');
         fetchData();
       } else {
         showErrorAlert(data.message.description);
