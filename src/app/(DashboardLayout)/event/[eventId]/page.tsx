@@ -6,7 +6,7 @@ import PageContainer from '@/app/(DashboardLayout)/components/container/PageCont
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { showErrorAlert } from '@/app/lib/swal';
 import { Event } from '@/interfaces/Event';
-import ExampleTabContent from '@/components/tabs/Event/ExampleTabContent';
+// import ExampleTabContent from '@/components/tabs/Event/ExampleTabContent';
 import EventOverviewTab from '@/components/tabs/Event/EventOverviewTab';
 import { useAppContext } from '@/context/AppContext';
 import ServicesTab from '@/components/tabs/ServicesTab';
@@ -156,11 +156,11 @@ const EventPage = () => {
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={6} loading={loadingEvent} eventData={eventData}>
-          <ExampleTabContent event={eventData!} />
+          {/* <ExampleTabContent event={eventData!} /> */}
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={7} loading={loadingEvent} eventData={eventData}>
-          <ExampleTabContent event={eventData!} />
+          {/* <ExampleTabContent event={eventData!} /> */}
         </CustomTabPanel>
 
         
