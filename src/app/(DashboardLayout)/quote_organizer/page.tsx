@@ -27,6 +27,7 @@ type Quote = {
   eventId?: number;
   eventName?: string;
   providerId?: number;
+  providerName?: string;
   status?: string;
 };
 
@@ -280,9 +281,14 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
                   {selectedQuote.date ? new Date(selectedQuote.date).toLocaleString() : '-'}
                 </Typography>
 
-                <Typography>
+                <Typography sx={{ display: 'none' }}>
                   <strong>Proveedor:</strong> {selectedQuote.providerId ?? '-'}
                 </Typography>
+
+                <Typography>
+                  <strong>Proveedor:</strong> {selectedQuote.providerName ?? '-'}
+                </Typography>
+
 
                 <Typography>
                   <strong>Estado:</strong>{' '}
