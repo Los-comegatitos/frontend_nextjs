@@ -25,10 +25,10 @@ import { showErrorAlert } from '@/app/lib/swal';
 import { useAppContext } from '@/context/AppContext';
 
 interface Task {
-  id: string;
-  name: string;
-  description: string;
-  status: string;
+  task: { id : string, name: string, description: string, status: string };
+  // name: string;
+  // description: string;
+  // status: string;
 }
 
 export default function TaskProvidersPage() {
@@ -52,6 +52,14 @@ export default function TaskProvidersPage() {
         });
 
         const data = await res.json();
+
+        console.log('TODODOOOOOOOOOOOOOOOOOO');
+        
+        console.log(data);
+        console.log(data?.data);
+        console.log(data?.data?.data);
+        
+        
 
         if (res.ok && Array.isArray(data?.data?.data)) {
           setTasks(data.data.data);
@@ -108,19 +116,19 @@ export default function TaskProvidersPage() {
           <TableBody>
             {tasks.map((task) => (
               <TableRow
-                key={task.id}
+                key={task.task?.id as string}
                 hover
                 sx={{ cursor: 'pointer' }}
                 onClick={() => setSelectedTask(task)}
               >
-                <TableCell>{task.name}</TableCell>
-                <TableCell>{task.description}</TableCell>
-                <TableCell>{task.status}</TableCell>
+                <TableCell>{task.task.name}</TableCell>
+                <TableCell>{task.task.description}</TableCell>
+                <TableCell>{task.task.status}</TableCell>
                 <TableCell
                   align="center"
                   onClick={(e) => {
                     e.stopPropagation();
-                    router.push(`/events-providers/${eventId}/task-providers/${task.id}`);
+                    router.push(`/event/${eventId}/tasks/${task.task.id}/comments`);
                   }}
                 >
                   <Button
@@ -181,21 +189,21 @@ export default function TaskProvidersPage() {
               <Typography variant="subtitle1" fontWeight={600}>
                 Nombre:
               </Typography>
-              <Typography mb={2}>{selectedTask.name}</Typography>
+              <Typography mb={2}>{selectedTask.task.name}</Typography>
 
               <Divider sx={{ my: 2 }} />
 
               <Typography variant="subtitle1" fontWeight={600}>
                 Descripción:
               </Typography>
-              <Typography mb={2}>{selectedTask.description}</Typography>
+              <Typography mb={2}>{selectedTask.task.description}</Typography>
 
               <Divider sx={{ my: 2 }} />
 
               <Typography variant="subtitle1" fontWeight={600}>
                 Estado:
               </Typography>
-              <Typography>{selectedTask.status}</Typography>
+              <Typography>{selectedTask.task.status}</Typography>
             </Box>
           )}
         </DialogContent>
