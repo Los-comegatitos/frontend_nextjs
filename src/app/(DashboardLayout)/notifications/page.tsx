@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 
 
 const NotificationsPage = () => {
-    const { token } = useAppContext();
+    const { token, hasNotifications } = useAppContext();
     const [info, setInfo] = useState<Notification[]>([]);
     const [selectedId, setSelectedId] = useState(0)
     const router = useRouter()
@@ -78,6 +78,7 @@ const NotificationsPage = () => {
                   sm: 12
                 }}>
                 {
+                    (hasNotifications) ?
                     info.map((e) => (
                         <BlankCard key={e.id}>
                             <CardContent style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -99,6 +100,8 @@ const NotificationsPage = () => {
                             </CardContent>
                         </BlankCard>
                     ))
+                    :
+                    <Typography>No tienes ninguna notificación... aún</Typography>
                 }
               </Grid>
             </Grid>
