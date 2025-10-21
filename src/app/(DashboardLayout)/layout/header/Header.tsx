@@ -69,7 +69,9 @@ const Header = ({toggleMobileSidebar}: ItemType) => {
                     }} />
                 </Badge>
           : 
-                <IconBell size="21" stroke="1.5" />
+                <IconBell size="21" stroke="1.5" onClick={() => {
+                  router.push('/notifications')
+                }} />
           }
         </IconButton>
         <Box flexGrow={1} />
