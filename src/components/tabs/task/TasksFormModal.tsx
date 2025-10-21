@@ -399,6 +399,9 @@ export default function TaskFormModal({
             onChange={handleChange}
             InputLabelProps={{ shrink: true }}
             InputProps={{ readOnly: isCompleted }}
+            inputProps={{
+              min: new Date().toISOString().split('T')[0],
+            }}
           />
           <TextField
             margin="normal"
@@ -410,6 +413,9 @@ export default function TaskFormModal({
             onChange={handleChange}
             InputLabelProps={{ shrink: true }}
             InputProps={{ readOnly: isCompleted }}
+            inputProps={{
+              min: new Date().toISOString().split('T')[0],
+            }}
           />
           <TextField
             margin="normal"
