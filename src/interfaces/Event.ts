@@ -61,7 +61,7 @@ export interface Event {
   creationDate: string;
   eventTypeId: string | number;
   organizerUserId: string;
-  status: 'in progress' | 'finished' | 'canceled';
+  status: 'in progress' | 'finalized' | 'canceled';
   client?: Client; // interfaz client que ya definimos
   services?: Service[]; // lista servicios que ya definimos
   tasks?: Task[]; // lista tarea que ya definimos arriba también

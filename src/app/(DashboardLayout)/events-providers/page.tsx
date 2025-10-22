@@ -26,8 +26,6 @@ import { useAppContext } from '@/context/AppContext';
 import { FilteredEvent } from '@/interfaces/Event';
 import { showDate } from '@/utils/Formats';
 import { Quote } from '@/interfaces/Quote';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 
 const EventsProvidersPage = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -36,7 +34,6 @@ const EventsProvidersPage = () => {
   const [loading, setLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<FilteredEvent | null>(null);
   const { token } = useAppContext();
-  const router = useRouter();
 
   const fetchEvents = React.useCallback(async () => {
     if (!token) return;
@@ -132,11 +129,6 @@ const EventsProvidersPage = () => {
                         Fecha del evento
                       </Typography>
                     </TableCell>
-                    <TableCell align="center">
-                      <Typography variant="subtitle2" fontWeight={600}>
-                        Tareas
-                      </Typography>
-                    </TableCell>
                   </TableRow>
                 </TableHead>
 
@@ -159,27 +151,6 @@ const EventsProvidersPage = () => {
                         </Typography>
                       </TableCell>
 
-                      <TableCell align="center">
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/events-providers/${event.eventId}/task-providers`);
-                          }}
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <Image
-                            src="/images/icons/lista-de-verificacion.png"
-                            alt="Ver tareas"
-                            width={28}
-                            height={28}
-                          />
-                        </Button>
-
-                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

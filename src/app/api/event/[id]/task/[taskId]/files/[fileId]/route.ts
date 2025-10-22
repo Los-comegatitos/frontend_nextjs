@@ -1,13 +1,14 @@
-"use server";
+'use server';
 
-import { API_BACKEND } from "@/app/lib/definitions";
-import { NextRequest, NextResponse } from "next/server";
+import { API_BACKEND } from '@/app/lib/definitions';
+import { NextRequest, NextResponse } from 'next/server';
 
-//files
-export async function GET(req: NextRequest, params : { params: Promise<{ taskId: string; id: string, fileId: string }> }) {
-
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ id: string; taskId: string; fileId: string }> }
+) {
   try {
-    const { taskId, id, fileId } = await params.params;
+    const { id, taskId, fileId } = await context.params;
     const token = req.headers.get('token');
 
     if (!token) {
@@ -20,19 +21,26 @@ export async function GET(req: NextRequest, params : { params: Promise<{ taskId:
     const res = await fetch(`${API_BACKEND}events/${id}/tasks/${taskId}/file/${fileId}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
+    if (!res.ok) {
+      return NextResponse.json(
+        { message: { code: '998', description: 'Error al obtener archivo' } },
+        { status: res.status }
+      );
+    }
+
     return new Response(res.body, {
-        status: res.status,
-        headers: {
-            "Content-Type": res.headers.get("Content-Type")!,
-            "Content-Disposition": res.headers.get("Content-Disposition")!,
-        },
+      status: res.status,
+      headers: {
+        'Content-Type': res.headers.get('Content-Type') ?? 'application/octet-stream',
+        'Content-Disposition': res.headers.get('Content-Disposition') ?? '',
+      },
     });
   } catch (error) {
-    console.error('Error terrible en el obtener un archivo:', error);
+    console.error('Error al descargar archivo:', error);
     return NextResponse.json(
       { message: { code: '999', description: 'Error interno' } },
       { status: 500 }

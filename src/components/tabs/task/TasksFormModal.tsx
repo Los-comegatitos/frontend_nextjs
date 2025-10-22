@@ -58,9 +58,11 @@ export default function TaskFormModal({
   const [providerName, setProviderName] = useState<string>("Cargando...");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
-  const [providers, setProviders] = useState<{ id: string; name: string }[]>([],);
+  const [providers, setProviders] = useState<{ id: string; name: string }[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<string>("");
   const { token } = useAppContext();
+
+  const isFinalized = initialData?.status === 'completed';
 
   useEffect(() => {
     setForm(initialData || {});
@@ -73,7 +75,7 @@ export default function TaskFormModal({
 
       try {
         const res = await fetch(`/api/event/${eventId}`, {
-          headers: { 'token': token as string, },
+          headers: { 'token': token as string },
         });
         const data: EventResponse = await res.json();
 
@@ -147,7 +149,7 @@ export default function TaskFormModal({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-           'token': token as string,
+          'token': token as string,
         },
         body: JSON.stringify(payload),
       });
@@ -168,36 +170,34 @@ export default function TaskFormModal({
 
   //Eliminar tarea de un evento
   const handleDeleteConfirmed = async () => {
-      if (!eventId || !initialData || !token) return;
-
-      try {
-        const res = await fetch(`/api/event/${eventId}/task/${initialData.id}`, {
-          method: 'DELETE',
-          headers: { 'token': token as string, },
-
-        });
-
-        const data = await res.json();
-
-        if (data.message.code === '000') {
-          showSucessAlert(`La tarea "${initialData.name}" fue eliminada exitosamente.`);
-          onRefresh?.();
-          onClose();
-        } else {
-          showErrorAlert(data.message.description || 'No se pudo eliminar la tarea.');
-        }
-      } catch {
-        showErrorAlert('Ocurrió un error interno al eliminar la tarea.');
-      } finally {
-        setConfirmOpen(false);
-      }
-    };
-
-  //Finalizar tarea de un evento
-   const handleFinalize = async () => {
     if (!eventId || !initialData || !token) return;
 
-    //payload por si el backend espera algo adicional
+    try {
+      const res = await fetch(`/api/event/${eventId}/task/${initialData.id}`, {
+        method: 'DELETE',
+        headers: { 'token': token as string },
+      });
+
+      const data = await res.json();
+
+      if(data.mege.code === '000') {
+        showSucessAlert(`La tarea "${initialData.name}" fue eliminada exitosamente.`);
+        onRefresh?.();
+        onClose();
+      } else {
+        showErrorAlert(data.message.description || 'No se pudo eliminar la tarea.');
+      }
+    } catch {
+      showErrorAlert('Ocurrió un error interno al eliminar la tarea.');
+    } finally {
+      setConfirmOpen(false);
+    }
+  };
+
+  //Finalizar tarea de un evento
+  const handleFinalize = async () => {
+    if (!eventId || !initialData || !token) return;
+
     const payload = { status: 'finished' };
 
     try {
@@ -230,7 +230,7 @@ export default function TaskFormModal({
     }
   };
 
-  //Modificar
+  // Modificar
   const handleUpdate = async () => {
     if (!validateDates()) return;
 
@@ -475,6 +475,7 @@ export default function TaskFormModal({
           )}
         </DialogActions>
       </Dialog>
+
       {/* Modal de confirmación */}
       <Dialog
         open={confirmOpen}

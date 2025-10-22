@@ -196,8 +196,8 @@ export const ProviderMenuitems = [
   },
   {
     id: uniqueId(),
-    title: 'Tareas (WIP)',
+    title: 'Tareas',
     icon: IconBackhoe,
-    href: '/wip',
+    href: '/task-providers',
   },
 ];

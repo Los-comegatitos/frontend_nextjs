@@ -120,7 +120,7 @@ const EventPage = () => {
             <Tab label='Proveedores' {...a11yProps(4)} />
             <Tab label='Configuración' {...a11yProps(5)} />
 
-            {eventData?.status === 'finished' && (
+            {eventData?.status === 'finalized' && (
               <>
                 <Tab label='Reporte' {...a11yProps(6)} />
                 <Tab label='Calificar proveedores' {...a11yProps(7)} />

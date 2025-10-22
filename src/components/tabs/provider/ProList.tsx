@@ -11,14 +11,18 @@ import {
   Button,
 } from '@mui/material';
 import { ProviderWithService } from '@/interfaces/Provider';
+import { BackendProviderResponse } from '@/interfaces/ProviderResponse';
 
 type Props = {
-  providers: (ProviderWithService & { score?: number })[];
-  onView: (provider: ProviderWithService) => void;
-  onRate: (provider: ProviderWithService) => void;
+  providers: (BackendProviderResponse & { score?: number })[];
+  onView: (provider: BackendProviderResponse) => void;
+  onRate: (provider: BackendProviderResponse) => void;
 };
 
 export default function ProviderList({ providers, onView, onRate }: Props) {
+  console.log('TODOS LOS PROVEEDORES');
+  console.log(providers);
+  
   return (
     <Box>
       {providers.length === 0 ? (
@@ -40,7 +44,7 @@ export default function ProviderList({ providers, onView, onRate }: Props) {
                 onClick={() => onView(provider)}
                 style={{ cursor: 'pointer' }}
               >
-                <TableCell>{provider.name}</TableCell>
+                <TableCell>{provider.providerName}</TableCell>
                 <TableCell>{provider.service?.name || 'No asignado'}</TableCell>
 
                 <TableCell align="center">

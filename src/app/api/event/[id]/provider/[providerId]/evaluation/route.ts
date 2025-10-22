@@ -3,9 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { API_BACKEND } from '@/app/lib/definitions';
 
-// Crear evaluación de un proveedor en un evento
-export async function POST(req: NextRequest, params: { params: Promise<{ id: string; providerId: string }> }
-) {
+export async function POST(req: NextRequest, params: { params: Promise<{ id: string; providerId: string }> }) {
   try {
     const token = req.headers.get('token');
     if (!token) {
@@ -16,10 +14,10 @@ export async function POST(req: NextRequest, params: { params: Promise<{ id: str
     }
 
     const body = await req.json();
-    const { organizerUserId, score } = body;
-    const { id, providerId } = await params.params;
+    const { organizerUserId, score, eventId, providerId: bodyProviderId } = body; 
+    const { id: paramEventId, providerId: paramProviderId } = await params.params;
 
-    if (!organizerUserId || score === undefined) {
+    if (!organizerUserId || score === undefined || !eventId || !bodyProviderId) {
       return NextResponse.json(
         { message: { code: '400', description: 'Datos incompletos' } },
         { status: 400 }
@@ -27,14 +25,19 @@ export async function POST(req: NextRequest, params: { params: Promise<{ id: str
     }
 
     const res = await fetch(
-      `${API_BACKEND}events/${id}/providers/${providerId}/evaluation`,
+      `${API_BACKEND}events/${paramEventId}/providers/${paramProviderId}/evaluation`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ organizerUserId, score }),
+        body: JSON.stringify({
+          organizerUserId,
+          score,
+          eventId: paramEventId.toString(),
+          providerId: paramProviderId.toString(),
+        }),
       }
     );
 
