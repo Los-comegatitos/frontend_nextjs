@@ -109,6 +109,37 @@ export default function TaskFormModal({
   const handleCreate = async () => {
     if (!eventId || !token) return;
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (!form.dueDate) {
+      showErrorAlert("Debes ingresar una fecha límite para la tarea.");
+      return;
+    }
+
+    const dueDate = new Date(form.dueDate);
+    dueDate.setHours(0, 0, 0, 0);
+
+    if (dueDate < today) {
+      showErrorAlert("La fecha límite no puede ser anterior a hoy.");
+      return;
+    }
+
+    if (form.reminderDate) {
+      const reminderDate = new Date(form.reminderDate);
+      reminderDate.setHours(0, 0, 0, 0);
+
+      if (reminderDate < today) {
+        showErrorAlert("La fecha de recordatorio no puede ser anterior a hoy.");
+        return;
+      }
+
+      if (reminderDate > dueDate) {
+        showErrorAlert("La fecha de recordatorio no puede ser posterior a la fecha límite.");
+        return;
+      }
+    }
+
     const payload = {
       name: form.name,
       description: form.description,
@@ -205,6 +236,37 @@ export default function TaskFormModal({
   // Modificar
   const handleUpdate = async () => {
     if (!eventId || !initialData || !token) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (!form.dueDate) {
+      showErrorAlert("Debes ingresar una fecha límite para la tarea.");
+      return;
+    }
+
+    const dueDate = new Date(form.dueDate);
+    dueDate.setHours(0, 0, 0, 0);
+
+    if (dueDate < today) {
+      showErrorAlert("La fecha límite no puede ser anterior a hoy.");
+      return;
+    }
+
+    if (form.reminderDate) {
+      const reminderDate = new Date(form.reminderDate);
+      reminderDate.setHours(0, 0, 0, 0);
+
+      if (reminderDate < today) {
+        showErrorAlert("La fecha de recordatorio no puede ser anterior a hoy.");
+        return;
+      }
+
+      if (reminderDate > dueDate) {
+        showErrorAlert("La fecha de recordatorio no puede ser posterior a la fecha límite.");
+        return;
+      }
+    }
 
     const updatePayload = {
       name: form.name,

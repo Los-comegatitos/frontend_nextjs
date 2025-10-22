@@ -91,6 +91,26 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
     const selectedId = formData.get('serviceTypeId') as string;
     const selectedType = serviceTypesSelect.find(t => parseInt(t.id) === parseInt(selectedId));
 
+    const dueDate = formData.get('dueDate') as string;
+
+    if (!dueDate) {
+      showErrorAlert('Debe seleccionar una fecha límite para cotizaciones.');
+      setLoading(false);
+      return;
+    }
+
+    const today = new Date();
+    const selectedDate = new Date(dueDate);
+
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      showErrorAlert('La fecha límite no puede ser anterior al día de hoy.');
+      setLoading(false);
+      return;
+    }
+
     const payload = {
       serviceTypeId: selectedId,
       serviceTypeName: selectedType?.name ?? '',
