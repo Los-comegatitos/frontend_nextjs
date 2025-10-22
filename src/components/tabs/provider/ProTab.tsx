@@ -27,11 +27,11 @@ interface ProviderWithScore extends ProviderWithService {
 }
 
 export default function ProviderTab({ token, event, onRefresh }: Props) {
-  const [providers, setProviders] = useState<ProviderWithScore[]>([]);
+  const [providers, setProviders] = useState<BackendProviderResponse[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [open, setOpen] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<ProviderWithScore | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<BackendProviderResponse | null>(null);
   const [rating, setRating] = useState<number | null>(0);
   const [hasScore, setHasScore] = useState(false);
 
@@ -44,25 +44,25 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
         const data: { data: BackendProviderResponse[] } = await res.json();
 
         if (res.ok && data.data) {
-          const formatted: ProviderWithScore[] = data.data.map((p) => ({
-            id: Number(p.providerId),
-            name: p.providerName,
-            description: p.service?.description || '',
-            email: '',
-            telephone: '',
-            password: '',
-            user_Typeid: 0,
-            service: {
-              serviceTypeId: p.service?.serviceTypeId || '',
-              name: p.service?.name || '',
-              description: p.service?.description || '',
-              dueDate: '',
-              quantity: null,
-              quote: null,
-            },
-          }));
+        //   const formatted: ProviderWithScore[] = data.data.map((p) => ({
+        //     id: Number(p.providerId),
+        //     name: p.providerName,
+        //     description: p.service?.description || '',
+        //     email: '',
+        //     telephone: '',
+        //     password: '',
+        //     user_Typeid: 0,
+        //     service: {
+        //       serviceTypeId: p.service?.serviceTypeId || '',
+        //       name: p.service?.name || '',
+        //       description: p.service?.description || '',
+        //       dueDate: '',
+        //       quantity: null,
+        //       quote: null,
+        //     },
+        //   }));
 
-          setProviders(formatted);
+          setProviders(data.data);
         }
       } catch (error) {
         console.error('Error al obtener proveedores:', error);
@@ -74,8 +74,8 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
     fetchProviders();
   }, [event.eventId, token]);
 
-  const handleRate = async (provider: ProviderWithScore) => {
-    if (event.status !== 'finished') {
+  const handleRate = async (provider: BackendProviderResponse) => {
+    if (event.status !== 'finalized') {
       showErrorAlert('Solo puedes calificar proveedores cuando el evento está finalizado.');
       return;
     }
@@ -138,7 +138,7 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
       if (!res.ok) {
         showErrorAlert(result.message?.description || 'Error al calificar proveedor.');
       } else {
-        showSucessAlert(`Proveedor "${selectedProvider.name}" calificado correctamente.`);
+        showSucessAlert(`Proveedor "${selectedProvider.providerName}" calificado correctamente.`);
         // Actualizar el score local
         setProviders(prev =>
           prev.map(p => p.id === selectedProvider.id ? { ...p, score: Number(rating) } : p)
@@ -167,7 +167,7 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
         <DialogTitle>Calificar proveedor</DialogTitle>
         <DialogContent>
           <Typography gutterBottom>
-            {selectedProvider?.name ?? 'Proveedor'}
+            {selectedProvider?.providerName ?? 'Proveedor'}
           </Typography>
           <Rating
             value={rating ?? 0}
