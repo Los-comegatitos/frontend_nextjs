@@ -62,7 +62,6 @@ function Row({ type, services, onServiceClick }: { type: AuxiliarType; services:
 
 export default function CatalogPage() {
   const { token } = useAppContext();
-  
 
   const [serviceTypes, setServiceTypes] = useState<AuxiliarType[]>([]);
   const [serviceTypesSelect, setServiceTypesSelect] = useState<AuxiliarType[]>([]);
@@ -79,7 +78,7 @@ export default function CatalogPage() {
   const fetchServiceTypes = React.useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`/api/service-type`, { headers: { 'token': token as string, }, });
+      const res = await fetch(`/api/service-type`, { headers: { token: token as string } });
       const data = await res.json();
 
       if (data.message.code === '000') {
@@ -96,7 +95,7 @@ export default function CatalogPage() {
     if (!token) return;
     try {
       setLoadingTable(true);
-      const res = await fetch(`/api/catalog`, { headers: { 'token': token as string, }, });
+      const res = await fetch(`/api/catalog`, { headers: { token: token as string } });
       const data = await res.json();
       if (data.message.code === '000') {
         setCatalog(data.data.catalog);
@@ -113,8 +112,8 @@ export default function CatalogPage() {
 
   useEffect(() => {
     if (!token) return;
-      fetchData();
-      fetchServiceTypes();
+    fetchData();
+    fetchServiceTypes();
   }, [fetchData, fetchServiceTypes, token]);
 
   const handleModifyDescription = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -127,7 +126,7 @@ export default function CatalogPage() {
     try {
       const res = await fetch(`/api/catalog`, {
         method: 'PATCH',
-        headers: { 'token': token as string, },
+        headers: { token: token as string },
         body: JSON.stringify({ description: newDescription }),
       });
 
@@ -187,13 +186,13 @@ export default function CatalogPage() {
 
       const res = await fetch(url, {
         method,
-        headers: { 'token': token as string, },
+        headers: { token: token as string },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
 
       if (data.message.code === '000') {
-        showSucessAlert(modalMode === 'add' ? 'Service added successfully' : 'Service modified successfully');
+        showSucessAlert(modalMode === 'add' ? 'Servicio añadido exitosamente' : 'Servicio modificado exitosamente');
         fetchData();
       } else {
         showErrorAlert(data.message.description);
@@ -209,7 +208,7 @@ export default function CatalogPage() {
   const handleDelete = async (serviceName: string | undefined) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/catalog/services/${serviceName}`, { method: 'DELETE', headers: { 'token': token as string, }, });
+      const res = await fetch(`/api/catalog/services/${serviceName}`, { method: 'DELETE', headers: { token: token as string } });
       const data = await res.json();
 
       if (data.message.code === '000') {
@@ -234,10 +233,21 @@ export default function CatalogPage() {
     <PageContainer title='Catálogo' description='Página de catálogo'>
       <DashboardCard title='Catálogo'>
         <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
+          {(catalog?.services.length === 0 || !catalog?.description)
+            && (
+              <Typography color='gray' mb={3}>
+                Este es tu catálogo de servicios. Puedes modificar la descripción para contarles a tus clientes más sobre los servicios que ofreces y también añadir servicios que formarán parte de tu catálogo que podrás ofrecer en tus cotizaciones.
+              </Typography>
+            )}
+
           <Typography variant='h6' fontWeight={600} mb={2}>
             Descripción
           </Typography>
-          {catalog && <Typography mb={3}>{catalog.description}</Typography>}
+          {catalog && (
+            <Typography color='gray' mb={3}>
+              {catalog.description ? catalog.description : 'Haz click en Modificar Descripción para añadirle una descripción a tu catálogo'}
+            </Typography>
+          )}
 
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2, mb: 4, columnGap: 2 }}>
             <Button variant='contained' color='primary' onClick={handleAdd}>
@@ -254,22 +264,39 @@ export default function CatalogPage() {
               <CircularProgress size='55px' className='mb-2' />
             </Box>
           ) : (
-            <TableContainer component={Paper}>
-              <Table aria-label='collapsible table'>
-                <TableHead>
-                  <TableRow>
-                    <TableCell />
-                    <TableCell>Tipo de servicio</TableCell>
-                    <TableCell>Descripción</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {serviceTypes.map((type) => (
-                    <Row key={type.id} type={type} services={catalog!.services.filter((s) => parseInt(s.serviceTypeId) === parseInt(type.id))} onServiceClick={handleRowClick} />
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <>
+              <TableContainer component={Paper}>
+                <Table aria-label='collapsible table'>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell />
+                      <TableCell>Tipo de servicio</TableCell>
+                      <TableCell>Descripción</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {serviceTypes.map((type) => (
+                      <Row key={type.id} type={type} services={catalog!.services.filter((s) => parseInt(s.serviceTypeId) === parseInt(type.id))} onServiceClick={handleRowClick} />
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              {catalog?.services.length === 0 && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: '100px',
+                  }}
+                >
+                  <Typography className='text' variant='subtitle2' fontWeight={600}>
+                    No hay servicios en tu catálogo, ¡haz click Añadir Servicio para agregar uno!
+                  </Typography>
+                </Box>
+              )}
+            </>
           )}
         </Box>
       </DashboardCard>

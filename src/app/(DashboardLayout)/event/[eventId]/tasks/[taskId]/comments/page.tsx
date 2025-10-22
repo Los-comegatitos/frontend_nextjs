@@ -65,7 +65,10 @@ const { eventId, taskId } = useParams<{ eventId: string, taskId: string }>();
   
    // se reutiliza esta funcion para cargar comentarios
   const fetchComments = React.useCallback(async () => {
-    if (!eventId || !taskId  || !token) return;
+    if (!eventId || !taskId  || !token) {
+      setTaskName('Error: IDs o URL base faltantes.');
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(`/api/event/${eventId}`, {
@@ -78,6 +81,7 @@ const { eventId, taskId } = useParams<{ eventId: string, taskId: string }>();
       console.log(data);
       
       if (!res.ok || !data?.data) {
+        setTaskName('Error al obtener datos del evento');
         setComments([]);
         return;
       }
@@ -85,9 +89,12 @@ const { eventId, taskId } = useParams<{ eventId: string, taskId: string }>();
       const event: BackendEvent = data.data;
       const task = event.tasks.find((t) => t.id === taskId);
       if (!task) {
+        setTaskName('Tarea no encontrada');
         setComments([]);
         return;
       }
+
+      setTaskName(task.name);
 
       const mappedComments: Comment[] = (task.comments ?? []).map((c) => ({
         id: c._id,
@@ -100,6 +107,7 @@ const { eventId, taskId } = useParams<{ eventId: string, taskId: string }>();
       setFiles(task.attachments)
     } catch (err) {
       console.error('Error al cargar comentarios:', err);
+      setTaskName('Error al cargar tarea');
       setComments([]);
     } finally {
       setLoading(false);
@@ -110,41 +118,41 @@ const { eventId, taskId } = useParams<{ eventId: string, taskId: string }>();
 
 
   // Buscar nombre de la tarea
-  useEffect(() => {
-    async function fetchTask() {
-      if (!eventId || !taskId ) { 
-        setTaskName('Error: IDs o URL base faltantes.');
-        return;
-      }
-      try {
-        const res = await fetch(`$/api/event/${eventId}`, {
-          headers: {
-          'token': token as string,
-          },
-        });
+  // useEffect(() => {
+  //   async function fetchTask() {
+  //     if (!eventId || !taskId  || !token) { 
+  //       setTaskName('Error: IDs o URL base faltantes.');
+  //       return;
+  //     }
+  //     try {
+  //       const res = await fetch(`$/api/event/${eventId}`, {
+  //         headers: {
+  //         'token': token as string,
+  //         },
+  //       });
 
         
-        const data = await res.json();
+  //       const data = await res.json();
 
-        if (res.ok && data?.data) {
-          const event: BackendEvent = data.data;
-          const found = event.tasks.find((t) => t.id === taskId);
+  //       if (res.ok && data?.data) {
+  //         const event: BackendEvent = data.data;
+  //         const found = event.tasks.find((t) => t.id === taskId);
 
-          if (found) {
-            setTaskName(found.name);
-          } else {
-            setTaskName('Tarea no encontrada');
-          }
-        } else {
-          setTaskName('Error al obtener datos del evento');
-        }
-      } catch (err) {
-        console.error('Error al obtener la tarea:', err);
-        setTaskName('Error al cargar tarea');
-      }
-    }
-    fetchTask();
-  }, [eventId, taskId, token]);
+  //         if (found) {
+  //           setTaskName(found.name);
+  //         } else {
+  //           setTaskName('Tarea no encontrada');
+  //         }
+  //       } else {
+  //         setTaskName('Error al obtener datos del evento');
+  //       }
+  //     } catch (err) {
+  //       console.error('Error al obtener la tarea:', err);
+  //       setTaskName('Error al cargar tarea');
+  //     }
+  //   }
+  //   fetchTask();
+  // }, [eventId, taskId, token]);
 
 
 
@@ -168,7 +176,7 @@ const { eventId, taskId } = useParams<{ eventId: string, taskId: string }>();
     }
 
     try {
-      const res = await fetch(`$/api/event/${eventId}/tasks/${taskId}/comment/organizer`,
+      const res = await fetch(`/api/event/${eventId}/task/${taskId}/comments`,
         {
           method: 'PATCH',
           headers: {

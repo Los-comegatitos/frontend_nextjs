@@ -11,7 +11,7 @@ import {
   ListItemText,
 } from "@mui/material";
 
-import { IconListCheck, IconMail, IconUser } from "@tabler/icons-react";
+import { IconUser } from "@tabler/icons-react";
 import { logout } from "@/app/actions/auth";
 import { useRouter } from "next/navigation";
 
@@ -81,18 +81,6 @@ const Profile = () => {
           </ListItemIcon>
           <ListItemText onClick={handleProfile}>Mi perfil</ListItemText>
         </MenuItem>
-        <MenuItem>
-          <ListItemIcon>
-            <IconMail width={20} />
-          </ListItemIcon>
-          <ListItemText>My Account</ListItemText>
-        </MenuItem>
-        <MenuItem>
-          <ListItemIcon>
-            <IconListCheck width={20} />
-          </ListItemIcon>
-          <ListItemText>My Tasks</ListItemText>
-        </MenuItem>
         <Box mt={1} py={1} px={2}>
           <Button
             // href="/authentication/login"
@@ -103,7 +91,7 @@ const Profile = () => {
             fullWidth
             onClick={handlelogout}
           >
-            Logout
+            Cerrar sesión
           </Button>
         </Box>
       </Menu>
