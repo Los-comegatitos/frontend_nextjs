@@ -212,7 +212,7 @@ const EventsProvidersPage = () => {
               <TextField label="Nombre" name="name" required />
               <TextField label="Descripción" name="description" required />
               <TextField type="number" label="Precio" name="price" required />
-              <TextField type="number" label="Cantidad" name="quantity" required />
+              <TextField type="number" label="Cantidad" name="quantity" />
               <List sx={{ width: '100%' }}>
                 {selectedEvent.services.map((service) => (
                   <ListItem

@@ -110,7 +110,7 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
       let method = 'POST';
 
       if (modalMode === 'modify') {
-        url = `/api/event/${event.eventId}/services/${payload.name}`;
+        url = `/api/event/${event.eventId}/services/${selectedService?.name}`;
         method = 'PATCH';
       }
 

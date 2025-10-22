@@ -26,8 +26,7 @@ type Quote = {
   date?: string;
   eventId?: number;
   eventName?: string;
-  providerId?: number;
-  providerName?: string;
+  provider?: { email: string, userId: number, firstName: string, lastName: string };
   status?: string;
 };
 
@@ -266,6 +265,7 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
 
                 <Typography>
                   <strong>Precio:</strong>{' '}
+                  {/* No sabía que se podía hacer eso :o */}
                   {selectedQuote.price?.toLocaleString('es-VE', {
                     style: 'currency',
                     currency: 'USD',
@@ -273,20 +273,15 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
                 </Typography>
 
                 <Typography>
-                  <strong>Cantidad:</strong> {selectedQuote.quantity ?? '-'}
+                  <strong>Cantidad:</strong> {(!selectedQuote.quantity) ? 'No especificado' : selectedQuote.quantity}
                 </Typography>
-
                 <Typography>
                   <strong>Fecha:</strong>{' '}
                   {selectedQuote.date ? new Date(selectedQuote.date).toLocaleString() : '-'}
                 </Typography>
 
-                <Typography sx={{ display: 'none' }}>
-                  <strong>Proveedor:</strong> {selectedQuote.providerId ?? '-'}
-                </Typography>
-
                 <Typography>
-                  <strong>Proveedor:</strong> {selectedQuote.providerName ?? '-'}
+                  <strong>Proveedor:</strong> {selectedQuote.provider?.firstName} {selectedQuote.provider?.lastName}
                 </Typography>
 
 

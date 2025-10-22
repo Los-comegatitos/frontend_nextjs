@@ -107,7 +107,8 @@ const UsersPage = () => {
       if (data.message?.code === '000' || data.ok) {
         showSucessAlert(modalMode === 'add' ? 'Administrador registrado exitosamente.' : 'Contraseña cambiada exitosamente.');
       } else {
-        showErrorAlert(data.message.description);
+        if (modalMode === 'add') showErrorAlert(data.body);
+        else showErrorAlert(data.message.description)
       }
     } catch (err) {
       console.error('Error', err);
