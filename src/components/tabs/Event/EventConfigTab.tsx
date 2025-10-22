@@ -23,7 +23,7 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
   const fetchEventTypes = React.useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`/api/service-type`, {
+      const res = await fetch(`/api/event-type`, {
         headers: { token },
       });
       const data = await res.json();
@@ -46,7 +46,7 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
   const fetchClientTypes = React.useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`/api/service-type`, {
+      const res = await fetch(`/api/client-type`, {
         headers: { token },
       });
       const data = await res.json();
@@ -71,9 +71,9 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
     description: event.description,
     eventDate: event.eventDate?.split('T')[0] || '',
     eventTypeId: event.eventTypeId.toString(),
-    clientTypeId: event.client.clientTypeId.toString(),
-    clientName: event.client.name,
-    clientDescription: event.client.description || '',
+    clientTypeId: event.client?.clientTypeId?.toString() || '',
+    clientName: event.client?.name || '',
+    clientDescription: event.client?.description || '',
   });
 
   const handleAction = async (action: 'finalize' | 'cancel') => {
@@ -116,17 +116,21 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
     e.preventDefault();
     setLoading(true);
 
-    const payload = {
+    const payload: Partial<Event> = {
       name: formValues.name,
       description: formValues.description,
       eventDate: formValues.eventDate,
       eventTypeId: parseInt(formValues.eventTypeId),
-      client: {
+      client: undefined,
+    };
+
+    if (formValues.clientTypeId !== '') {
+      payload['client'] = {
         name: formValues.clientName,
         clientTypeId: parseInt(formValues.clientTypeId),
         description: formValues.clientDescription,
-      },
-    };
+      };
+    }
 
     try {
       const res = await fetch(`${API_BASE_URL}events/${event.eventId}`, {
@@ -173,7 +177,7 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
         <DialogContent dividers>
           <Box component='form' onSubmit={handleModify} display='flex' flexDirection='column' gap={2} mt={1}>
             <TextField label='Nombre' value={formValues.name} onChange={(e) => setFormValues({ ...formValues, name: e.target.value })} required />
-            <TextField label='Descripción' value={formValues.description} onChange={(e) => setFormValues({ ...formValues, description: e.target.value })} required />
+            <TextField label='Descripción' value={formValues.description} onChange={(e) => setFormValues({ ...formValues, description: e.target.value })} />
             <TextField type='date' label='Fecha' value={formValues.eventDate} onChange={(e) => setFormValues({ ...formValues, eventDate: e.target.value })} InputLabelProps={{ shrink: true }} required />
 
             <p>Tipo de evento</p>
@@ -186,7 +190,10 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
             </Select>
 
             <p>Tipo de cliente</p>
-            <Select value={formValues.clientTypeId} onChange={(e) => setFormValues({ ...formValues, clientTypeId: e.target.value })} required>
+            <Select value={formValues.clientTypeId} onChange={(e) => setFormValues(formValues.clientTypeId === '' ? { ...formValues, clientTypeId: e.target.value } : { ...formValues, clientTypeId: e.target.value, clientDescription: '', clientName: '' })}>
+              <MenuItem key={''} value={''}>
+                  Ninguno
+              </MenuItem>
               {clientTypes.map((t) => (
                 <MenuItem key={t.id} value={t.id.toString()}>
                   {t.name}
@@ -194,8 +201,8 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
               ))}
             </Select>
 
-            <TextField label='Nombre del cliente' value={formValues.clientName} onChange={(e) => setFormValues({ ...formValues, clientName: e.target.value })} required />
-            <TextField label='Descripción del cliente' value={formValues.clientDescription} onChange={(e) => setFormValues({ ...formValues, clientDescription: e.target.value })} required />
+            <TextField label='Nombre del cliente' value={formValues.clientName} onChange={(e) => setFormValues({ ...formValues, clientName: e.target.value })} required={ formValues.clientTypeId !== '' } disabled={ formValues.clientTypeId === '' }/>
+            <TextField label='Descripción del cliente' value={formValues.clientDescription} onChange={(e) => setFormValues({ ...formValues, clientDescription: e.target.value })} required={ formValues.clientTypeId !== '' } disabled={ formValues.clientTypeId === '' } />
 
             <Box display='flex' justifyContent='center' gap={2}>
               <Button variant='contained' type='submit' color='primary' disabled={loading}>

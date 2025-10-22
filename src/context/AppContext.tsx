@@ -32,6 +32,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!pathname) return
     async function showPing() {
+      if (!token) {
+        setHasNotifications(false)
+        return
+      }
       try {
           const response = await fetch('/api/notification', { headers: { token: token as string } });
           if (!response.ok) {
@@ -102,10 +106,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       }
     }
-    
+
     obtain();
     showPing()
-  }, [pathname, user?.role]);
+  }, [token, pathname, user?.role]);
 
   useEffect(() => {
     if (user) {
