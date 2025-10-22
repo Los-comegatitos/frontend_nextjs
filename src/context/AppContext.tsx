@@ -71,7 +71,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         !pathname.includes('/events-providers') &&
         !pathname.includes('/events') && 
         !pathname.includes('/profile')) && 
-        !pathname.includes('/notifications')
+        !pathname.includes('/notifications') &&
+        !pathname.includes('/task-providers')
         || pathname.includes('/event-types'))
       ) {
         redirect('/') 

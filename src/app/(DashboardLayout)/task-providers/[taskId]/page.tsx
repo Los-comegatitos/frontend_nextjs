@@ -13,9 +13,9 @@ export default function TaskCommentsPage() {
     ? 'provider'
     : 'organizer';
 
-  if (!eventId || !taskId) {
-    return <p className="text-center mt-10 text-gray-500">Cargando datos...</p>;
-  }
+  // if (!eventId || !taskId) {
+  //   return <p className="text-center mt-10 text-gray-500">Cargando datos...</p>;
+  // }
 
   return <CommentsInterface eventId={eventId} taskId={taskId} role={role} />;
 }

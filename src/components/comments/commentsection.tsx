@@ -71,6 +71,10 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
 
       const res = await fetch(url, { headers: { token } });
       const data = await res.json();
+      console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaa');
+      
+      console.log(data);
+      
 
       if (!res.ok || !data?.data) throw new Error('Error al obtener datos');
 

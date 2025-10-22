@@ -40,9 +40,11 @@ export default function TaskProvidersPage() {
         const res = await fetch(`/api/task/provider`, 
         { headers: { token: token as string } });
         const data = await res.json();
+        console.log(data.data.data);
+        
   
         if (data.message.code === '000') {
-          setTasks(data.data);
+          setTasks(data.data.data);
         } else {
           showErrorAlert(data.message.description);
         }
@@ -54,9 +56,8 @@ export default function TaskProvidersPage() {
     }, [token]);
   
     useEffect(() => {
-      if (!token) return;
       fetchTaskProvider();
-    }, [fetchTaskProvider, token]);
+    }, [fetchTaskProvider]);
   
 
   return (
