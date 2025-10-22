@@ -102,7 +102,7 @@ export default function TaskProvidersPage() {
                   align="center"
                   onClick={(e) => {
                     e.stopPropagation();
-                    router.push(`/task-providers/${t.task.id}`);
+                    router.push(`/task-providers/${t.eventId}/${t.task.id}`);
                   }}
                 >
                   <Button

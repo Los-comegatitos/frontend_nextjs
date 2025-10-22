@@ -6,6 +6,8 @@ import CommentsInterface from '@/components/comments/commentsection';
 
 export default function TaskCommentsPage() {
   const { eventId, taskId } = useParams<{ eventId: string; taskId: string }>();
+  console.log('EL TASK COMMENT');
+  
   const pathname = usePathname();
 
 

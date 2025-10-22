@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, 
+  // useCallback 
+} from 'react';
 import {
   Box,
   Typography,
@@ -24,23 +26,27 @@ interface Comment {
   date: string;
 }
 
-interface FileItem {
-  id: string;
+interface File {
+  id: string; 
   fileName: string;
 }
 
 interface BackendComment {
   _id: string;
-  description: string; 
+  description: string;
   userType: 'organizer' | 'provider';
   date: string;
 }
 
 interface BackendTask {
+  attachments: File[];
   id: string;
   name: string;
   comments?: BackendComment[];
-  attachments?: FileItem[];
+}
+
+interface BackendEvent {
+  tasks: BackendTask[];
 }
 
 interface Props {
@@ -53,63 +59,69 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
   const { token } = useAppContext();
   const [taskName, setTaskName] = useState('Cargando...');
   const [comments, setComments] = useState<Comment[]>([]);
-  const [files, setFiles] = useState<FileItem[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
   const [comment, setComment] = useState('');
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const UploadIcon = '/images/icons/upload.png';
+  console.log('LA INTERFAZ DE COMENTARIOS');
+  
 
-  const fetchTaskData = useCallback(async () => {
-    if (!eventId || !taskId || !token) return;
-
+  const fetchComments = React.useCallback(async () => {
+    if (!eventId || !taskId  || !token) {
+      setTaskName('Error: IDs o URL base faltantes.');
+      return;
+    }
     setLoading(true);
     try {
-      const url =
-        role === 'organizer'
-          ? `/api/event/${eventId}`
-          : `/api/event/${eventId}/task/provider`;
+      const res = await fetch(`/api/event/${eventId}`, {
+        headers: {
+          'token': token as string, 
+        },
+      });
 
-      const res = await fetch(url, { headers: { token } });
       const data = await res.json();
-      console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaa');
-      
       console.log(data);
       
+      if (!res.ok || !data?.data) {
+        setTaskName('Error al obtener datos del evento');
+        setComments([]);
+        return;
+      }
 
-      if (!res.ok || !data?.data) throw new Error('Error al obtener datos');
-
-      const tasks: BackendTask[] =
-        role === 'organizer' ? data.data.tasks : data.data.data;
-
-      const task = tasks.find((t) => t.id === taskId);
+      const event: BackendEvent = data.data;
+      const task = event.tasks.find((t) => t.id === taskId);
       if (!task) {
         setTaskName('Tarea no encontrada');
         setComments([]);
-        setFiles([]);
         return;
       }
 
       setTaskName(task.name);
-      setFiles(task.attachments ?? []);
-      setComments(
-        (task.comments ?? []).map((c) => ({
-          id: c._id,
-          text: c.description,
-          author: c.userType === 'organizer' ? 'Organizador' : 'Proveedor',
-          date: new Date(c.date).toLocaleString(),
-        }))
-      );
+
+      const mappedComments: Comment[] = (task.comments ?? []).map((c) => ({
+        id: c._id,
+        text: c.description,
+        author: c.userType === 'organizer' ? 'Organizador' : 'Proveedor',
+        date: new Date(c.date).toLocaleString(),
+      }));
+
+      setComments(mappedComments);
+      setFiles(task.attachments)
     } catch (err) {
-      console.error(err);
-      showErrorAlert('Error al cargar información.');
+      console.error('Error al cargar comentarios:', err);
+      setTaskName('Error al cargar tarea');
+      setComments([]);
     } finally {
       setLoading(false);
     }
-  }, [eventId, taskId, token, role]);
+  }, [ eventId, taskId, token]);
 
   useEffect(() => {
-    fetchTaskData();
-  }, [fetchTaskData]);
+    console.log('alooooooooo');
+    
+    fetchComments();
+  }, [fetchComments]);
 
   const handleSendComment = async () => {
     if (!comment.trim()) {
@@ -137,7 +149,7 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
 
       setComment('');
       await showSucessAlert('Comentario enviado con éxito.');
-      fetchTaskData();
+      fetchComments();
     } catch (err) {
       console.error(err);
       showErrorAlert('Error al enviar comentario.');
@@ -170,7 +182,7 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
       if (data.message?.code === '000') {
         setVisible(false);
         await showSucessAlert('El archivo se adjuntó exitosamente.');
-        await fetchTaskData();
+        await fetchComments();
       } else {
         showErrorAlert(data.message?.description || 'Error al subir archivo.');
       }
