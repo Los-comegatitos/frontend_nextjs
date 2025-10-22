@@ -75,7 +75,7 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
   }, [event.eventId, token]);
 
   const handleRate = async (provider: ProviderWithScore) => {
-    if (event.status !== 'finished') {
+    if (event.status !== 'finalized') {
       showErrorAlert('Solo puedes calificar proveedores cuando el evento está finalizado.');
       return;
     }
