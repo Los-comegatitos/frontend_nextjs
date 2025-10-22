@@ -20,6 +20,7 @@ export async function GET(req: NextRequest, params: { params: Promise<{ id: stri
     const res = await fetch(`${API_BACKEND}events/providers/${id}/average`, {
       method: 'GET',
       headers: {
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
     });
