@@ -172,7 +172,7 @@ const EventsPage = () => {
         description: eventData.clientDescription,
       };
     }
-
+    
     try {
       const res = await fetch(`/api/event`, {
         method: 'POST',
@@ -337,6 +337,17 @@ const EventsPage = () => {
                       setSubmitError('Por favor completa los campos obligatorios');
                       return;
                     }
+
+                    const today = new Date();
+                    const selectedDate = new Date(eventData.eventDate);
+                    today.setHours(0, 0, 0, 0);
+                    selectedDate.setHours(0, 0, 0, 0);
+
+                    if (selectedDate < today) {
+                      setSubmitError('La fecha del evento no puede ser anterior a hoy.');
+                      return;
+                    }
+
                     setSubmitError(null);
                     setActiveStep(2);
                   }}
