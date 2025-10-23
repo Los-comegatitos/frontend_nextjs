@@ -63,6 +63,11 @@ export default function TaskFormModal({
   const { token } = useAppContext();
 
   const isFinalized = initialData?.status === 'completed';
+  
+  console.log('aaaaaaaaaaaaaaaaaa');
+  
+  console.log(initialData);
+  
 
   useEffect(() => {
     setForm(initialData || {});
@@ -152,7 +157,7 @@ export default function TaskFormModal({
 
       const data = await res.json();
 
-      if(data.mege.code === '000') {
+      if(data.message.code === '000') {
         showSucessAlert(`La tarea "${initialData.name}" fue eliminada exitosamente.`);
         onRefresh?.();
         onClose();
