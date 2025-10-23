@@ -121,10 +121,7 @@ const EventPage = () => {
             <Tab label='Configuración' {...a11yProps(5)} />
 
             {eventData?.status === 'finalized' && (
-              <>
-                <Tab label='Reporte' {...a11yProps(6)} />
-                <Tab label='Calificar proveedores' {...a11yProps(7)} />
-              </>
+                <Tab label='Calificar proveedores' {...a11yProps(6)} />
             )}
           </Tabs>
         </Box>
@@ -156,10 +153,6 @@ const EventPage = () => {
         </CustomTabPanel>
 
         <CustomTabPanel value={tabValue} index={6} loading={loadingEvent} eventData={eventData}>
-          {/* <ExampleTabContent event={eventData!} /> */}
-        </CustomTabPanel>
-
-        <CustomTabPanel value={tabValue} index={7} loading={loadingEvent} eventData={eventData}>
           {/* <ExampleTabContent event={eventData!} /> */}
         </CustomTabPanel>
 

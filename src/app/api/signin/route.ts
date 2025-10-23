@@ -33,9 +33,9 @@ export async function POST(req: NextRequest) {
                 user_Typeid: parseInt(user_Typeid as string) 
             })
         })
-        console.log(data);
+        // console.log(data);
         const final = await data.json()
-        console.log(final);
+        // console.log(final);
         if (data.status == 201) {
             return NextResponse.json({ ok: true, body: 'Se ha registrado en la aplicación correctamente' });
         } else return NextResponse.json({ ok: false, body: final['message']['description'] }, { status: 401 });
