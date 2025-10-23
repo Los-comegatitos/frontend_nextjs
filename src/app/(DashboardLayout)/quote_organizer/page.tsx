@@ -284,6 +284,7 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
                   <strong>Proveedor:</strong> {selectedQuote.provider?.firstName} {selectedQuote.provider?.lastName}
                 </Typography>
 
+
                 <Typography>
                   <strong>Estado:</strong>{' '}
                   {statusLabels[selectedQuote.status ?? ''] || selectedQuote.status || '-'}
