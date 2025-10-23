@@ -318,19 +318,23 @@ export default function CatalogPage() {
               <TextField label='Descripción' name='description' defaultValue={selectedService.description} required />
               <TextField label='Cantidad' name='quantity' type='number' defaultValue={selectedService.quantity ?? ''} />
 
-              <Box display='flex' justifyContent='center' gap={2}>
-                {modalMode === 'modify' && (
-                  <Button variant='outlined' color='error' onClick={() => handleDelete(selectedService.name)} disabled={loading}>
-                    Eliminar
-                  </Button>
-                )}
-                <Button variant='contained' type='submit' color='primary' disabled={loading}>
-                  {modalMode === 'add' ? 'Agregar' : 'Modificar'}
-                  {loading && <CircularProgress size='15px' className={'ml-2'} />}
-                </Button>
+              {/* Botones reorganizados: Cancelar a la izquierda, acciones principales a la derecha */}
+              <Box display='flex' justifyContent='space-between' alignItems='center' mt={2}>
                 <Button onClick={handleClose} color='secondary' disabled={loading}>
                   Cancelar
                 </Button>
+
+                <Box display='flex' gap={2}>
+                  {modalMode === 'modify' && (
+                    <Button variant='outlined' color='error' onClick={() => handleDelete(selectedService.name)} disabled={loading}>
+                      Eliminar
+                    </Button>
+                  )}
+                  <Button variant='contained' type='submit' color='primary' disabled={loading}>
+                    {modalMode === 'add' ? 'Agregar' : 'Modificar'}
+                    {loading && <CircularProgress size='15px' className={'ml-2'} />}
+                  </Button>
+                </Box>
               </Box>
             </Box>
           )}
