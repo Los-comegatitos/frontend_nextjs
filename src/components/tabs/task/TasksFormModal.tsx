@@ -201,7 +201,7 @@ export default function TaskFormModal({
   const handleFinalize = async () => {
     if (!eventId || !initialData || !token) return;
 
-    const payload = { status: 'finished' };
+    const payload = { status: 'finalized' };
 
     try {
       const res = await fetch(

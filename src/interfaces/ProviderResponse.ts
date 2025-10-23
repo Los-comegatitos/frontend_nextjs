@@ -1,4 +1,5 @@
 export interface BackendProviderResponse {
+  id: number;
   providerId: number;
   providerName: string;
   service: {
