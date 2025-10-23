@@ -62,7 +62,7 @@ export default function TaskFormModal({
   const [selectedProvider, setSelectedProvider] = useState<string>("");
   const { token } = useAppContext();
 
-  const isFinalized = initialData?.status === 'completed';
+  // const isFinalized = initialData?.status === 'completed';
 
   useEffect(() => {
     setForm(initialData || {});

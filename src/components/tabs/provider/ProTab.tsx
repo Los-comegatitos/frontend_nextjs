@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Event } from '@/interfaces/Event';
-import { ProviderWithService } from '@/interfaces/Provider';
+// import { ProviderWithService } from '@/interfaces/Provider';
 import ProviderList from './ProList';
 import { BackendProviderResponse } from '@/interfaces/ProviderResponse';
 import { 
@@ -22,9 +22,9 @@ type Props = {
   onRefresh: () => void;
 };
 
-interface ProviderWithScore extends ProviderWithService {
-  score?: number;
-}
+// interface ProviderWithScore extends ProviderWithService {
+//   score?: number;
+// }
 
 export default function ProviderTab({ token, event, onRefresh }: Props) {
   const [providers, setProviders] = useState<BackendProviderResponse[]>([]);

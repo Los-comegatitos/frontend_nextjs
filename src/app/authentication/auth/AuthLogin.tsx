@@ -74,7 +74,7 @@ const AuthLogin = ({ title, subtitle, subtext }: loginType) => {
     } else {
       // TODO PONER ESTO CON DATA DEL BACK QUE DEVUELVA
       const final = await data.json();
-      console.log(final);
+      // console.log(final);
       
       Swal.fire({
         icon: 'error',
