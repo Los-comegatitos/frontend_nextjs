@@ -8,7 +8,7 @@ import { useAppContext } from '@/context/AppContext';
 import { User } from '@/interfaces/User';
 import { showDateInput } from '@/utils/Formats';
 import CustomTextField from '../components/forms/theme-elements/CustomTextField';
-import Swal from 'sweetalert2';
+import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
 
 const ProfilePage = () => {
   const { token, user } = useAppContext();
@@ -63,26 +63,26 @@ const ProfilePage = () => {
     if (!user || !token) return;
 
     try {
-        const response = await fetch(`/api/event/provider/${user.id}/average`, {
+      const response = await fetch(`/api/event/provider/${user.id}/average`, {
         headers: {
-            'Content-Type': 'application/json',
-            token: token as string,
+          'Content-Type': 'application/json',
+          token: token as string,
         },
-        });
+      });
 
-        if (!response.ok) {
+      if (!response.ok) {
         console.error('Error al obtener promedio:', response.status, response.statusText);
         return;
-        }
+      }
 
-        const data = await response.json();
-        console.log("Promedio recibido:", data);
+      const data = await response.json();
+      // console.log("Promedio recibido:", data);
 
-        setAverage(data?.data?.average ?? 0);
+      setAverage(data?.data?.average ?? 0);
     } catch (error) {
-        console.error("Error obteniendo promedio:", error);
+      console.error('Error obteniendo promedio:', error);
     }
-    }, [user, token]);
+  }, [user, token]);
 
   useEffect(() => {
     obtainProfile();
@@ -100,23 +100,12 @@ const ProfilePage = () => {
     if (!token) return;
 
     if (!formData.firstName || !formData.lastName) {
-      await Swal.fire({
-        icon: 'error',
-        title: '¡Oh no! Tus campos están incompletos',
-        text: 'Los campos de nombre y apellido son obligatorios.',
-        confirmButtonColor: '#1976d2',
-      });
-      await obtainProfile();
+      showErrorAlert('Los campos de nombre y apellido son obligatorios.');
       return;
     }
 
     if (formData.telephone && formData.telephone.length < 11) {
-      await Swal.fire({
-        icon: 'error',
-        title: '¡Oh no! El número de teléfono es inválido',
-        text: 'El número de teléfono debe tener al menos 11 dígitos.',
-        confirmButtonColor: '#1976d2',
-      });
+      showErrorAlert('El número de teléfono debe tener al menos 11 dígitos.');
       return;
     }
 
@@ -131,113 +120,76 @@ const ProfilePage = () => {
       body: JSON.stringify(formData),
     });
 
-    const data = await response.json();
-    console.log('Perfil actualizado:', data);
+    if (response.status === 200) {
+      showSucessAlert('Perfil actualizado exitosamente.');
+    } else {
+      showErrorAlert(response.statusText);
+    }
     await obtainProfile();
   };
 
   return (
-    <PageContainer title="Perfil" description="Este es el perfil">
+    <PageContainer title='Perfil' description='Este es el perfil'>
       <Grid container spacing={3}>
         <Grid size={{ sm: 12 }}>
-          <DashboardCard title="Tus datos básicos">
+          <DashboardCard title='Tus datos básicos'>
             <Grid container spacing={3}>
               <Grid size={{ sm: 12 }}>
                 <BlankCard>
                   <CardContent style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <Typography variant="body1" color="textSecondary">
+                    <Typography variant='body1' color='textSecondary'>
                       Nombres:
                     </Typography>
-                    <CustomTextField
-                      id="firstName"
-                      type="text"
-                      variant="outlined"
-                      fullWidth
-                      value={formData.firstName}
-                      disabled={editable}
-                      onChange={handleChange}
-                      required
-                    />
+                    <CustomTextField id='firstName' type='text' variant='outlined' fullWidth value={formData.firstName} disabled={editable} onChange={handleChange} required />
 
-                    <Typography variant="body1" color="textSecondary">
+                    <Typography variant='body1' color='textSecondary'>
                       Apellidos:
                     </Typography>
-                    <CustomTextField
-                      id="lastName"
-                      type="text"
-                      variant="outlined"
-                      fullWidth
-                      value={formData.lastName}
-                      disabled={editable}
-                      onChange={handleChange}
-                      required
-                    />
+                    <CustomTextField id='lastName' type='text' variant='outlined' fullWidth value={formData.lastName} disabled={editable} onChange={handleChange} required />
 
-                    <Typography variant="body1" color="textSecondary">
+                    <Typography variant='body1' color='textSecondary'>
                       Fecha de nacimiento:
                     </Typography>
-                    <CustomTextField
-                      id="birthDate"
-                      type="date"
-                      variant="outlined"
-                      fullWidth
-                      value={showDateInput(formData.birthDate)}
-                      disabled={editable}
-                      onChange={handleChange}
-                    />
+                    <CustomTextField id='birthDate' type='date' variant='outlined' fullWidth value={showDateInput(formData.birthDate)} disabled={editable} onChange={handleChange} />
 
-                    <Typography variant="body1" color="textSecondary">
+                    <Typography variant='body1' color='textSecondary'>
                       Teléfono:
                     </Typography>
-                    <CustomTextField
-                      id="telephone"
-                      type="tel"
-                      variant="outlined"
-                      fullWidth
-                      value={formData.telephone}
-                      disabled={editable}
-                      onChange={handleChange}
-                    />
+                    <CustomTextField id='telephone' type='tel' variant='outlined' fullWidth value={formData.telephone} disabled={editable} onChange={handleChange} />
 
                     {editable ? (
-                      <Button variant="outlined" color="primary" onClick={() => setEditable(!editable)}>
+                      <Button variant='outlined' color='primary' onClick={() => setEditable(!editable)}>
                         🖋️
                       </Button>
                     ) : (
-                      <Button variant="outlined" color="primary" onClick={handleUpdate}>
+                      <Button variant='outlined' color='primary' onClick={handleUpdate}>
                         Modificar
                       </Button>
                     )}
 
-                    <Typography variant="body1" color="textSecondary">
+                    <Typography variant='body1' color='textSecondary'>
                       Email:
                     </Typography>
-                    <Typography variant="h5">{formData.email}</Typography>
+                    <Typography variant='h5'>{formData.email}</Typography>
 
-                    <Typography variant="body1" color="textSecondary">
+                    <Typography variant='body1' color='textSecondary'>
                       Tipo de usuario:
                     </Typography>
-                    <Typography variant="h5">
-                      {info ? userTypeMap[info.typeuser.name]?.label || info.typeuser.name : ''}
-                    </Typography>
+                    <Typography variant='h5'>{info ? userTypeMap[info.typeuser.name]?.label || info.typeuser.name : ''}</Typography>
 
-                    <Typography variant="body1" color="textSecondary">
+                    <Typography variant='body1' color='textSecondary'>
                       ¿Qué significa ser {info ? userTypeMap[info.typeuser.name]?.label || info.typeuser.name : ''}?:
                     </Typography>
-                    <Typography variant="h5">
-                      {info ? userTypeMap[info.typeuser.name]?.description || info.typeuser.description : ''}
-                    </Typography>
+                    <Typography variant='h5'>{info ? userTypeMap[info.typeuser.name]?.description || info.typeuser.description : ''}</Typography>
 
                     {/* 🔹 Promedio visible solo para proveedores */}
                     {user?.role === 'provider' && (
-                    <>
-                        <Typography variant="body1" color="textSecondary">
-                        Tu promedio de calificaciones:
+                      <>
+                        <Typography variant='body1' color='textSecondary'>
+                          Tu promedio de calificaciones:
                         </Typography>
-                        <Typography variant="h5">
-                        {average !== null ? `${average.toFixed(1)} ⭐` : 'Cargando...'}
-                        </Typography>
-                    </>
+                        <Typography variant='h5'>{average !== null ? `${average.toFixed(1)} ⭐` : 'Cargando...'}</Typography>
+                      </>
                     )}
                   </CardContent>
                 </BlankCard>

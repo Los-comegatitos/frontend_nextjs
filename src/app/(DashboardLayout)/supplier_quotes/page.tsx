@@ -1,20 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  Typography,
-  CircularProgress,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-} from '@mui/material';
+import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, CircularProgress, Select, MenuItem, FormControl, InputLabel, TablePagination, TextField } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { useAppContext } from '@/context/AppContext';
@@ -39,6 +26,35 @@ const SupplierQuotesPage = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [quotes, setQuotes] = useState<GroupedQuotes>({});
   const [loadingTable, setLoadingTable] = useState(false);
+
+  // pagination cosas
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [search, setSearch] = useState('');
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // logica super rara sacada con ia porque nunca entendí este objeto quotes
+  // bueno si lo entendí pero me pareció complejo para esta simple tabla y no me iba a poner a cambiar toda la estructura ahora
+  // pero básicamente la lógica junta todo en un array para filtrar y luego volverlo a grupar como si nada hubiese pasado
+  const allQuotes = Object.entries(quotes).flatMap(([serviceType, items]) => items.map((q) => ({ ...q, serviceType })));
+
+  const filteredQuotes = allQuotes.filter((q) => q?.name?.toLowerCase().includes(search.toLowerCase()));
+
+  const paginatedQuotes = rowsPerPage === -1 ? filteredQuotes : filteredQuotes.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+  const groupedQuotes: GroupedQuotes = paginatedQuotes.reduce((acc, q) => {
+    if (!acc[q.serviceType]) acc[q.serviceType] = [];
+    acc[q.serviceType].push(q);
+    return acc;
+  }, {} as GroupedQuotes);
 
   const fetchQuotes = React.useCallback(async () => {
     if (!token || !user?.id) return;
@@ -88,20 +104,18 @@ const SupplierQuotesPage = () => {
   };
 
   return (
-    <PageContainer title="Cotizaciones Enviadas" description="Listado de cotizaciones enviadas por proveedor">
-      <DashboardCard title="Cotizaciones enviadas">
-        <Box mb={2} display="flex" justifyContent="flex-end" gap={2}>
+    <PageContainer title='Cotizaciones Enviadas' description='Listado de cotizaciones enviadas por proveedor'>
+      <DashboardCard title='Cotizaciones enviadas'>
+        <Box mb={2} display='flex' justifyContent='flex-end' gap={2}>
+          <TextField placeholder='Buscar por servicio...' variant='outlined' size='small' value={search} onChange={(e) => setSearch(e.target.value)} />
+
           <FormControl sx={{ minWidth: 200 }}>
             <InputLabel>Estado</InputLabel>
-            <Select
-              value={statusFilter}
-              label="Estado"
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <MenuItem value="">Todos</MenuItem>
-              <MenuItem value="pending">Pendientes</MenuItem>
-              <MenuItem value="accepted">Aceptadas</MenuItem>
-              <MenuItem value="rejected">Rechazadas</MenuItem>
+            <Select value={statusFilter} label='Estado' onChange={(e) => setStatusFilter(e.target.value)}>
+              <MenuItem value=''>Todos</MenuItem>
+              <MenuItem value='pending'>Pendientes</MenuItem>
+              <MenuItem value='accepted'>Aceptadas</MenuItem>
+              <MenuItem value='rejected'>Rechazadas</MenuItem>
             </Select>
           </FormControl>
         </Box>
@@ -109,49 +123,52 @@ const SupplierQuotesPage = () => {
         <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
           {loadingTable ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '150px' }}>
-              <CircularProgress size="55px" />
+              <CircularProgress size='55px' />
             </Box>
           ) : Object.keys(quotes).length === 0 ? (
             <Typography>No hay cotizaciones para mostrar</Typography>
           ) : (
-            <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
-              <colgroup>
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <col key={i} style={{ width: `${100 / 6}%` }} />
-                ))}
-              </colgroup>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={cellStyle}>Servicio</TableCell>
-                  <TableCell sx={cellStyle}>Evento</TableCell>
-                  <TableCell sx={cellStyle}>Precio</TableCell>
-                  <TableCell sx={cellStyle}>Cantidad</TableCell>
-                  <TableCell sx={cellStyle}>Estado</TableCell>
-                  <TableCell sx={cellStyle}>Fecha</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {Object.keys(quotes).map((serviceType) => (
-                  <React.Fragment key={serviceType}>
-                    <TableRow>
-                      <TableCell colSpan={6} sx={{ ...cellStyle, fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>
-                        {serviceType}
-                      </TableCell>
-                    </TableRow>
-                    {quotes[serviceType].map((q: Quote) => (
-                      <TableRow key={q.id}>
-                        <TableCell sx={cellStyle}>{q.name}</TableCell>
-                        <TableCell sx={cellStyle}>{q.eventName}</TableCell>
-                        <TableCell sx={cellStyle}>{q.price}</TableCell>
-                        <TableCell sx={cellStyle}>{q.quantity}</TableCell>
-                        <TableCell sx={cellStyle}>{statusLabels[q.status ?? ''] || q.status}</TableCell>
-                        <TableCell sx={cellStyle}>{showDate(q.date!)}</TableCell>
+            <>
+              <Table sx={{ tableLayout: 'fixed', width: '100%' }}>
+                <colgroup>
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <col key={i} style={{ width: `${100 / 6}%` }} />
+                  ))}
+                </colgroup>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={cellStyle}>Servicio</TableCell>
+                    <TableCell sx={cellStyle}>Evento</TableCell>
+                    <TableCell sx={cellStyle}>Precio</TableCell>
+                    <TableCell sx={cellStyle}>Cantidad</TableCell>
+                    <TableCell sx={cellStyle}>Estado</TableCell>
+                    <TableCell sx={cellStyle}>Fecha</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {Object.keys(groupedQuotes).map((serviceType) => (
+                    <React.Fragment key={serviceType}>
+                      <TableRow>
+                        <TableCell colSpan={6} sx={{ ...cellStyle, fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>
+                          {serviceType}
+                        </TableCell>
                       </TableRow>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </TableBody>
-            </Table>
+                      {groupedQuotes[serviceType].map((q: Quote) => (
+                        <TableRow key={q.id}>
+                          <TableCell sx={cellStyle}>{q.name}</TableCell>
+                          <TableCell sx={cellStyle}>{q.eventName}</TableCell>
+                          <TableCell sx={cellStyle}>{q.price}</TableCell>
+                          <TableCell sx={cellStyle}>{q.quantity}</TableCell>
+                          <TableCell sx={cellStyle}>{statusLabels[q.status ?? ''] || q.status}</TableCell>
+                          <TableCell sx={cellStyle}>{showDate(q.date!)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </TableBody>
+              </Table>
+              <TablePagination labelRowsPerPage='Filas a mostrar' component='div' count={filteredQuotes.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25, { value: -1, label: 'Todos' }]} />
+            </>
           )}
         </Box>
       </DashboardCard>
