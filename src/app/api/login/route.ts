@@ -20,14 +20,14 @@ export async function POST(req: NextRequest) {
                 password: hiddenPassword, 
             })
         })
-        console.log(data);
+        // console.log(data);
         if (data.status == 201) {
             const final = await data.json()
-            console.log(final);
+            // console.log(final);
             return NextResponse.json({ ok: true, body: final['data']['access_token'] });
         } else {
             const final = await data.json()
-            console.log(final);
+            // console.log(final);
             return NextResponse.json({ ok: false, body: final }, { status: 401 });
         }
     } catch (error) {

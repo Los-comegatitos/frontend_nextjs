@@ -41,7 +41,7 @@
  
 
 export function createJwt(payloadString : string) {
-  console.log(payloadString);
+  // console.log(payloadString);
   
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000)
   const expires = "expires="+ expiresAt.toUTCString();

@@ -64,7 +64,7 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const UploadIcon = '/images/icons/upload.png';
-  console.log('LA INTERFAZ DE COMENTARIOS');
+  // console.log('LA INTERFAZ DE COMENTARIOS');
   
 
   const fetchComments = React.useCallback(async () => {
@@ -81,7 +81,7 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
       });
 
       const data = await res.json();
-      console.log(data);
+      // console.log(data);
       
       if (!res.ok || !data?.data) {
         setTaskName('Error al obtener datos del evento');
@@ -118,7 +118,7 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
   }, [ eventId, taskId, token]);
 
   useEffect(() => {
-    console.log('alooooooooo');
+    // console.log('alooooooooo');
     
     fetchComments();
   }, [fetchComments]);
