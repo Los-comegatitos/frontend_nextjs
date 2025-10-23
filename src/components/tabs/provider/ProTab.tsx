@@ -59,7 +59,6 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
 
     setSelectedProvider(provider);
 
-    // 🧩 Aseguramos que el providerId exista antes de continuar
     if (!provider.providerId) {
       showErrorAlert('No se encontró el ID del proveedor para calificar.');
       return;
@@ -97,7 +96,6 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
   };
 
   const handleSubmit = async () => {
-    // 🧩 Validación más segura
     if (!selectedProvider || !selectedProvider.providerId || rating === null) {
       showErrorAlert("No se puede calificar. Faltan datos del proveedor o la puntuación.");
       return;
@@ -126,7 +124,6 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
         showErrorAlert(result.message?.description || 'Error al calificar proveedor.');
       } else {
         showSucessAlert(`Proveedor "${selectedProvider.providerName}" calificado correctamente.`);
-        // 🧩 Actualizamos el score localmente
         setProviders(prev =>
           prev.map(p => 
             p.providerId === selectedProvider.providerId 
