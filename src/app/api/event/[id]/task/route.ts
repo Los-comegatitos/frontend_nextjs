@@ -16,7 +16,7 @@ export async function GET(req: NextRequest, params: { params: Promise<{ id: stri
     });
 
     const data = await res.json();
-    console.log(data);
+    // console.log(data);
     
     return NextResponse.json(data, { status: res.status });
   } catch (error) {

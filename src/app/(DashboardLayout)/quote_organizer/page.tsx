@@ -56,7 +56,7 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
 
   const handleAproveModal = React.useCallback(async () => {
     if (!token || !selectedQuote) return
-    console.log(selectedQuote);
+    // console.log(selectedQuote);
     setLoadingTable(true);
     try {
       const res = await fetch(`/api/quote/${selectedQuote.id}?${new URLSearchParams({
@@ -85,7 +85,7 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
 
   const handleDisaproveModal = React.useCallback(async () => {
     if (!token || !selectedQuote) return
-    console.log(selectedQuote);
+    // console.log(selectedQuote);
     setLoadingTable(true);
     try {
       const res = await fetch(`/api/quote/${selectedQuote.id}?${new URLSearchParams({
@@ -126,7 +126,7 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
       }
 
       const resp = await res.json();
-      console.log(resp);
+      // console.log(resp);
 
       if (resp.data && Object.keys(resp.data).length > 0) {
         const filtered: GroupedQuotes = {};
@@ -283,6 +283,7 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
                 <Typography>
                   <strong>Proveedor:</strong> {selectedQuote.provider?.firstName} {selectedQuote.provider?.lastName}
                 </Typography>
+
 
                 <Typography>
                   <strong>Estado:</strong>{' '}

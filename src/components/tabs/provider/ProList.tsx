@@ -10,6 +10,7 @@ import {
   Typography,
   Button,
 } from '@mui/material';
+//import { ProviderWithService } from '@/interfaces/Provider';
 import { BackendProviderResponse } from '@/interfaces/ProviderResponse';
 
 type Props = {
@@ -19,8 +20,8 @@ type Props = {
 };
 
 export default function ProviderList({ providers, onView, onRate }: Props) {
-  console.log('TODOS LOS PROVEEDORES');
-  console.log(providers);
+  // console.log('TODOS LOS PROVEEDORES');
+  // console.log(providers);
   
   return (
     <Box>

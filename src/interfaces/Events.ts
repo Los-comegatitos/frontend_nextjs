@@ -10,5 +10,5 @@ export interface Event {
     clientTypeId: number;
     description: string;
   };
-  status: 'active' | 'finalized';
+  status: string;
 }

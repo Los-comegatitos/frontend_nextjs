@@ -35,7 +35,7 @@ const EventOverviewTab = ({ event }: Props) => {
   const todayTasks = event?.tasks?.filter((task) => {
     const reminder = task.reminderDate ? task.reminderDate.split('T')[0] : null;
     const due = task.dueDate ? task.dueDate.split('T')[0] : null;
-    console.log({ today, reminder, due });
+    // console.log({ today, reminder, due });
     return reminder === today || due === today;
   });
 

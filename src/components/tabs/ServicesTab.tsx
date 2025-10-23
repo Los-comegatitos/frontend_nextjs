@@ -22,7 +22,6 @@ import {
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
 import { Event } from '@/interfaces/Event';
 import { Service } from '@/interfaces/Event';
-
 import { useEffect, useState } from 'react';
 import { AuxiliarType } from '@/interfaces/AuxiliarType';
 
@@ -33,16 +32,13 @@ type ServicesTabProps = {
 };
 
 export default function ServicesTab({ token, event, onRefresh }: ServicesTabProps) {
-//   const [serviceTypes, setServiceTypes] = useState<Service[]>([]);
   const [serviceTypesSelect, setServiceTypesSelect] = useState<AuxiliarType[]>([]);
-
   const [modalMode, setModalMode] = useState<'add' | 'modify'>('modify');
-
   const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
-  const fetchServiceTypes =React.useCallback(async () => {
+  const fetchServiceTypes = React.useCallback(async () => {
     if (!token) return;
     try {
       const res = await fetch(`/api/service-type`, {
@@ -63,7 +59,6 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
     if (!token) return;
     fetchServiceTypes();
   }, [fetchServiceTypes, token]);
-  
 
   const handleRowClick = (service: Service) => {
     setSelectedService(service);
@@ -85,7 +80,7 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
   const handleSubmit = async (eventReact: React.FormEvent<HTMLFormElement>) => {
     eventReact.preventDefault();
     setLoading(true);
-    
+
     const formData = new FormData(eventReact.currentTarget);
 
     const selectedId = formData.get('serviceTypeId') as string;
@@ -119,7 +114,6 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
       description: formData.get('description') as string,
       quantity: formData.get('quantity') === '' ? null : Number(formData.get('quantity')),
     };
-
     try {
       let url = `/api/event/${event.eventId}/services`;
       let method = 'POST';
@@ -135,7 +129,6 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
         body: JSON.stringify(payload),
       });
 
-      
       const data = await res.json();
 
       if (data.message.code === '000') {
@@ -179,50 +172,60 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
 
   return (
     <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
-      <Box sx={{ display: 'flex', mb: 3, justifyContent: 'flex-end'}}>
+      <Box sx={{ display: 'flex', mb: 3, justifyContent: 'flex-end' }}>
         <Button variant="contained" onClick={handleAdd}>
           Añadir servicio
         </Button>
       </Box>
 
-        <TableContainer component={Paper}>
-          <Table aria-label="collapsible table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Servicio</TableCell>
-                <TableCell>Descripción</TableCell>
+      <TableContainer component={Paper}>
+        <Table aria-label="collapsible table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Servicio</TableCell>
+              <TableCell>Descripción</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {event?.services?.map((service) => (
+              <TableRow
+                key={service.name}
+                className="cursor-pointer hover:bg-indigo-100 active:bg-indigo-200"
+                onClick={() => {
+                  handleRowClick(service);
+                }}
+              >
+                <TableCell>
+                  <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{service.name}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{service.description}</Typography>
+                </TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-                {event?.services?.map((service) => (
-                  <TableRow
-                    key={service.name}
-                    className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200'
-                    onClick={() => {
-                      handleRowClick(service);
-                    }}
-                  >
-                    <TableCell>
-                      <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{service.name}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{service.description}</Typography>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       {/* Modal servicio */}
       <Dialog open={openModal} onClose={handleClose} maxWidth="sm" fullWidth>
         <DialogTitle>{modalMode === 'add' ? 'Agregar servicio' : 'Modificar servicio'}</DialogTitle>
         <DialogContent dividers>
           {selectedService && (
-            <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={2} mt={1}>
+            <Box
+              component="form"
+              onSubmit={handleSubmit}
+              display="flex"
+              flexDirection="column"
+              gap={2}
+              mt={1}
+            >
               <p>Tipo de servicio</p>
-              <Select name="serviceTypeId" defaultValue={selectedService.serviceTypeId || ''} required>
+              <Select
+                name="serviceTypeId"
+                defaultValue={selectedService.serviceTypeId || ''}
+                required
+              >
                 {serviceTypesSelect.map((t) => (
                   <MenuItem key={t.id} value={t.id}>
                     {t.name}
@@ -232,12 +235,25 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
               <TextField label="Nombre" name="name" defaultValue={selectedService.name} required />
               <TextField label="Descripción" name="description" defaultValue={selectedService.description} required />
               <TextField label="Cantidad" name="quantity" type="number" defaultValue={selectedService.quantity ?? ''} />
-              <TextField type='date' label='Fecha límite para cotizaciones' name='dueDate' defaultValue={selectedService.dueDate?.split('T')[0]}  InputLabelProps={{ shrink: true }}  required />
-              
+
+              <TextField
+                type="date"
+                label="Fecha límite para cotizaciones"
+                name="dueDate"
+                defaultValue={selectedService.dueDate?.split('T')[0]}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: new Date().toISOString().split('T')[0] }}
+                required
+              />
 
               <Box display="flex" justifyContent="center" gap={2}>
                 {modalMode === 'modify' && (
-                  <Button variant="outlined" color="error" onClick={() => handleDelete(selectedService.name)} disabled={loading}>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => handleDelete(selectedService.name)}
+                    disabled={loading}
+                  >
                     Eliminar
                   </Button>
                 )}
@@ -253,7 +269,6 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
           )}
         </DialogContent>
       </Dialog>
-
     </Box>
   );
 }

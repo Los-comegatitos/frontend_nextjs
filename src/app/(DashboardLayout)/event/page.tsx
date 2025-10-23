@@ -255,13 +255,13 @@ const EventsPage = () => {
                         <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{new Date(event.eventDate).toLocaleDateString()}</Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{event.status}</Typography>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{event?.status === 'canceled' ? 'Cancelado' : event?.status === 'finalized' ? 'Finalizado' : event?.status === 'in progress' ? 'En progreso' : 'Desconocido'}</Typography>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-              <TablePagination component='div' count={filteredEvents.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25, { value: -1, label: 'Todos' }]} />
+              <TablePagination labelRowsPerPage={"Filas a mostrar"} component='div' count={filteredEvents.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25, { value: -1, label: 'Todos' }]} />
 
               {events.length === 0 && (
                 <Box

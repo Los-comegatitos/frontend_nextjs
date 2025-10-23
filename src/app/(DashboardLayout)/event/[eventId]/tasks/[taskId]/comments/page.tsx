@@ -52,7 +52,6 @@ import CommentsInterface from '@/components/comments/commentsection';
 
 export default function CommentsPage() {
   const { eventId, taskId } = useParams<{ eventId: string, taskId: string }>();
-  console.log('YA NO SEEEEEEEEEEEEEEEEEEEEEEEEEEE');
   
   // const [visible, setVisible] = useState(false);
   // const [taskName, setTaskName] = useState<string>('Cargando...');

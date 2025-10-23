@@ -198,7 +198,7 @@ const ServiceTypesPage = () => {
                   ))}
                 </TableBody>
               </Table>
-              <TablePagination component='div' count={filteredTypes.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25, { value: -1, label: 'Todos' }]} />
+              <TablePagination labelRowsPerPage={"Filas a mostrar"} component='div' count={filteredTypes.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25, { value: -1, label: 'Todos' }]} />
             </>
           )}
         </Box>
