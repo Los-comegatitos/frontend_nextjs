@@ -318,7 +318,7 @@ export default function CatalogPage() {
               <TextField label='Descripción' name='description' defaultValue={selectedService.description} required />
               <TextField label='Cantidad' name='quantity' type='number' defaultValue={selectedService.quantity ?? ''} />
 
-              {/* Botones reorganizados: Cancelar a la izquierda, acciones principales a la derecha */}
+              {/* btn organizados cancelar a la izquierda acciones a la derecha */}
               <Box display='flex' justifyContent='space-between' alignItems='center' mt={2}>
                 <Button onClick={handleClose} color='secondary' disabled={loading}>
                   Cancelar
