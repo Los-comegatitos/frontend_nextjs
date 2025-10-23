@@ -20,8 +20,8 @@ type Props = {
 };
 
 export default function ProviderList({ providers, onView, onRate }: Props) {
-  console.log('TODOS LOS PROVEEDORES');
-  console.log(providers);
+  // console.log('TODOS LOS PROVEEDORES');
+  // console.log(providers);
   
   return (
     <Box>
