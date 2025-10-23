@@ -63,11 +63,6 @@ export default function TaskFormModal({
   const { token } = useAppContext();
 
   const isFinalized = initialData?.status === 'completed';
-  
-  console.log('aaaaaaaaaaaaaaaaaa');
-  
-  console.log(initialData);
-  
 
   useEffect(() => {
     setForm(initialData || {});
@@ -110,8 +105,36 @@ export default function TaskFormModal({
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // validacione para fechas no vacias y no anteriores a hoy
+  const validateDates = (): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (!form.dueDate || !form.reminderDate) {
+      showErrorAlert("Las fechas no pueden estar vacías.");
+      return false;
+    }
+
+    const dueDate = new Date(form.dueDate);
+    const reminderDate = new Date(form.reminderDate);
+
+    if (isNaN(dueDate.getTime()) || isNaN(reminderDate.getTime())) {
+      showErrorAlert("Las fechas no son válidas.");
+      return false;
+    }
+
+    if (dueDate < today || reminderDate < today) {
+      showErrorAlert("Las fechas no pueden ser anteriores a hoy.");
+      return false;
+    }
+
+    return true;
+  };
+
   //Crear tarea de un evento
   const handleCreate = async () => {
+    if (!validateDates()) return;
+
     if (!eventId || !token) return;
 
     const payload = {
@@ -209,6 +232,8 @@ export default function TaskFormModal({
 
   // Modificar
   const handleUpdate = async () => {
+    if (!validateDates()) return;
+
     if (!eventId || !initialData || !token) return;
 
     const updatePayload = {
@@ -335,6 +360,9 @@ export default function TaskFormModal({
     }
   };
 
+  // verificacion si la tarea esta finalizda
+  const isCompleted = initialData?.status === 'completed';
+
   return (
     <>
       {/* Modal principal */}
@@ -350,7 +378,7 @@ export default function TaskFormModal({
             name="name"
             value={form.name || ''}
             onChange={handleChange}
-            disabled={isFinalized}
+            InputProps={{ readOnly: isCompleted }}
           />
           <TextField
             margin="normal"
@@ -359,7 +387,7 @@ export default function TaskFormModal({
             name="description"
             value={form.description || ''}
             onChange={handleChange}
-            disabled={isFinalized}
+            InputProps={{ readOnly: isCompleted }}
           />
           <TextField
             margin="normal"
@@ -370,7 +398,10 @@ export default function TaskFormModal({
             value={form.dueDate?.split('T')[0] || ''}
             onChange={handleChange}
             InputLabelProps={{ shrink: true }}
-            disabled={isFinalized}
+            InputProps={{ readOnly: isCompleted }}
+            inputProps={{
+              min: new Date().toISOString().split('T')[0],
+            }}
           />
           <TextField
             margin="normal"
@@ -381,7 +412,10 @@ export default function TaskFormModal({
             value={form.reminderDate?.split('T')[0] || ''}
             onChange={handleChange}
             InputLabelProps={{ shrink: true }}
-            disabled={isFinalized}
+            InputProps={{ readOnly: isCompleted }}
+            inputProps={{
+              min: new Date().toISOString().split('T')[0],
+            }}
           />
           <TextField
             margin="normal"
@@ -401,8 +435,8 @@ export default function TaskFormModal({
             </>
           ) : (
             <>
-              {/* Solo mostramos las acciones si la tarea NO está finalizada */}
-              {!isFinalized && (
+              {/* si la tarea no esta finalizada que se muestren los botones */}
+              {!isCompleted && (
                 <>
                   <Button color="primary" onClick={handleUpdate}>
                     Modificar
@@ -411,7 +445,7 @@ export default function TaskFormModal({
                     Finalizar
                   </Button>
 
-                  {/* Mostrar el botón solo si NO hay proveedor asignado */}
+                  {/* Mostrar el boton solo si NO hay proveedor asignado */}
                   {!initialData.associatedProviderId && (
                     <Button
                       color="warning"
@@ -426,11 +460,8 @@ export default function TaskFormModal({
 
                   {/* Mostrar el botón de desasignar solo si SÍ hay proveedor */}
                   {initialData.associatedProviderId && (
-                    <Button
-                      color="secondary"
-                      onClick={handleUnassignProvider}
-                    >
-                      Desasignar
+                    <Button color="secondary" onClick={handleUnassignProvider}>
+                      Desasignar proveedor
                     </Button>
                   )}
 
