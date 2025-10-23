@@ -10,7 +10,11 @@ import {
   Select,
   InputLabel,
   FormControl,
+  IconButton,
+  Menu,
+  Divider,
 } from "@mui/material";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Task } from '@/interfaces/Task';
 import { useState, useEffect } from 'react';
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
@@ -62,7 +66,17 @@ export default function TaskFormModal({
   const [selectedProvider, setSelectedProvider] = useState<string>("");
   const { token } = useAppContext();
 
-  const isFinalized = initialData?.status === 'completed';
+  // opciones secundarias para no sobre cargar la modal
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const openMenu = Boolean(anchorEl);
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  //const isFinalized = initialData?.status === 'completed';
 
   useEffect(() => {
     setForm(initialData || {});
@@ -170,29 +184,30 @@ export default function TaskFormModal({
 
   //Eliminar tarea de un evento
   const handleDeleteConfirmed = async () => {
-    if (!eventId || !initialData || !token) return;
+      if (!eventId || !initialData || !token) return;
 
-    try {
-      const res = await fetch(`/api/event/${eventId}/task/${initialData.id}`, {
-        method: 'DELETE',
-        headers: { 'token': token as string },
-      });
+      try {
+        const res = await fetch(`/api/event/${eventId}/task/${initialData.id}`, {
+          method: 'DELETE',
+          headers: { 'token': token as string, },
 
-      const data = await res.json();
+        });
 
-      if(data.mege.code === '000') {
-        showSucessAlert(`La tarea "${initialData.name}" fue eliminada exitosamente.`);
-        onRefresh?.();
-        onClose();
-      } else {
-        showErrorAlert(data.message.description || 'No se pudo eliminar la tarea.');
+        const data = await res.json();
+
+        if (data.message.code === '000') {
+          showSucessAlert(`La tarea "${initialData.name}" fue eliminada exitosamente.`);
+          onRefresh?.();
+          onClose();
+        } else {
+          showErrorAlert(data.message.description || 'No se pudo eliminar la tarea.');
+        }
+      } catch {
+        showErrorAlert('Ocurrió un error interno al eliminar la tarea.');
+      } finally {
+        setConfirmOpen(false);
       }
-    } catch {
-      showErrorAlert('Ocurrió un error interno al eliminar la tarea.');
-    } finally {
-      setConfirmOpen(false);
-    }
-  };
+    };
 
   //Finalizar tarea de un evento
   const handleFinalize = async () => {
@@ -367,9 +382,22 @@ export default function TaskFormModal({
     <>
       {/* Modal principal */}
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           {initialData ? 'Detalle de tarea' : 'Crear tarea'}
+          {/* Ícono más pequeño y elegante */}
+          {initialData && !isCompleted && (
+            <IconButton size="small" onClick={handleMenuOpen}>
+              <MoreVertIcon />
+            </IconButton>
+          )}
         </DialogTitle>
+
         <DialogContent dividers>
           <TextField
             margin="normal"
@@ -425,10 +453,18 @@ export default function TaskFormModal({
             InputProps={{ readOnly: true }}
           />
         </DialogContent>
-        <DialogActions>
+
+        <DialogActions
+          sx={{
+            justifyContent: "space-between",
+            px: 3,
+            py: 1.5,
+            borderTop: "1px solid #e0e0e0",
+          }}
+        >
           {!initialData ? (
             <>
-              <Button color="primary" onClick={handleCreate}>
+              <Button variant="contained" color="primary" onClick={handleCreate}>
                 Guardar
               </Button>
               <Button onClick={onClose}>Cerrar</Button>
@@ -437,44 +473,78 @@ export default function TaskFormModal({
             <>
               {/* si la tarea no esta finalizada que se muestren los botones */}
               {!isCompleted && (
-                <>
-                  <Button color="primary" onClick={handleUpdate}>
-                    Modificar
-                  </Button>
-                  <Button color="success" onClick={handleFinalize}>
-                    Finalizar
-                  </Button>
-
-                  {/* Mostrar el boton solo si NO hay proveedor asignado */}
-                  {!initialData.associatedProviderId && (
-                    <Button
-                      color="warning"
-                      onClick={() => {
-                        fetchProvidersFromEvent();
-                        setAssignOpen(true);
-                      }}
-                    >
-                      Asignar proveedor
-                    </Button>
-                  )}
-
-                  {/* Mostrar el botón de desasignar solo si SÍ hay proveedor */}
-                  {initialData.associatedProviderId && (
-                    <Button color="secondary" onClick={handleUnassignProvider}>
-                      Desasignar proveedor
-                    </Button>
-                  )}
-
-                  <Button color="error" onClick={() => setConfirmOpen(true)}>
-                    Eliminar
-                  </Button>
-                </>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleUpdate}
+                  sx={{ borderRadius: 2 }}
+                >
+                  Modificar
+                </Button>
               )}
               <Button onClick={onClose}>Cerrar</Button>
             </>
           )}
         </DialogActions>
       </Dialog>
+
+      {/* Menú lateral elegante */}
+      <Menu
+        anchorEl={anchorEl}
+        open={openMenu}
+        onClose={handleMenuClose}
+        PaperProps={{
+          elevation: 3,
+          sx: {
+            borderRadius: 2,
+            minWidth: 200,
+            mt: 1,
+          },
+        }}
+      >
+        <MenuItem
+          onClick={() => {
+            handleFinalize();
+            handleMenuClose();
+          }}
+        >
+          Finalizar
+        </MenuItem>
+
+        {!initialData?.associatedProviderId && (
+          <MenuItem
+            onClick={() => {
+              fetchProvidersFromEvent();
+              setAssignOpen(true);
+              handleMenuClose();
+            }}
+          >
+            Asignar proveedor
+          </MenuItem>
+        )}
+
+        {initialData?.associatedProviderId && (
+          <MenuItem
+            onClick={() => {
+              handleUnassignProvider();
+              handleMenuClose();
+            }}
+          >
+            Desasignar proveedor
+          </MenuItem>
+        )}
+
+        <Divider />
+        <MenuItem
+          sx={{ color: "error.main" }}
+          onClick={() => {
+            setConfirmOpen(true);
+            handleMenuClose();
+          }}
+        >
+          Eliminar
+        </MenuItem>
+      </Menu>
 
       {/* Modal de confirmación */}
       <Dialog
