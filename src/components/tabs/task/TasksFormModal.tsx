@@ -10,7 +10,11 @@ import {
   Select,
   InputLabel,
   FormControl,
+  IconButton,
+  Menu,
+  Divider,
 } from "@mui/material";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { Task } from '@/interfaces/Task';
 import { useState, useEffect } from 'react';
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
@@ -58,16 +62,26 @@ export default function TaskFormModal({
   const [providerName, setProviderName] = useState<string>("Cargando...");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
-  const [providers, setProviders] = useState<{ id: string; name: string }[]>(
-    [],
-  );
+  const [providers, setProviders] = useState<{ id: string; name: string }[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<string>("");
   const { token } = useAppContext();
+
+  // opciones secundarias para no sobre cargar el modal :/
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const openMenu = Boolean(anchorEl);
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  //const isFinalized = initialData?.status === 'completed';
 
   useEffect(() => {
     setForm(initialData || {});
 
-      const loadAssignedProvider = async () => {
+    const loadAssignedProvider = async () => {
       if (!eventId || !token || !initialData?.associatedProviderId) {
         setProviderName("No se ha asignado un proveedor");
         return;
@@ -75,7 +89,7 @@ export default function TaskFormModal({
 
       try {
         const res = await fetch(`/api/event/${eventId}`, {
-          headers: { 'token': token as string, },
+          headers: { 'token': token as string },
         });
         const data: EventResponse = await res.json();
 
@@ -101,15 +115,40 @@ export default function TaskFormModal({
     loadAssignedProvider();
   }, [initialData, eventId, token]);
 
-
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // validacione para fechas no vacias y no anteriores a hoy
+  const validateDates = (): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (!form.dueDate || !form.reminderDate) {
+      showErrorAlert("Las fechas no pueden estar vacías.");
+      return false;
+    }
+
+    const dueDate = new Date(form.dueDate);
+    const reminderDate = new Date(form.reminderDate);
+
+    if (isNaN(dueDate.getTime()) || isNaN(reminderDate.getTime())) {
+      showErrorAlert("Las fechas no son válidas.");
+      return false;
+    }
+
+    if (dueDate < today || reminderDate < today) {
+      showErrorAlert("Las fechas no pueden ser anteriores a hoy.");
+      return false;
+    }
+
+    return true;
+  };
 
   //Crear tarea de un evento
   const handleCreate = async () => {
+    if (!validateDates()) return;
+
     if (!eventId || !token) return;
 
     const payload = {
@@ -124,7 +163,7 @@ export default function TaskFormModal({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-           'token': token as string,
+          'token': token as string,
         },
         body: JSON.stringify(payload),
       });
@@ -171,10 +210,9 @@ export default function TaskFormModal({
     };
 
   //Finalizar tarea de un evento
-   const handleFinalize = async () => {
+  const handleFinalize = async () => {
     if (!eventId || !initialData || !token) return;
 
-    //payload por si el backend espera algo adicional
     const payload = { status: 'finished' };
 
     try {
@@ -207,9 +245,10 @@ export default function TaskFormModal({
     }
   };
 
-
-  //Modificar
+  // Modificar
   const handleUpdate = async () => {
+    if (!validateDates()) return;
+
     if (!eventId || !initialData || !token) return;
 
     const updatePayload = {
@@ -242,7 +281,6 @@ export default function TaskFormModal({
       showErrorAlert('Ocurrió un error interno al modificar la tarea.');
     }
   };
-
 
   const fetchProvidersFromEvent = async () => {
     if (!eventId || !token) return;
@@ -337,13 +375,29 @@ export default function TaskFormModal({
     }
   };
 
+  // verificacion si la tarea esta finalizda
+  const isCompleted = initialData?.status === 'completed';
+
   return (
     <>
       {/* Modal principal */}
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           {initialData ? 'Detalle de tarea' : 'Crear tarea'}
+          {/* Ícono más pequeño y elegante */}
+          {initialData && !isCompleted && (
+            <IconButton size="small" onClick={handleMenuOpen}>
+              <MoreVertIcon />
+            </IconButton>
+          )}
         </DialogTitle>
+
         <DialogContent dividers>
           <TextField
             margin="normal"
@@ -352,6 +406,7 @@ export default function TaskFormModal({
             name="name"
             value={form.name || ''}
             onChange={handleChange}
+            InputProps={{ readOnly: isCompleted }}
           />
           <TextField
             margin="normal"
@@ -360,6 +415,7 @@ export default function TaskFormModal({
             name="description"
             value={form.description || ''}
             onChange={handleChange}
+            InputProps={{ readOnly: isCompleted }}
           />
           <TextField
             margin="normal"
@@ -370,6 +426,10 @@ export default function TaskFormModal({
             value={form.dueDate?.split('T')[0] || ''}
             onChange={handleChange}
             InputLabelProps={{ shrink: true }}
+            InputProps={{ readOnly: isCompleted }}
+            inputProps={{
+              min: new Date().toISOString().split('T')[0],
+            }}
           />
           <TextField
             margin="normal"
@@ -380,6 +440,10 @@ export default function TaskFormModal({
             value={form.reminderDate?.split('T')[0] || ''}
             onChange={handleChange}
             InputLabelProps={{ shrink: true }}
+            InputProps={{ readOnly: isCompleted }}
+            inputProps={{
+              min: new Date().toISOString().split('T')[0],
+            }}
           />
           <TextField
             margin="normal"
@@ -389,51 +453,99 @@ export default function TaskFormModal({
             InputProps={{ readOnly: true }}
           />
         </DialogContent>
-        <DialogActions>
+
+        <DialogActions
+          sx={{
+            justifyContent: "space-between",
+            px: 3,
+            py: 1.5,
+            borderTop: "1px solid #e0e0e0",
+          }}
+        >
           {!initialData ? (
             <>
-              <Button color="primary" onClick={handleCreate}>
+              <Button variant="contained" color="primary" onClick={handleCreate}>
                 Guardar
               </Button>
               <Button onClick={onClose}>Cerrar</Button>
             </>
           ) : (
             <>
-              <Button color="primary" onClick={handleUpdate}>
-                Modificar
-              </Button>
-              <Button color="success" onClick={handleFinalize}>
-                Finalizar
-              </Button>
-
-              {/* Mostrar el botón solo si NO hay proveedor asignado */}
-              {!initialData.associatedProviderId && (
+              {/* si la tarea no esta finalizada que se muestren los botones */}
+              {!isCompleted && (
                 <Button
-                  color="warning"
-                  onClick={() => {
-                    fetchProvidersFromEvent();
-                    setAssignOpen(true);
-                  }}
+                  variant="contained"
+                  color="primary"
+                  onClick={handleUpdate}
+                  sx={{ borderRadius: 2 }}
                 >
-                  Asignar proveedor
+                  Modificar
                 </Button>
               )}
-
-              {/* Mostrar el botón de desasignar solo si SÍ hay proveedor */}
-              {initialData.associatedProviderId && (
-                <Button color="secondary" onClick={handleUnassignProvider}>
-                  Desasignar proveedor
-                </Button>
-              )}
-
-              <Button color="error" onClick={() => setConfirmOpen(true)}>
-                Eliminar
-              </Button>
               <Button onClick={onClose}>Cerrar</Button>
             </>
           )}
         </DialogActions>
       </Dialog>
+
+      {/* Menú lateral elegante */}
+      <Menu
+        anchorEl={anchorEl}
+        open={openMenu}
+        onClose={handleMenuClose}
+        PaperProps={{
+          elevation: 3,
+          sx: {
+            borderRadius: 2,
+            minWidth: 200,
+            mt: 1,
+          },
+        }}
+      >
+        <MenuItem
+          onClick={() => {
+            handleFinalize();
+            handleMenuClose();
+          }}
+        >
+          Finalizar
+        </MenuItem>
+
+        {!initialData?.associatedProviderId && (
+          <MenuItem
+            onClick={() => {
+              fetchProvidersFromEvent();
+              setAssignOpen(true);
+              handleMenuClose();
+            }}
+          >
+            Asignar proveedor
+          </MenuItem>
+        )}
+
+        {initialData?.associatedProviderId && (
+          <MenuItem
+            onClick={() => {
+              handleUnassignProvider();
+              handleMenuClose();
+            }}
+          >
+            Desasignar proveedor
+          </MenuItem>
+        )}
+
+        <Divider />
+        <MenuItem
+          sx={{ color: "error.main" }}
+          onClick={() => {
+            setConfirmOpen(true);
+            handleMenuClose();
+          }}
+        >
+          Eliminar
+        </MenuItem>
+      </Menu>
+
       {/* Modal de confirmación */}
       <Dialog
         open={confirmOpen}

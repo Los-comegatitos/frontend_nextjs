@@ -32,6 +32,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!pathname) return
     async function showPing() {
+      if (!token) {
+        setHasNotifications(false)
+        return
+      }
       try {
           const response = await fetch('/api/notification', { headers: { token: token as string } });
           if (!response.ok) {
@@ -67,7 +71,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         !pathname.includes('/events-providers') &&
         !pathname.includes('/events') && 
         !pathname.includes('/profile')) && 
-        !pathname.includes('/notifications')
+        !pathname.includes('/notifications') &&
+        !pathname.includes('/task-providers')
         || pathname.includes('/event-types'))
       ) {
         redirect('/') 
@@ -107,17 +112,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     showPing()
   }, [token, pathname, user?.role]);
 
-  useEffect(() => {
-    if (user) {
-      console.log('user', user);
+// Usar solo para pruebas, ya no debemos seguir imprimiendo esto al usuario
+  // useEffect(() => {
+  //   if (user) {
+  //     console.log('user', user);
       
-    // if (user.role !== 'provider') {
-    //   console.log(`ERES UN ${user.role}`);
-    // }
+  //   // if (user.role !== 'provider') {
+  //   //   console.log(`ERES UN ${user.role}`);
+  //   // }
 
-    if (token) console.log('token', token)
-  }
-  }, [user, token]);
+  //   if (token) console.log('token', token)
+  // }
+  // }, [user, token]);
+////////////////////////////////////////////////////////////////////////////////
 
   return (
     <AppContext.Provider value={{ user, setUser, token, setToken, hasNotifications, setHasNotifications }}>

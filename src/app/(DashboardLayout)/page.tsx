@@ -164,7 +164,7 @@ const Dashboard = () => {
                   plugins={[dayGridPlugin]}
                   initialView='dayGridMonth'
                   events={[
-                    { title: 'evento ejemplo', date: '2025-10-13' },
+                    // { title: 'evento ejemplo', date: '2025-10-13' },
                   ]}
                 />
               </Card>

@@ -8,162 +8,188 @@ import { useAppContext } from '@/context/AppContext';
 import { User } from '@/interfaces/User';
 import { showDateInput } from '@/utils/Formats';
 import CustomTextField from '../components/forms/theme-elements/CustomTextField';
-import Swal from 'sweetalert2';
+import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
 
 const ProfilePage = () => {
-    const { token, user } = useAppContext();
-    const [info, setInfo] = useState<User | null>(null);
-    const [formData, setFormData] = useState({
-      firstName: '',
-      lastName: '',
-      email: '',
-      telephone: '',
-      birthDate: '',
-      // user_Typeid: '',
-    });
-    const [editable, setEditable] = useState(true);
+  const { token, user } = useAppContext();
+  const [info, setInfo] = useState<User | null>(null);
+  const [average, setAverage] = useState<number | null>(null);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    telephone: '',
+    birthDate: '',
+    // user_Typeid: '',
+  });
+  const [editable, setEditable] = useState(true);
 
-    const userTypeMap: { [key: string]: { label: string; description: string } } = {
-      provider: {
-        label: 'Proveedor',
-        description: 'Usuario que provee servicios o productos',
-      },
-      organizer: {
-        label: 'Organizador',
-        description: 'Usuario que organiza eventos',
-      },
-      admin: {
-        label: 'Administrador',
-        description: 'Administrador con acceso completo',
-      },
-    };
+  const userTypeMap: { [key: string]: { label: string; description: string } } = {
+    provider: {
+      label: 'Proveedor',
+      description: 'Usuario que provee servicios o productos',
+    },
+    organizer: {
+      label: 'Organizador',
+      description: 'Usuario que organiza eventos',
+    },
+    admin: {
+      label: 'Administrador',
+      description: 'Administrador con acceso completo',
+    },
+  };
 
-    const obtainProfile = React.useCallback(async () => {
-        if (!token) return;
-        const response = await fetch('/api/profile', { headers: { token: token as string } });
-        const data = await response.json();
-        console.log(data);
-        setFormData({
-          firstName: data.firstName || '',
-          lastName: data.lastName || '',
-          email: data.email || '',
-          telephone: data.telephone || '',
-          birthDate: data.birthDate || '',
-          // user_Typeid: data?.typeuser.id || '',
-        });
-        setInfo(data);
-        setEditable(true);
-    }, [token]);
-
-    useEffect(() => {
-        obtainProfile();
-    }, [obtainProfile]);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const obtainProfile = React.useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await fetch('/api/profile', { headers: { token: token as string } });
+      const data = await response.json();
       setFormData({
-        ...formData,
-        [e.target.id]: e.target.value,
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        email: data.email || '',
+        telephone: data.telephone || '',
+        birthDate: data.birthDate || '',
+        // user_Typeid: data?.typeuser.id || '',
       });
-    };
+      setInfo(data);
+      setEditable(true);
+    } catch (error) {
+      console.error('Error obteniendo perfil:', error);
+    }
+  }, [token]);
 
-    const handleUpdate = async () => {
-      if (!token) return;
-      if (!formData.firstName || !formData.lastName) {
-        await Swal.fire({
-          icon: 'error',
-          title: '¡Oh no! Tus campos están incompletos',
-          text: 'Los campos de nombre y apellido son obligatorios.',
-          confirmButtonColor: '#1976d2',
-        });
-        await obtainProfile();
-        return;
-      }
-      if (formData.telephone && formData.telephone.length < 11) {
-        await Swal.fire({
-          icon: 'error',
-          title: '¡Oh no! El número de teléfono es inválido',
-          text: 'El número de teléfono debe tener al menos 11 dígitos.',
-          confirmButtonColor: '#1976d2',
-        });
-        return;
-      }
-      formData.birthDate = new Date(formData.birthDate).toISOString();
-      const response = await fetch(`/api/profile/${user?.id}`, {
-        method: 'PUT',
+  const obtainAverage = React.useCallback(async () => {
+    if (!user || !token) return;
+
+    try {
+      const response = await fetch(`/api/event/provider/${user.id}/average`, {
         headers: {
           'Content-Type': 'application/json',
           token: token as string,
         },
-        body: JSON.stringify(formData),
       });
+
+      if (!response.ok) {
+        console.error('Error al obtener promedio:', response.status, response.statusText);
+        return;
+      }
+
       const data = await response.json();
-      console.log(data);
-      await obtainProfile();
-    };
+      // console.log("Promedio recibido:", data);
+
+      setAverage(data?.data?.average ?? 0);
+    } catch (error) {
+      console.error('Error obteniendo promedio:', error);
+    }
+  }, [user, token]);
+
+  useEffect(() => {
+    obtainProfile();
+    obtainAverage();
+  }, [obtainProfile, obtainAverage]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    });
+  };
+
+  const handleUpdate = async () => {
+    if (!token) return;
+
+    if (!formData.firstName || !formData.lastName) {
+      showErrorAlert('Los campos de nombre y apellido son obligatorios.');
+      return;
+    }
+
+    if (formData.telephone && formData.telephone.length < 11) {
+      showErrorAlert('El número de teléfono debe tener al menos 11 dígitos.');
+      return;
+    }
+
+    formData.birthDate = new Date(formData.birthDate).toISOString();
+
+    const response = await fetch(`/api/profile/${user?.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        token: token as string,
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (response.status === 200) {
+      showSucessAlert('Perfil actualizado exitosamente.');
+    } else {
+      showErrorAlert(response.statusText);
+    }
+    await obtainProfile();
+  };
 
   return (
-    <PageContainer title="Perfil" description="Este es el perfil">
+    <PageContainer title='Perfil' description='Este es el perfil'>
       <Grid container spacing={3}>
         <Grid size={{ sm: 12 }}>
-          <DashboardCard title="Tus datos básicos">
+          <DashboardCard title='Tus datos básicos'>
             <Grid container spacing={3}>
               <Grid size={{ sm: 12 }}>
                 <BlankCard>
                   <CardContent style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <Typography variant="body1" color="textSecondary">
-                      Nombres: 
-                    </Typography> 
-                    <CustomTextField id='firstName' type='text' variant='outlined' fullWidth value={formData.firstName} disabled={editable} onChange={handleChange} required/> 
-
-                    <Typography variant="body1" color="textSecondary">
-                      Apellidos: 
+                    <Typography variant='body1' color='textSecondary'>
+                      Nombres:
                     </Typography>
-                    <CustomTextField id='lastName' type='text' variant='outlined' fullWidth value={formData.lastName} disabled={editable} onChange={handleChange} required/>
+                    <CustomTextField id='firstName' type='text' variant='outlined' fullWidth value={formData.firstName} disabled={editable} onChange={handleChange} required />
 
-                    <Typography variant="body1" color="textSecondary">
-                      Fecha de nacimiento: 
+                    <Typography variant='body1' color='textSecondary'>
+                      Apellidos:
+                    </Typography>
+                    <CustomTextField id='lastName' type='text' variant='outlined' fullWidth value={formData.lastName} disabled={editable} onChange={handleChange} required />
+
+                    <Typography variant='body1' color='textSecondary'>
+                      Fecha de nacimiento:
                     </Typography>
                     <CustomTextField id='birthDate' type='date' variant='outlined' fullWidth value={showDateInput(formData.birthDate)} disabled={editable} onChange={handleChange} />
 
-                    <Typography variant="body1" color="textSecondary">
-                      Teléfono: 
+                    <Typography variant='body1' color='textSecondary'>
+                      Teléfono:
                     </Typography>
                     <CustomTextField id='telephone' type='tel' variant='outlined' fullWidth value={formData.telephone} disabled={editable} onChange={handleChange} />
 
-                    {editable ? 
-                      <Button variant="outlined" color="primary" onClick={() => setEditable(!editable)}>
+                    {editable ? (
+                      <Button variant='outlined' color='primary' onClick={() => setEditable(!editable)}>
                         🖋️
                       </Button>
-                      :
-                      <Button variant="outlined" color="primary" onClick={handleUpdate}>
+                    ) : (
+                      <Button variant='outlined' color='primary' onClick={handleUpdate}>
                         Modificar
                       </Button>
-                    }
+                    )}
 
-                    <Typography variant="body1" color="textSecondary">
+                    <Typography variant='body1' color='textSecondary'>
                       Email:
                     </Typography>
-                    <Typography variant="h5">{formData.email}</Typography>
+                    <Typography variant='h5'>{formData.email}</Typography>
 
-                    <Typography variant="body1" color="textSecondary">
-                      Tipo de usuario: 
+                    <Typography variant='body1' color='textSecondary'>
+                      Tipo de usuario:
                     </Typography>
-                    <Typography variant="h5">
-                      {info ? userTypeMap[info.typeuser.name]?.label || info.typeuser.name : ''}
-                    </Typography>
+                    <Typography variant='h5'>{info ? userTypeMap[info.typeuser.name]?.label || info.typeuser.name : ''}</Typography>
 
-                    <Typography variant="body1" color="textSecondary">
+                    <Typography variant='body1' color='textSecondary'>
                       ¿Qué significa ser {info ? userTypeMap[info.typeuser.name]?.label || info.typeuser.name : ''}?:
                     </Typography>
-                    <Typography variant="h5">
-                      {info ? userTypeMap[info.typeuser.name]?.description || info.typeuser.description : ''}
-                    </Typography>
+                    <Typography variant='h5'>{info ? userTypeMap[info.typeuser.name]?.description || info.typeuser.description : ''}</Typography>
 
+                    {/* 🔹 Promedio visible solo para proveedores */}
                     {user?.role === 'provider' && (
-                        <>
-                          <Typography variant="body1" color="textSecondary">Tu promedio de calificaciones: </Typography>
-                          <Typography variant="h5">0 ⭐</Typography>
-                        </>
+                      <>
+                        <Typography variant='body1' color='textSecondary'>
+                          Tu promedio de calificaciones:
+                        </Typography>
+                        <Typography variant='h5'>{average !== null ? `${average.toFixed(1)} ⭐` : 'Cargando...'}</Typography>
+                      </>
                     )}
                   </CardContent>
                 </BlankCard>

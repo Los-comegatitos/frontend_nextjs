@@ -1,23 +1,7 @@
 'use client';
 
-import React, { Fragment, useEffect, useState } from 'react';
-import {
-  Box,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Button,
-  TextField,
-  List,
-  ListItemText,
-  ListItem,
-} from '@mui/material';
+import React, { Fragment, useEffect, useMemo, useState } from 'react';
+import { Box, Table, TableHead, TableBody, TableRow, TableCell, Typography, Dialog, DialogTitle, DialogContent, Button, TextField, Select, MenuItem, TablePagination } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -26,8 +10,10 @@ import { useAppContext } from '@/context/AppContext';
 import { FilteredEvent } from '@/interfaces/Event';
 import { showDate } from '@/utils/Formats';
 import { Quote } from '@/interfaces/Quote';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import Stepper from '@mui/material/Stepper';
+import Step from '@mui/material/Step';
+import StepLabel from '@mui/material/StepLabel';
+import { Catalog } from '@/interfaces/Catalog';
 
 const EventsProvidersPage = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -36,7 +22,41 @@ const EventsProvidersPage = () => {
   const [loading, setLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<FilteredEvent | null>(null);
   const { token } = useAppContext();
-  const router = useRouter();
+  const [catalog, setCatalog] = useState<Catalog | null>(null);
+
+  // stepper cosas
+  const [activeStep, setActiveStep] = useState(0);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [selectedSendService, setSelectedSendService] = useState(''); // a que servicio se envia la coti
+  const [selectedQuoteService, setSelectedQuoteService] = useState(''); // que servicio se esta cotizando
+  const [price, setPrice] = useState('');
+  const [quantity, setQuantity] = useState('');
+
+  const filteredCatalogServices = useMemo(() => {
+    const selectedSendServiceObject = selectedEvent?.services.filter((s) => s.name === selectedSendService) ?? [];
+
+    // validaciones para que el ts se quede quieto
+    if (!catalog?.services) return [];
+    if (!selectedSendServiceObject[0]) return [];
+
+    return catalog?.services.filter((s) => s.serviceTypeId === selectedSendServiceObject[0]?.serviceTypeId);
+  }, [catalog?.services, selectedEvent?.services, selectedSendService]);
+
+  // pagination cosas
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [search, setSearch] = useState('');
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const filteredEvents = events.filter((event) => event.name.toLowerCase().includes(search.toLowerCase()));
+  const paginatedEvents = filteredEvents.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const fetchEvents = React.useCallback(async () => {
     if (!token) return;
@@ -56,47 +76,90 @@ const EventsProvidersPage = () => {
     }
   }, [token]);
 
+  const fetchCatalog = React.useCallback(async () => {
+    if (!token) return;
+    try {
+      setLoadingTable(true);
+      const res = await fetch(`/api/catalog`, { headers: { token: token as string } });
+      const data = await res.json();
+      if (data.message.code === '000') {
+        setCatalog(data.data.catalog);
+      } else {
+        showErrorAlert(data.message.description);
+      }
+      setLoadingTable(false);
+    } catch (err) {
+      setLoadingTable(false);
+      console.error('Error', err);
+    }
+  }, [token]);
+
   useEffect(() => {
     fetchEvents();
-  }, [fetchEvents]);
+    fetchCatalog();
+  }, [fetchEvents, fetchCatalog]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     if (!token || !selectedEvent) return;
 
-    const info = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement;
-    const buttonId = info?.id;
-    const service = selectedEvent?.services.find((s) => s.name === buttonId);
+    const quoteService = filteredCatalogServices.find((s) => s.name === selectedQuoteService);
+    // otra validación para que ts se quede quieto pero obvio super obvio que nunca va a pasar por como está la lógica.
+    if (!quoteService) {
+      setSubmitError('Servicio a cotizar inválido');
+      return;
+    }
 
-    const formData = new FormData(event.currentTarget);
+    if (quoteService.quantity != null && parseInt(quantity) > quoteService.quantity) {
+      setSubmitError('Cantidad supera la disponible en tu catálogo');
+      return;
+    } else if (quoteService.quantity != null && quantity == '') {
+      setSubmitError('Ingresa cantidad para este servicio');
+      return;
+    } else if (quoteService.quantity == null && quantity !== '') {
+      setSubmitError('Este servicio no permite cantidades');
+      return;
+    }
+
     const quote: Quote = {
       service: {
-        name: formData.get('name') as string,
-        description: formData.get('description') as string,
-        serviceTypeId: service?.serviceTypeId as string,
+        name: quoteService.name,
+        description: quoteService.description,
+        serviceTypeId: quoteService.serviceTypeId,
       },
-      price: parseFloat(formData.get('price') as string),
+      price: parseFloat(price),
       eventId: selectedEvent?.eventId as string,
-      toServiceId: service?.name as string,
-      quantity: parseInt(formData.get('quantity') as string),
+      toServiceId: selectedSendService,
+      quantity: parseInt(quantity),
     };
 
-    setLoading(true);
-    const res = await fetch(`/api/quote`, {
-      headers: { token: token as string },
-      method: 'POST',
-      body: JSON.stringify(quote),
-    });
-    const data = await res.json();
-    if (data.message.code === '000') {
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/quote`, {
+        headers: { token: token as string },
+        method: 'POST',
+        body: JSON.stringify(quote),
+      });
+      const data = await res.json();
+      if (data.message.code === '000') {
+        setActiveStep(0);
+        setOpenModal(false);
+        setSelectedEvent(null);
+        setSelectedSendService('');
+        setSelectedQuoteService('');
+        setPrice('');
+        setQuantity('');
+        await showSucessAlert('La cotización fue enviada exitosamente');
+        await fetchEvents();
+      } else {
+        await showErrorAlert(data.message.description || 'Error al enviar cotización');
+      }
+    } catch (error) {
+      console.log('error', error);
+      await showErrorAlert('Error inesperado al enviar cotización');
+    } finally {
       setLoading(false);
-      setOpenModal(false);
-      setSelectedEvent(null);
-      await showSucessAlert('La cotización fue enviada exitósamente');
-      await fetchEvents();
-    } else {
-      setLoading(false);
-      await showErrorAlert(data.message.description || 'Error al enviar cotización');
     }
   };
 
@@ -110,80 +173,52 @@ const EventsProvidersPage = () => {
   };
 
   return (
-    <PageContainer title="Eventos" description="Página de eventos">
-      <DashboardCard title="Eventos">
+    <PageContainer title='Eventos' description='Página de eventos'>
+      <DashboardCard title='Eventos'>
+        <Typography color='gray' mb={3}>
+          Aquí podrás visualizar los eventos que requieren servicios compatibles con los que ofreces. Da click en un evento para enviar una cotización.
+        </Typography>
+        <Box display='flex' justifyContent='flex-end' mb={2} gap={5}>
+          <TextField placeholder='Buscar por nombre...' variant='outlined' size='small' value={search} onChange={(e) => setSearch(e.target.value)} />
+        </Box>
         <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
           {loadingTable ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <CircularProgress size="55px" />
+              <CircularProgress size='55px' />
             </Box>
           ) : (
             <>
-              <Table aria-label="event table" sx={{ whiteSpace: 'nowrap', mt: 2 }}>
+              <Table aria-label='event table' sx={{ whiteSpace: 'nowrap', mt: 2 }}>
                 <TableHead>
                   <TableRow>
                     <TableCell>
-                      <Typography variant="subtitle2" fontWeight={600}>
+                      <Typography variant='subtitle2' fontWeight={600}>
                         Nombre
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="subtitle2" fontWeight={600}>
+                      <Typography variant='subtitle2' fontWeight={600}>
                         Fecha del evento
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Typography variant="subtitle2" fontWeight={600}>
-                        Tareas
                       </Typography>
                     </TableCell>
                   </TableRow>
                 </TableHead>
 
                 <TableBody>
-                  {events.map((event) => (
-                    <TableRow
-                      key={event.name}
-                      className="cursor-pointer hover:bg-indigo-100 active:bg-indigo-200"
-                      onClick={() => handleRowClick(event)}
-                    >
+                  {paginatedEvents.map((event) => (
+                    <TableRow key={event.name} className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200' onClick={() => handleRowClick(event)}>
                       <TableCell>
-                        <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>
-                          {event.name}
-                        </Typography>
+                        <Typography sx={{ fontSize: '15px', fontWeight: '500' }}>{event.name}</Typography>
                       </TableCell>
 
                       <TableCell>
-                        <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>
-                          {showDate(event.eventDate)}
-                        </Typography>
-                      </TableCell>
-
-                      <TableCell align="center">
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/events-providers/${event.eventId}/task-providers`);
-                          }}
-                          style={{
-                            background: 'transparent',
-                            border: 'none',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <Image
-                            src="/images/icons/lista-de-verificacion.png"
-                            alt="Ver tareas"
-                            width={28}
-                            height={28}
-                          />
-                        </Button>
-
+                        <Typography sx={{ fontSize: '15px', fontWeight: '600' }}>{showDate(event.eventDate)}</Typography>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+              <TablePagination labelRowsPerPage={"Filas a mostrar"} component='div' count={filteredEvents.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25, { value: -1, label: 'Todos' }]} />
 
               {events.length === 0 && (
                 <Box
@@ -194,7 +229,7 @@ const EventsProvidersPage = () => {
                     minHeight: '100px',
                   }}
                 >
-                  <Typography variant="subtitle2" fontWeight={600}>
+                  <Typography variant='subtitle2' fontWeight={600}>
                     No hay eventos para mostrar.
                   </Typography>
                 </Box>
@@ -204,53 +239,135 @@ const EventsProvidersPage = () => {
         </Box>
       </DashboardCard>
 
-      <Dialog open={openModal} onClose={handleClose} maxWidth="sm" fullWidth>
+      <Dialog open={openModal} onClose={handleClose} maxWidth='sm' fullWidth>
         <DialogTitle>Enviar cotización</DialogTitle>
-        <DialogContent dividers>
-          {selectedEvent && (
-            <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={2} mt={1}>
-              <TextField label="Nombre" name="name" required />
-              <TextField label="Descripción" name="description" required />
-              <TextField type="number" label="Precio" name="price" required />
-              <TextField type="number" label="Cantidad" name="quantity" required />
-              <List sx={{ width: '100%' }}>
-                {selectedEvent.services.map((service) => (
-                  <ListItem
-                    key={service.name}
-                    alignItems="flex-start"
-                    className="rounded-xl"
-                    sx={{ width: '100%' }}
-                    secondaryAction={
-                      <Button id={service.name} variant="outlined" type="submit" color="primary">
-                        Enviar cotización
-                      </Button>
-                    }
-                  >
-                    <ListItemText
-                      primary={<Typography sx={{ fontSize: '15px', fontWeight: 600 }}>{service.name}</Typography>}
-                      secondary={
-                        <Fragment>
-                          <Typography component="span" variant="body2" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-                            {service.description}
-                          </Typography>
-                          <Typography variant="caption" sx={{ display: 'block', color: 'text.disabled' }}>
-                            Cantidad: {service.quantity}
-                          </Typography>
-                          <Typography variant="caption" sx={{ display: 'block', color: 'text.disabled' }}>
-                            Fecha límite para enviar cotización: {showDate(service.dueDate)}
-                          </Typography>
-                        </Fragment>
-                      }
-                    />
-                  </ListItem>
-                ))}
-              </List>
+        <DialogContent dividers sx={{ p: 6 }}>
+          <Stepper activeStep={activeStep} sx={{ mb: 6 }}>
+            {['Servicio a enviar cotización', 'Servicio a cotizar', 'Información adicional'].map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
 
-              <Box display="flex" justifyContent="center" gap={2}>
-                <Button onClick={handleClose} color="secondary" disabled={loading}>
-                  Cerrar
+          {/* Paso 1 */}
+          {activeStep === 0 && (
+            <Box display='flex' flexDirection='column' gap={2}>
+              <Typography>Selecciona servicio a enviar cotización:</Typography>
+              <Select value={selectedSendService} onChange={(e) => setSelectedSendService(e.target.value)}>
+                {selectedEvent?.services.map((s) => (
+                  <MenuItem key={s.name} value={s.name}>
+                    {s.name}
+                  </MenuItem>
+                ))}
+              </Select>
+
+              {selectedSendService && (
+                <Box>
+                  <Typography variant='body2' color='text.secondary'>
+                    Descripción del servicio: {selectedEvent?.services.find((s) => s.name === selectedSendService)?.description}
+                  </Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Cantidad requerida: {selectedEvent?.services.find((s) => s.name === selectedSendService)?.quantity}
+                  </Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Hasta que fecha recibe cotizaciones: {showDate(selectedEvent?.services.find((s) => s.name === selectedSendService)?.dueDate as string)}
+                  </Typography>
+                </Box>
+              )}
+
+              <Box display='flex' justifyContent='flex-end' gap={2} mt={2}>
+                <Button
+                  variant='contained'
+                  onClick={() => {
+                    if (!selectedSendService) {
+                      setSubmitError('Selecciona un servicio antes de continuar');
+                      return;
+                    }
+                    setSubmitError(null);
+                    setActiveStep(1);
+                  }}
+                >
+                  Siguiente
                 </Button>
               </Box>
+
+              {submitError && (
+                <Typography color='error' fontSize={14} textAlign='center'>
+                  {submitError}
+                </Typography>
+              )}
+            </Box>
+          )}
+
+          {/* Paso 2 */}
+          {activeStep === 1 && (
+            <Box display='flex' flexDirection='column' gap={2}>
+              <Typography>Seleccionar servicio de tu catálogo a cotizar:</Typography>
+              <Select value={selectedQuoteService} onChange={(e) => setSelectedQuoteService(e.target.value)}>
+                {filteredCatalogServices?.map((s) => (
+                  <MenuItem key={s.name} value={s.name}>
+                    {s.name}
+                  </MenuItem>
+                ))}
+              </Select>
+
+              {selectedQuoteService && (
+                <Box>
+                  <Typography variant='body2' color='text.secondary'>
+                    Descripción de tu servicio: {filteredCatalogServices?.find((s) => s.name === selectedQuoteService)?.description}
+                  </Typography>
+                  <Typography variant='body2' color='text.secondary'>
+                    Cantidad disponible: {filteredCatalogServices?.find((s) => s.name === selectedQuoteService)?.quantity || 'No aplica'}
+                  </Typography>
+                </Box>
+              )}
+
+              <Box display='flex' justifyContent='space-between' mt={2}>
+                <Button onClick={() => setActiveStep(0)}>Atrás</Button>
+                <Button
+                  variant='contained'
+                  onClick={() => {
+                    if (!selectedQuoteService) {
+                      setSubmitError('Selecciona un servicio antes de continuar');
+                      return;
+                    }
+                    setSubmitError(null);
+                    setActiveStep(2);
+                  }}
+                >
+                  Siguiente
+                </Button>
+              </Box>
+
+              {submitError && (
+                <Typography color='error' fontSize={14} textAlign='center'>
+                  {submitError}
+                </Typography>
+              )}
+            </Box>
+          )}
+
+          {/* Paso 3 */}
+          {activeStep === 2 && (
+            <Box component='form' onSubmit={handleSubmit} display='flex' flexDirection='column' gap={2}>
+              <Typography>Información adicional:</Typography>
+              <TextField type='number' label='Precio' name='price' value={price} onChange={(e) => setPrice(e.target.value)} required />
+              <TextField type='number' label='Cantidad' name='quantity' value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+
+              <Box display='flex' justifyContent='space-between' mt={2}>
+                <Button onClick={() => setActiveStep(1)}>Atrás</Button>
+                <Button type='submit' variant='contained' disabled={loading}>
+                  Enviar cotización
+                  {loading && <CircularProgress size='20px' sx={{ ml: 2 }} />}
+                </Button>
+              </Box>
+
+              {submitError && (
+                <Typography color='error' fontSize={14} textAlign='center'>
+                  {submitError}
+                </Typography>
+              )}
             </Box>
           )}
         </DialogContent>

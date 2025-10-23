@@ -107,7 +107,8 @@ const UsersPage = () => {
       if (data.message?.code === '000' || data.ok) {
         showSucessAlert(modalMode === 'add' ? 'Administrador registrado exitosamente.' : 'Contraseña cambiada exitosamente.');
       } else {
-        showErrorAlert(data.message.description);
+        if (modalMode === 'add') showErrorAlert(data.body);
+        else showErrorAlert(data.message.description)
       }
     } catch (err) {
       console.error('Error', err);
@@ -188,7 +189,7 @@ const UsersPage = () => {
                   ))}
                 </TableBody>
               </Table>
-              <TablePagination component='div' count={filteredUsers.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25, { value: -1, label: 'Todos' }]} />
+              <TablePagination labelRowsPerPage={"Filas a mostrar"} component='div' count={filteredUsers.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25, { value: -1, label: 'Todos' }]} />
             </>
           )}
         </Box>
