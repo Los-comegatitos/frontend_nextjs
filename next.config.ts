@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ['*'],
+  // allowedDevOrigins: ['*'],
   /* config options here */
   // experimental: {
   //   ppr: 'incremental',

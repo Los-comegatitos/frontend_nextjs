@@ -7,6 +7,7 @@ export interface BackendProviderResponse {
     name: string;
     description: string;
   };
+  quoteId: number;
 }
 
 //nota: se tuvo que acabar esta interface para evitar una variable any en ProTab
