@@ -84,6 +84,7 @@ export default function TaskProvidersPage() {
               <TableRow>
                 <TableCell>Nombre de la tarea</TableCell>
                 <TableCell>Evento</TableCell>
+                <TableCell>Fecha límite</TableCell>
                 <TableCell>Estado</TableCell>
                 <TableCell align='center'>Comentarios</TableCell>
               </TableRow>
@@ -93,6 +94,11 @@ export default function TaskProvidersPage() {
                 <TableRow key={t.task.id} hover sx={{ cursor: 'pointer' }} onClick={() => setSelectedTask(t)}>
                   <TableCell>{t.task.name}</TableCell>
                   <TableCell>{t.eventName}</TableCell>
+                  <TableCell>
+                    {t.task.dueDate
+                      ? new Date(t.task.dueDate).toLocaleDateString()
+                      : 'Sin fecha'}
+                  </TableCell>
                   <TableCell>{t.task.status}</TableCell>
                   <TableCell
                     align='center'

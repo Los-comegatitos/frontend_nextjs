@@ -138,6 +138,7 @@ export default function TaskList({ tasks, onAdd, onView, onComment }: Props) {
             <TableRow>
               <TableCell>Nombre</TableCell>
               <TableCell>Descripción</TableCell>
+              <TableCell>Fecha límite</TableCell>
               <TableCell>Estado</TableCell>
               <TableCell align='center'>Acciones</TableCell>
             </TableRow>
@@ -149,6 +150,11 @@ export default function TaskList({ tasks, onAdd, onView, onComment }: Props) {
                 <TableCell onClick={() => onView(task)}>{task.description}</TableCell>
                 <TableCell onClick={() => onView(task)}>
                   {estadoVisual[task.status] || task.status}
+                </TableCell>
+                        <TableCell onClick={() => onView(task)}>
+                  {task.dueDate
+                    ? new Date(task.dueDate).toLocaleDateString()
+                    : 'Sin fecha'}
                 </TableCell>
                 <TableCell align='center'>
                   <button

@@ -5,6 +5,7 @@ export interface ProviderTask {
     id: string;
     name: string;
     description: string;
+    dueDate: string; 
     status: string;
   };
 }
