@@ -27,7 +27,6 @@ const NotificationsPage = () => {
                 return;
             }
             const data = await response.json();
-            console.log('la infooooooo');
             console.log(data);
             setInfo(data?.data)
         } catch (error) {

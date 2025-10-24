@@ -39,15 +39,21 @@ export default function TaskList({ tasks, onAdd, onView, onComment }: Props) {
         title: task.name,
         date: task.reminderDate.split('T')[0],
         color: '#439fbf',
-        task:task,
+        task: task,
       },
       {
         title: task.name,
         date: task.dueDate.split('T')[0],
         color: '#491d8d',
-        task:task,
+        task: task,
       },
     ]) || [];
+
+  // mapeo para que el estado no sea en ingle svisualmente
+  const estadoVisual: { [key: string]: string } = {
+    pending: 'Pendiente',
+    completed: 'Completado',
+  };
 
   return (
     <Box>
@@ -132,6 +138,7 @@ export default function TaskList({ tasks, onAdd, onView, onComment }: Props) {
             <TableRow>
               <TableCell>Nombre</TableCell>
               <TableCell>Descripción</TableCell>
+              <TableCell>Fecha límite</TableCell>
               <TableCell>Estado</TableCell>
               <TableCell align='center'>Acciones</TableCell>
             </TableRow>
@@ -141,7 +148,14 @@ export default function TaskList({ tasks, onAdd, onView, onComment }: Props) {
               <TableRow key={task.id} hover style={{ cursor: 'pointer' }}>
                 <TableCell onClick={() => onView(task)}>{task.name}</TableCell>
                 <TableCell onClick={() => onView(task)}>{task.description}</TableCell>
-                <TableCell onClick={() => onView(task)}>{task.status}</TableCell>
+                <TableCell onClick={() => onView(task)}>
+                  {estadoVisual[task.status] || task.status}
+                </TableCell>
+                        <TableCell onClick={() => onView(task)}>
+                  {task.dueDate
+                    ? new Date(task.dueDate).toLocaleDateString()
+                    : 'Sin fecha'}
+                </TableCell>
                 <TableCell align='center'>
                   <button
                     onClick={() => onComment(task)}
