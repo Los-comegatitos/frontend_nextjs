@@ -119,8 +119,8 @@ export default function TaskFormModal({
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // validacione para fechas no vacias y no anteriores a hoy
-  const validateDates = (): boolean => {
+  // validaciones para fechas no vacias y no anteriores a hoy
+  const validateDates = async (): Promise<boolean> => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -142,8 +142,34 @@ export default function TaskFormModal({
       return false;
     }
 
+    if (reminderDate > dueDate) {
+      showErrorAlert("La fecha de recordatorio no puede ser posterior a la fecha límite.");
+      return false;
+    }
+
+    // Validar que las fechas de recordatorio y límite no sean posteriores a la del evento
+    try {
+      if (eventId && token) {
+        const res = await fetch(`/api/event/${eventId}`, {
+          headers: { 'token': token as string },
+        });
+        const data = await res.json();
+
+        if (data?.data?.eventDate) {
+          const eventDate = new Date(data.data.eventDate);
+          if (dueDate > eventDate || reminderDate > eventDate) {
+            showErrorAlert("Las fechas no pueden ser posteriores a la fecha del evento.");
+            return false;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("No se pudo validar contra la fecha del evento.", err);
+    }
+
     return true;
   };
+
 
   //Crear tarea de un evento
   const handleCreate = async () => {
