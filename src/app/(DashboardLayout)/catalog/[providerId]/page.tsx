@@ -48,7 +48,7 @@ export default function CatalogView() {
             console.error(error);
             router.push('/')
         }
-    }, [token, providerId]);
+    }, [token, providerId, router]);
 
     useEffect(() => {
         obtainInfo();
