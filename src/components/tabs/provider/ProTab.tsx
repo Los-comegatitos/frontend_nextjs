@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { Event } from '@/interfaces/Event';
-//import { ProviderWithService } from '@/interfaces/Provider';
 import ProviderList from './ProList';
 import { BackendProviderResponse } from '@/interfaces/ProviderResponse';
 import { 
@@ -15,16 +14,13 @@ import {
   Typography 
 } from '@mui/material';
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
+import { useRouter } from 'next/navigation';
 
 type Props = {
   token: string;
   event: Event;
   onRefresh: () => void;
 };
-
-/*interface ProviderWithScore extends ProviderWithService {
-  score?: number;
-}*/
 
 export default function ProviderTab({ token, event, onRefresh }: Props) {
   const [providers, setProviders] = useState<BackendProviderResponse[]>([]);
@@ -34,6 +30,7 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
   const [selectedProvider, setSelectedProvider] = useState<BackendProviderResponse | null>(null);
   const [rating, setRating] = useState<number | null>(0);
   const [hasScore, setHasScore] = useState(false);
+  const router = useRouter()
 
   useEffect(() => {
     async function fetchProviders() {
@@ -44,24 +41,8 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
         const data: { data: BackendProviderResponse[] } = await res.json();
 
         if (res.ok && data.data) {
-        //   const formatted: ProviderWithScore[] = data.data.map((p) => ({
-        //     id: Number(p.providerId),
-        //     name: p.providerName,
-        //     description: p.service?.description || '',
-        //     email: '',
-        //     telephone: '',
-        //     password: '',
-        //     user_Typeid: 0,
-        //     service: {
-        //       serviceTypeId: p.service?.serviceTypeId || '',
-        //       name: p.service?.name || '',
-        //       description: p.service?.description || '',
-        //       dueDate: '',
-        //       quantity: null,
-        //       quote: null,
-        //     },
-        //   }));
-
+          console.log(data.data);
+          
           setProviders(data.data);
         }
       } catch (error) {
@@ -82,9 +63,14 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
 
     setSelectedProvider(provider);
 
+    if (!provider.providerId) {
+      showErrorAlert('No se encontró el ID del proveedor para calificar.');
+      return;
+    }
+
     try {
       const res = await fetch(
-        `/api/event/${event.eventId}/provider/${provider.id}/evaluation`,
+        `/api/event/${event.eventId}/provider/${provider.providerId}/evaluation`,
         { headers: { token } }
       );
 
@@ -114,16 +100,19 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
   };
 
   const handleSubmit = async () => {
-    if (!selectedProvider || rating === null) return;
+    if (!selectedProvider || !selectedProvider.providerId || rating === null) {
+      showErrorAlert("No se puede calificar. Faltan datos del proveedor o la puntuación.");
+      return;
+    }
 
     const method = hasScore ? 'PATCH' : 'POST';
-    const url = `/api/event/${event.eventId}/provider/${selectedProvider.id}/evaluation`;
+    const url = `/api/event/${event.eventId}/provider/${selectedProvider.providerId}/evaluation`;
 
     const payload = {
       score: Number(rating),
       organizerUserId: !hasScore ? event.organizerUserId.toString() : undefined,
       eventId: event.eventId.toString(),
-      providerId: selectedProvider.id.toString(),
+      providerId: selectedProvider.providerId.toString(),
     };
 
     try {
@@ -135,13 +124,16 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
 
       const result = await res.json();
 
-      if (!res.ok) {
+      if (!res.ok || result.message?.code !== '000') {
         showErrorAlert(result.message?.description || 'Error al calificar proveedor.');
       } else {
         showSucessAlert(`Proveedor "${selectedProvider.providerName}" calificado correctamente.`);
-        // Actualizar el score local
         setProviders(prev =>
-          prev.map(p => p.id === selectedProvider.id ? { ...p, score: Number(rating) } : p)
+          prev.map(p => 
+            p.providerId === selectedProvider.providerId 
+              ? { ...p, score: Number(rating) } 
+              : p
+          )
         );
         onRefresh();
       }
@@ -159,7 +151,7 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
     <>
       <ProviderList
         providers={providers}
-        onView={() => {}}
+        onView={(provider : BackendProviderResponse) => {router.push(`/catalog/${provider.providerId}`)}}
         onRate={handleRate}
       />
 

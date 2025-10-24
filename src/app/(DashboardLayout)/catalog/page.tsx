@@ -1,7 +1,6 @@
 'use client';
 import * as React from 'react';
-import { Box, Collapse, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Paper, Dialog, DialogTitle, DialogContent, Button, TextField, CircularProgress, Select, MenuItem } from '@mui/material';
-import { KeyboardArrowDown as KeyboardArrowDownIcon, KeyboardArrowUp as KeyboardArrowUpIcon } from '@mui/icons-material';
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Paper, Dialog, DialogTitle, DialogContent, Button, TextField, CircularProgress, Select, MenuItem } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
@@ -10,58 +9,10 @@ import { Service } from '@/interfaces/Service';
 import { Catalog } from '@/interfaces/Catalog';
 import { useEffect, useState } from 'react';
 import { useAppContext } from '@/context/AppContext';
-
-// tooda la lógica rara para rows expandibles (según la doc de mui)
-function Row({ type, services, onServiceClick }: { type: AuxiliarType; services: Service[]; onServiceClick: (service: Service) => void }) {
-  const [open, setOpen] = React.useState(false);
-
-  return (
-    <React.Fragment>
-      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
-        <TableCell>
-          <IconButton aria-label='expand row' size='small' onClick={() => setOpen(!open)}>
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
-        <TableCell component='th' scope='row'>
-          <Typography>{type.name}</Typography>
-        </TableCell>
-        <TableCell>{type.description}</TableCell>
-      </TableRow>
-
-      {/* colapsable de servicios */}
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout='auto' unmountOnExit>
-            <Box sx={{ margin: 1 }}>
-              <Table size='small' aria-label='services'>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Nombre</TableCell>
-                    <TableCell>Descripción</TableCell>
-                    <TableCell>Cantidad</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {services.map((service) => (
-                    <TableRow key={service.name} className='cursor-pointer hover:bg-indigo-100 active:bg-indigo-200' onClick={() => onServiceClick(service)}>
-                      <TableCell>{service.name}</TableCell>
-                      <TableCell>{service.description}</TableCell>
-                      <TableCell>{service.quantity ?? 'N/A'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-    </React.Fragment>
-  );
-}
+import { Row } from '@/components/catalog/catalogRows';
 
 export default function CatalogPage() {
-  const { token } = useAppContext();
+  const { token, user } = useAppContext();
 
   const [serviceTypes, setServiceTypes] = useState<AuxiliarType[]>([]);
   const [serviceTypesSelect, setServiceTypesSelect] = useState<AuxiliarType[]>([]);
@@ -249,15 +200,17 @@ export default function CatalogPage() {
             </Typography>
           )}
 
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2, mb: 4, columnGap: 2 }}>
-            <Button variant='contained' color='primary' onClick={handleAdd}>
-              Añadir servicio
-            </Button>
+          {user?.role == 'provider' && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2, mb: 4, columnGap: 2 }}>
+              <Button variant='contained' color='primary' onClick={handleAdd}>
+                Añadir servicio
+              </Button>
 
-            <Button variant='outlined' onClick={() => setOpenDescModal(true)}>
-              Modificar descripción
-            </Button>
-          </Box>
+              <Button variant='outlined' onClick={() => setOpenDescModal(true)}>
+                Modificar descripción
+              </Button>
+            </Box>
+          )}
 
           {loadingTable ? (
             <Box sx={{ overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -318,19 +271,23 @@ export default function CatalogPage() {
               <TextField label='Descripción' name='description' defaultValue={selectedService.description} required />
               <TextField label='Cantidad' name='quantity' type='number' defaultValue={selectedService.quantity ?? ''} />
 
-              <Box display='flex' justifyContent='center' gap={2}>
-                {modalMode === 'modify' && (
-                  <Button variant='outlined' color='error' onClick={() => handleDelete(selectedService.name)} disabled={loading}>
-                    Eliminar
-                  </Button>
-                )}
-                <Button variant='contained' type='submit' color='primary' disabled={loading}>
-                  {modalMode === 'add' ? 'Agregar' : 'Modificar'}
-                  {loading && <CircularProgress size='15px' className={'ml-2'} />}
-                </Button>
+              {/* btn organizados cancelar a la izquierda acciones a la derecha */}
+              <Box display='flex' justifyContent='space-between' alignItems='center' mt={2}>
                 <Button onClick={handleClose} color='secondary' disabled={loading}>
                   Cancelar
                 </Button>
+
+                <Box display='flex' gap={2}>
+                  {modalMode === 'modify' && (
+                    <Button variant='outlined' color='error' onClick={() => handleDelete(selectedService.name)} disabled={loading}>
+                      Eliminar
+                    </Button>
+                  )}
+                  <Button variant='contained' type='submit' color='primary' disabled={loading}>
+                    {modalMode === 'add' ? 'Agregar' : 'Modificar'}
+                    {loading && <CircularProgress size='15px' className={'ml-2'} />}
+                  </Button>
+                </Box>
               </Box>
             </Box>
           )}

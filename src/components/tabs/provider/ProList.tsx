@@ -39,7 +39,7 @@ export default function ProviderList({ providers, onView, onRate }: Props) {
           <TableBody>
             {providers.map((provider) => (
               <TableRow
-                key={provider.id}
+                key={provider.quoteId}
                 hover
                 onClick={() => onView(provider)}
                 style={{ cursor: 'pointer' }}
