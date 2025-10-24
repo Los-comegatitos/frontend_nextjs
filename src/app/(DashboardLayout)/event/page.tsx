@@ -12,6 +12,10 @@ import { Event } from '@/interfaces/Events';
 import { useAppContext } from '@/context/AppContext';
 import { AuxiliarType } from '@/interfaces/AuxiliarType';
 import { useRouter } from 'next/navigation';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker, TimePicker } from '@mui/x-date-pickers';
+import dayjs from 'dayjs';
 
 // es la interfaz auxiliar para manejar el form de los steppers. No es igual a evento porque fue necesario un campo adicional para saber si validar o no ciertos datos.
 interface EventDataAux {
@@ -324,9 +328,36 @@ const EventsPage = () => {
           )}
 
           {activeStep === 1 && (
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Box display='flex' flexDirection='column' gap={2} mt={2}>
-              <Typography>¿Qué fecha será tu evento tentativamente?</Typography>
-              <TextField type='date' label='Fecha' InputLabelProps={{ shrink: true }} value={eventData.eventDate} onChange={(e) => setEventData({ ...eventData, eventDate: e.target.value })} required />
+              <Typography>¿Qué fecha y hora será tu evento?</Typography>
+
+              {/* Selector de fecha */}
+              <DatePicker
+                label='Fecha'
+                value={eventData.eventDate ? dayjs(eventData.eventDate) : null}
+                onChange={(newValue) => {
+                  const updatedDate = newValue ? newValue.toISOString() : '';
+                  setEventData({ ...eventData, eventDate: updatedDate });
+                }}
+                slotProps={{ textField: { fullWidth: true, required: true } }}
+              />
+
+              {/* Selector de hora */}
+              <TimePicker
+                label='Hora'
+                value={eventData.eventDate ? dayjs(eventData.eventDate) : null}
+                onChange={(newValue) => {
+                  if (!newValue) return;
+                  const currentDate = eventData.eventDate ? dayjs(eventData.eventDate) : dayjs();
+                  const merged = currentDate
+                    .set('hour', newValue.hour())
+                    .set('minute', newValue.minute())
+                    .toISOString();
+                  setEventData({ ...eventData, eventDate: merged });
+                }}
+                slotProps={{ textField: { fullWidth: true, required: true } }}
+              />
 
               <Box display='flex' justifyContent='space-between' mt={2}>
                 <Button onClick={() => setActiveStep(0)}>Atrás</Button>
@@ -338,13 +369,10 @@ const EventsPage = () => {
                       return;
                     }
 
-                    const today = new Date();
                     const selectedDate = new Date(eventData.eventDate);
-                    today.setHours(0, 0, 0, 0);
-                    selectedDate.setHours(0, 0, 0, 0);
-
-                    if (selectedDate < today) {
-                      setSubmitError('La fecha del evento no puede ser anterior a hoy.');
+                    const now = new Date();
+                    if (selectedDate < now) {
+                      setSubmitError('La fecha y hora del evento no pueden ser anteriores a este momento.');
                       return;
                     }
 
@@ -362,7 +390,9 @@ const EventsPage = () => {
                 </Typography>
               )}
             </Box>
-          )}
+          </LocalizationProvider>
+        )}
+
 
           {activeStep === 2 && (
             <Box display='flex' flexDirection='column' gap={2} mt={2}>
