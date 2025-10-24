@@ -158,47 +158,67 @@ const EventsPage = () => {
     setSubmitError(null);
   };
 
+
   const handleSubmit = async () => {
-    setLoading(true);
-    setSubmitError(null);
+  setLoading(true);
+  setSubmitError(null);
 
-    const payload: Partial<Event> = {
-      name: eventData.name,
-      description: eventData.description,
-      eventDate: eventData.eventDate,
-      eventTypeId: parseInt(eventData.eventTypeId),
-    };
-
-    if (eventData.clientMode === 'cliente') {
-      payload.client = {
-        name: eventData.clientName,
-        clientTypeId: parseInt(eventData.clientTypeId),
-        description: eventData.clientDescription,
-      };
-    }
-    
-    try {
-      const res = await fetch(`/api/event`, {
-        method: 'POST',
-        headers: { token: token as string },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (data.message.code === '000') {
-        setActiveStep(3);
-        setEventAdded(data.data);
-        // showSucessAlert('Evento añadido exitosamente.'); ya nop
-      } else {
-        setSubmitError(data.message.description);
-      }
-    } catch (err) {
-      console.error('Error', err);
-      setSubmitError('Ocurrió un error inesperado');
-    } finally {
-      fetchEvents();
+  const exists = events.some(
+    (e) => e.name.trim().toLowerCase() === eventData.name.trim().toLowerCase()
+  );
+    if (exists) {
+      setSubmitError('Ya existe un evento con ese nombre.');
       setLoading(false);
+      return;
     }
+
+  if (eventData.eventDate) {
+    const today = new Date();
+    const selected = new Date(eventData.eventDate);
+    if (selected < today) {
+      setSubmitError('La fecha del evento no puede ser anterior a hoy.');
+      setLoading(false);
+      return;
+    }
+  }
+
+  const payload: Partial<Event> = {
+    name: eventData.name,
+    description: eventData.description,
+    eventDate: eventData.eventDate,
+    eventTypeId: parseInt(eventData.eventTypeId),
   };
+
+  if (eventData.clientMode === 'cliente') {
+    payload.client = {
+      name: eventData.clientName,
+      clientTypeId: parseInt(eventData.clientTypeId),
+      description: eventData.clientDescription,
+    };
+  }
+
+  try {
+    const res = await fetch(`/api/event`, {
+      method: 'POST',
+      headers: { token: token as string },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.message.code === '000') {
+      setActiveStep(3);
+      setEventAdded(data.data);
+    } else {
+      setSubmitError(data.message.description);
+    }
+  } catch (err) {
+    console.error('Error', err);
+    setSubmitError('Ocurrió un error inesperado');
+  } finally {
+    fetchEvents();
+    setLoading(false);
+  }
+};
+
 
   const handleClose = () => {
     setOpenModal(false);

@@ -131,21 +131,29 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
     e.preventDefault();
     setLoading(true);
 
+    const today = new Date();
+    const eventDate = new Date(formValues.eventDate);
+    if (eventDate < today) {
+      showErrorAlert('La fecha del evento no puede ser anterior a hoy.');
+      setLoading(false);
+      return;
+    }
+
+
+
     const payload: Partial<Event> = {
       name: formValues.name,
       description: formValues.description,
       eventDate: formValues.eventDate,
       eventTypeId: parseInt(formValues.eventTypeId),
-      client: undefined,
+      client: formValues.clientTypeId
+        ? {
+            name: formValues.clientName,
+            clientTypeId: parseInt(formValues.clientTypeId),
+            description: formValues.clientDescription,
+          }
+        : undefined,
     };
-
-    if (formValues.clientTypeId !== '') {
-      payload['client'] = {
-        name: formValues.clientName,
-        clientTypeId: parseInt(formValues.clientTypeId),
-        description: formValues.clientDescription,
-      };
-    }
 
     try {
       const res = await fetch(`${API_BASE_URL}events/${event.eventId}`, {
@@ -171,7 +179,8 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
     }
   };
 
-  // Render
+
+  
   return (
     <Stack>
       <Box display="flex" justifyContent="center" gap={4}>
