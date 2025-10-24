@@ -80,6 +80,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         !pathname.includes('/event') && 
         !pathname.includes('/quote_organizer') && 
         !pathname.includes('/profile'))  && 
+        !pathname.includes('/catalog/') && 
         !pathname.includes('/notifications')
         || pathname.includes('/event-types'))) {
         redirect('/')
