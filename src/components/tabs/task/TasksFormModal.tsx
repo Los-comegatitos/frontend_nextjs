@@ -1,24 +1,10 @@
-"use client";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
-  IconButton,
-  Menu,
-  Divider,
-} from "@mui/material";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
+'use client';
+import { CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, MenuItem, Select, InputLabel, FormControl, IconButton, Menu, Divider, Typography } from '@mui/material';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Task } from '@/interfaces/Task';
 import { useState, useEffect } from 'react';
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
-import { useAppContext } from "@/context/AppContext";
+import { useAppContext } from '@/context/AppContext';
 
 type Props = {
   open: boolean;
@@ -51,19 +37,19 @@ interface EventResponse {
   data?: { services?: EventService[] };
 }
 
-export default function TaskFormModal({
-  open,
-  onClose,
-  initialData,
-  eventId,
-  onRefresh,
-}: Props) {
+export default function TaskFormModal({ open, onClose, initialData, eventId, onRefresh }: Props) {
   const [form, setForm] = useState<Partial<Task>>({});
-  const [providerName, setProviderName] = useState<string>("Cargando...");
+  const [providerName, setProviderName] = useState<string>('Cargando...');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
   const [providers, setProviders] = useState<{ id: string; name: string }[]>([]);
-  const [selectedProvider, setSelectedProvider] = useState<string>("");
+  const [selectedProvider, setSelectedProvider] = useState<string>('');
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [loadingAsignando, setLoadingAsignando] = useState(false);
+  const [loadingDesasignando, setLoadingDesasignando] = useState(false);
+  const [loadingFinalize, setLoadingFinalize] = useState(false);
+
+
   const { token } = useAppContext();
 
   // opciones secundarias para no sobre cargar el modal :/
@@ -83,32 +69,29 @@ export default function TaskFormModal({
 
     const loadAssignedProvider = async () => {
       if (!eventId || !token || !initialData?.associatedProviderId) {
-        setProviderName("No se ha asignado un proveedor");
+        setProviderName('No se ha asignado un proveedor');
         return;
       }
 
       try {
         const res = await fetch(`/api/event/${eventId}`, {
-          headers: { 'token': token as string },
+          headers: { token: token as string },
         });
         const data: EventResponse = await res.json();
 
-        if (data?.message?.code === "000" && data.data?.services) {
-          const match = data.data.services.find(
-            (s: EventService) =>
-              s.quote?.providerId === initialData.associatedProviderId
-          );
+        if (data?.message?.code === '000' && data.data?.services) {
+          const match = data.data.services.find((s: EventService) => s.quote?.providerId === initialData.associatedProviderId);
 
           if (match) {
-            setProviderName(match.serviceTypeName || "Servicio desconocido");
+            setProviderName(match.serviceTypeName || 'Servicio desconocido');
           } else {
-            setProviderName("Proveedor asignado no encontrado en los servicios del evento");
+            setProviderName('Proveedor asignado no encontrado en los servicios del evento');
           }
         } else {
-          setProviderName("No se ha asignado un proveedor");
+          setProviderName('No se ha asignado un proveedor');
         }
       } catch {
-        setProviderName("No se ha asignado un proveedor");
+        setProviderName('No se ha asignado un proveedor');
       }
     };
 
@@ -125,7 +108,7 @@ export default function TaskFormModal({
     today.setHours(0, 0, 0, 0);
 
     if (!form.dueDate || !form.reminderDate) {
-      showErrorAlert("Las fechas no pueden estar vacías.");
+      showErrorAlert('Las fechas no pueden estar vacías.');
       return false;
     }
 
@@ -133,17 +116,17 @@ export default function TaskFormModal({
     const reminderDate = new Date(form.reminderDate);
 
     if (isNaN(dueDate.getTime()) || isNaN(reminderDate.getTime())) {
-      showErrorAlert("Las fechas no son válidas.");
+      showErrorAlert('Las fechas no son válidas.');
       return false;
     }
 
     if (dueDate < today || reminderDate < today) {
-      showErrorAlert("Las fechas no pueden ser anteriores a hoy.");
+      showErrorAlert('Las fechas no pueden ser anteriores a hoy.');
       return false;
     }
 
     if (reminderDate > dueDate) {
-      showErrorAlert("La fecha de recordatorio no puede ser posterior a la fecha límite.");
+      showErrorAlert('La fecha de recordatorio no puede ser posterior a la fecha límite.');
       return false;
     }
 
@@ -151,25 +134,24 @@ export default function TaskFormModal({
     try {
       if (eventId && token) {
         const res = await fetch(`/api/event/${eventId}`, {
-          headers: { 'token': token as string },
+          headers: { token: token as string },
         });
         const data = await res.json();
 
         if (data?.data?.eventDate) {
           const eventDate = new Date(data.data.eventDate);
           if (dueDate > eventDate || reminderDate > eventDate) {
-            showErrorAlert("Las fechas no pueden ser posteriores a la fecha del evento.");
+            showErrorAlert('Las fechas no pueden ser posteriores a la fecha del evento.');
             return false;
           }
         }
       }
     } catch (err) {
-      console.warn("No se pudo validar contra la fecha del evento.", err);
+      console.warn('No se pudo validar contra la fecha del evento.', err);
     }
 
     return true;
   };
-
 
   //Crear tarea de un evento
   const handleCreate = async () => {
@@ -181,7 +163,7 @@ export default function TaskFormModal({
     today.setHours(0, 0, 0, 0);
 
     if (!form.dueDate) {
-      showErrorAlert("Debes ingresar una fecha límite para la tarea.");
+      showErrorAlert('Debes ingresar una fecha límite para la tarea.');
       return;
     }
 
@@ -189,7 +171,7 @@ export default function TaskFormModal({
     dueDate.setHours(0, 0, 0, 0);
 
     if (dueDate < today) {
-      showErrorAlert("La fecha límite no puede ser anterior a hoy.");
+      showErrorAlert('La fecha límite no puede ser anterior a hoy.');
       return;
     }
 
@@ -198,12 +180,12 @@ export default function TaskFormModal({
       reminderDate.setHours(0, 0, 0, 0);
 
       if (reminderDate < today) {
-        showErrorAlert("La fecha de recordatorio no puede ser anterior a hoy.");
+        showErrorAlert('La fecha de recordatorio no puede ser anterior a hoy.');
         return;
       }
 
       if (reminderDate > dueDate) {
-        showErrorAlert("La fecha de recordatorio no puede ser posterior a la fecha límite.");
+        showErrorAlert('La fecha de recordatorio no puede ser posterior a la fecha límite.');
         return;
       }
     }
@@ -220,7 +202,7 @@ export default function TaskFormModal({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'token': token as string,
+          token: token as string,
         },
         body: JSON.stringify(payload),
       });
@@ -241,30 +223,29 @@ export default function TaskFormModal({
 
   //Eliminar tarea de un evento
   const handleDeleteConfirmed = async () => {
-      if (!eventId || !initialData || !token) return;
+    if (!eventId || !initialData || !token) return;
 
-      try {
-        const res = await fetch(`/api/event/${eventId}/task/${initialData.id}`, {
-          method: 'DELETE',
-          headers: { 'token': token as string, },
+    try {
+      const res = await fetch(`/api/event/${eventId}/task/${initialData.id}`, {
+        method: 'DELETE',
+        headers: { token: token as string },
+      });
 
-        });
+      const data = await res.json();
 
-        const data = await res.json();
-
-        if (data.message.code === '000') {
-          showSucessAlert(`La tarea "${initialData.name}" fue eliminada exitosamente.`);
-          onRefresh?.();
-          onClose();
-        } else {
-          showErrorAlert(data.message.description || 'No se pudo eliminar la tarea.');
-        }
-      } catch {
-        showErrorAlert('Ocurrió un error interno al eliminar la tarea.');
-      } finally {
-        setConfirmOpen(false);
+      if (data.message.code === '000') {
+        showSucessAlert(`La tarea "${initialData.name}" fue eliminada exitosamente.`);
+        onRefresh?.();
+        onClose();
+      } else {
+        showErrorAlert(data.message.description || 'No se pudo eliminar la tarea.');
       }
-    };
+    } catch {
+      showErrorAlert('Ocurrió un error interno al eliminar la tarea.');
+    } finally {
+      setConfirmOpen(false);
+    }
+  };
 
   //Finalizar tarea de un evento
   const handleFinalize = async () => {
@@ -272,31 +253,30 @@ export default function TaskFormModal({
 
     const payload = { status: 'finalized' };
 
+    setLoadingFinalize(true);
     try {
-      const res = await fetch(
-        `/api/event/${eventId}/task/${initialData.id}/finalize`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            token: token as string,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      const res = await fetch(`/api/event/${eventId}/task/${initialData.id}/finalize`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          token: token as string,
+        },
+        body: JSON.stringify(payload),
+      });
 
       const data = await res.json();
 
       if (data.message.code === '000') {
-        showSucessAlert(
-          `La tarea "${initialData.name}" fue finalizada exitosamente.`
-        );
+        showSucessAlert(`La tarea "${initialData.name}" fue finalizada exitosamente.`);
+        handleMenuClose();
         onRefresh?.();
         onClose();
       } else {
         showErrorAlert(data.message.description || 'No se pudo finalizar la tarea.');
       }
+      setLoadingFinalize(false);
     } catch (err) {
+      setLoadingFinalize(false);
       console.error('Error al finalizar tarea:', err);
       showErrorAlert('Ocurrió un error interno al finalizar la tarea.');
     }
@@ -312,7 +292,7 @@ export default function TaskFormModal({
     today.setHours(0, 0, 0, 0);
 
     if (!form.dueDate) {
-      showErrorAlert("Debes ingresar una fecha límite para la tarea.");
+      showErrorAlert('Debes ingresar una fecha límite para la tarea.');
       return;
     }
 
@@ -320,7 +300,7 @@ export default function TaskFormModal({
     dueDate.setHours(0, 0, 0, 0);
 
     if (dueDate < today) {
-      showErrorAlert("La fecha límite no puede ser anterior a hoy.");
+      showErrorAlert('La fecha límite no puede ser anterior a hoy.');
       return;
     }
 
@@ -329,12 +309,12 @@ export default function TaskFormModal({
       reminderDate.setHours(0, 0, 0, 0);
 
       if (reminderDate < today) {
-        showErrorAlert("La fecha de recordatorio no puede ser anterior a hoy.");
+        showErrorAlert('La fecha de recordatorio no puede ser anterior a hoy.');
         return;
       }
 
       if (reminderDate > dueDate) {
-        showErrorAlert("La fecha de recordatorio no puede ser posterior a la fecha límite.");
+        showErrorAlert('La fecha de recordatorio no puede ser posterior a la fecha límite.');
         return;
       }
     }
@@ -351,7 +331,7 @@ export default function TaskFormModal({
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'token': token as string,
+          token: token as string,
         },
         body: JSON.stringify(updatePayload),
       });
@@ -375,19 +355,16 @@ export default function TaskFormModal({
 
     try {
       const res = await fetch(`/api/event/${eventId}`, {
-        headers: { 'token': token as string },
+        headers: { token: token as string },
       });
       const data: EventResponse = await res.json();
 
-      if (data?.message?.code !== "000" || !data.data?.services) {
-        throw new Error("No se pudieron obtener los servicios del evento");
+      if (data?.message?.code !== '000' || !data.data?.services) {
+        throw new Error('No se pudieron obtener los servicios del evento');
       }
 
       const providersWithNames = data.data.services
-        .filter(
-          (s: EventService) =>
-            !!s.quote?.providerId && !!s.serviceTypeName,
-        )
+        .filter((s: EventService) => !!s.quote?.providerId && !!s.serviceTypeName)
         .map((s: EventService) => ({
           id: s.quote!.providerId,
           name: s.serviceTypeName,
@@ -395,71 +372,75 @@ export default function TaskFormModal({
 
       setProviders(providersWithNames);
     } catch (error) {
-      console.error("Error cargando proveedores:", error);
-      showErrorAlert("No se pudieron obtener los proveedores del evento.");
+      console.error('Error cargando proveedores:', error);
+      showErrorAlert('No se pudieron obtener los proveedores del evento.');
     }
   };
 
   const handleAssignProvider = async () => {
-    if (!eventId || !initialData || !selectedProvider || !token) return;
+    setSubmitError(null);
+    if (!eventId || !initialData || !token) return;
+    if (!selectedProvider) {
+      setSubmitError('Debes seleccionar algún proveedor para asignar.');
+      return;
+    }
 
+    setLoadingAsignando(true);
     try {
-      const res = await fetch(
-        `/api/event/${eventId}/task/${initialData.id}/assign-provider/${selectedProvider}`,
-        {
-          method: "PATCH",
-          headers: {
-            'token': token as string,
-          },
-        }
-      );
+      const res = await fetch(`/api/event/${eventId}/task/${initialData.id}/assign-provider/${selectedProvider}`, {
+        method: 'PATCH',
+        headers: {
+          token: token as string,
+        },
+      });
 
       const data = await res.json();
 
-      if (data.message?.code === "000") {
-        showSucessAlert("Proveedor asignado correctamente.");
+      if (data.message?.code === '000') {
+        showSucessAlert('Proveedor asignado correctamente.');
         onRefresh?.();
         setAssignOpen(false);
         onClose();
       } else {
-        showErrorAlert(
-          data.message?.description || "No se pudo asignar el proveedor."
-        );
+        showErrorAlert(data.message?.description || 'No se pudo asignar el proveedor.');
       }
+      setLoadingAsignando(false);
     } catch (err) {
-      console.error("Error al asignar proveedor:", err);
-      showErrorAlert("Ocurrió un error interno al asignar el proveedor.");
+      setLoadingAsignando(false);
+      console.error('Error al asignar proveedor:', err);
+      showErrorAlert('Ocurrió un error interno al asignar el proveedor.');
     }
   };
 
   const handleUnassignProvider = async () => {
     if (!eventId || !initialData || !token) return;
 
+    setLoadingDesasignando(true);
     try {
-      const res = await fetch(
-        `/api/event/${eventId}/task/${initialData.id}/unassign-provider`,
-        {
-          method: "PATCH",
-          headers: {
-            'token': token as string,
-          },
-        }
-      );
+      const res = await fetch(`/api/event/${eventId}/task/${initialData.id}/unassign-provider`, {
+        method: 'PATCH',
+        headers: {
+          token: token as string,
+        },
+      });
 
       const data = await res.json();
 
-      if (data.message?.code === "000") {
-        showSucessAlert("Proveedor desasignado correctamente.");
+      if (data.message?.code === '000') {
+        showSucessAlert('Proveedor desasignado correctamente.');
+        handleMenuClose();
         onRefresh?.();
         onClose();
       } else {
-        showErrorAlert(
-          data.message?.description || "No se pudo desasignar el proveedor."
-        );
+        showErrorAlert(data.message?.description || 'No se pudo desasignar el proveedor.');
       }
+    setLoadingDesasignando(false);
+
     } catch (err) {
-      console.error("Error al desasignar proveedor:", err);
-      showErrorAlert("Ocurrió un error interno al desasignar el proveedor.");
+    setLoadingDesasignando(false);
+
+      console.error('Error al desasignar proveedor:', err);
+      showErrorAlert('Ocurrió un error interno al desasignar el proveedor.');
     }
   };
 
@@ -469,48 +450,33 @@ export default function TaskFormModal({
   return (
     <>
       {/* Modal principal */}
-      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <Dialog open={open} onClose={onClose} maxWidth='sm' fullWidth>
         <DialogTitle
           sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}
         >
           {initialData ? 'Detalle de tarea' : 'Crear tarea'}
           {/* Ícono más pequeño y elegante */}
+          {/* buenisima david  */}
           {initialData && !isCompleted && (
-            <IconButton size="small" onClick={handleMenuOpen}>
+            <IconButton size='small' onClick={handleMenuOpen}>
               <MoreVertIcon />
             </IconButton>
           )}
         </DialogTitle>
 
         <DialogContent dividers>
+          <TextField margin='normal' fullWidth label='Nombre' name='name' value={form.name || ''} onChange={handleChange} InputProps={{ readOnly: isCompleted }} />
+          <TextField margin='normal' fullWidth label='Descripción' name='description' value={form.description || ''} onChange={handleChange} InputProps={{ readOnly: isCompleted }} />
           <TextField
-            margin="normal"
+            margin='normal'
             fullWidth
-            label="Nombre"
-            name="name"
-            value={form.name || ''}
-            onChange={handleChange}
-            InputProps={{ readOnly: isCompleted }}
-          />
-          <TextField
-            margin="normal"
-            fullWidth
-            label="Descripción"
-            name="description"
-            value={form.description || ''}
-            onChange={handleChange}
-            InputProps={{ readOnly: isCompleted }}
-          />
-          <TextField
-            margin="normal"
-            fullWidth
-            type="date"
-            label="Fecha límite"
-            name="dueDate"
+            type='date'
+            label='Fecha límite'
+            name='dueDate'
             value={form.dueDate?.split('T')[0] || ''}
             onChange={handleChange}
             InputLabelProps={{ shrink: true }}
@@ -520,11 +486,11 @@ export default function TaskFormModal({
             }}
           />
           <TextField
-            margin="normal"
+            margin='normal'
             fullWidth
-            type="date"
-            label="Fecha de recordatorio"
-            name="reminderDate"
+            type='date'
+            label='Fecha de recordatorio'
+            name='reminderDate'
             value={form.reminderDate?.split('T')[0] || ''}
             onChange={handleChange}
             InputLabelProps={{ shrink: true }}
@@ -533,26 +499,20 @@ export default function TaskFormModal({
               min: new Date().toISOString().split('T')[0],
             }}
           />
-          <TextField
-            margin="normal"
-            fullWidth
-            label="Proveedor"
-            value={providerName}
-            InputProps={{ readOnly: true }}
-          />
+          <TextField margin='normal' fullWidth label='Proveedor' value={providerName} InputProps={{ readOnly: true }} />
         </DialogContent>
 
         <DialogActions
           sx={{
-            justifyContent: "space-between",
+            justifyContent: 'space-between',
             px: 3,
             py: 1.5,
-            borderTop: "1px solid #e0e0e0",
+            borderTop: '1px solid #e0e0e0',
           }}
         >
           {!initialData ? (
             <>
-              <Button variant="contained" color="primary" onClick={handleCreate}>
+              <Button variant='contained' color='primary' onClick={handleCreate}>
                 Guardar
               </Button>
               <Button onClick={onClose}>Cerrar</Button>
@@ -561,12 +521,7 @@ export default function TaskFormModal({
             <>
               {/* si la tarea no esta finalizada que se muestren los botones */}
               {!isCompleted && (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleUpdate}
-                  sx={{ borderRadius: 2 }}
-                >
+                <Button variant='contained' color='primary' onClick={handleUpdate} sx={{ borderRadius: 2 }}>
                   Modificar
                 </Button>
               )}
@@ -593,10 +548,11 @@ export default function TaskFormModal({
         <MenuItem
           onClick={() => {
             handleFinalize();
-            handleMenuClose();
           }}
+          disabled={loadingFinalize}
         >
           Finalizar
+          {loadingFinalize && <CircularProgress size="15px" className="ml-2" />}
         </MenuItem>
 
         {!initialData?.associatedProviderId && (
@@ -604,6 +560,7 @@ export default function TaskFormModal({
             onClick={() => {
               fetchProvidersFromEvent();
               setAssignOpen(true);
+              setSubmitError(null);
               handleMenuClose();
             }}
           >
@@ -614,17 +571,18 @@ export default function TaskFormModal({
         {initialData?.associatedProviderId && (
           <MenuItem
             onClick={() => {
-              handleUnassignProvider();
-              handleMenuClose();
+              handleUnassignProvider(); 
             }}
+            disabled={loadingDesasignando}
           >
             Desasignar proveedor
+            {loadingDesasignando && <CircularProgress size="15px" className="ml-2" />}
           </MenuItem>
         )}
 
         <Divider />
         <MenuItem
-          sx={{ color: "error.main" }}
+          sx={{ color: 'error.main' }}
           onClick={() => {
             setConfirmOpen(true);
             handleMenuClose();
@@ -635,41 +593,24 @@ export default function TaskFormModal({
       </Menu>
 
       {/* Modal de confirmación */}
-      <Dialog
-        open={confirmOpen}
-        onClose={() => setConfirmOpen(false)}
-        maxWidth="xs"
-      >
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth='xs'>
         <DialogTitle>Confirmar eliminación</DialogTitle>
-        <DialogContent dividers>
-          {'¿Estás seguro de eliminar la tarea "' + initialData?.name + '"?'}
-        </DialogContent>
+        <DialogContent dividers>{'¿Estás seguro de eliminar la tarea "' + initialData?.name + '"?'}</DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmOpen(false)}>Cancelar</Button>
-          <Button color="error" onClick={handleDeleteConfirmed}>
+          <Button color='error' onClick={handleDeleteConfirmed}>
             Eliminar
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Modal para asignar proveedor */}
-      <Dialog
-        open={assignOpen}
-        onClose={() => setAssignOpen(false)}
-        maxWidth="xs"
-        fullWidth
-      >
+      <Dialog open={assignOpen} onClose={() => setAssignOpen(false)} maxWidth='xs' fullWidth>
         <DialogTitle>Asignar proveedor</DialogTitle>
         <DialogContent dividers>
-          <FormControl fullWidth>
+          <FormControl fullWidth sx={{marginBottom: 1}}>
             <InputLabel>Proveedor</InputLabel>
-            <Select
-              value={selectedProvider}
-              label="Proveedor"
-              onChange={(e) =>
-                setSelectedProvider(e.target.value as string)
-              }
-            >
+            <Select value={selectedProvider} label='Proveedor' onChange={(e) => setSelectedProvider(e.target.value as string)}>
               {providers.map((p) => (
                 <MenuItem key={p.id} value={p.id}>
                   {p.name}
@@ -677,11 +618,17 @@ export default function TaskFormModal({
               ))}
             </Select>
           </FormControl>
+          {submitError && (
+            <Typography color='error' fontSize={14} textAlign='center'>
+              {submitError}
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setAssignOpen(false)}>Cancelar</Button>
-          <Button color="primary" onClick={handleAssignProvider}>
+          <Button color='primary' onClick={handleAssignProvider} disabled={loadingAsignando}>
             Asignar
+            {loadingAsignando && <CircularProgress size="15px" className="ml-2" color='secondary'/>}
           </Button>
         </DialogActions>
       </Dialog>

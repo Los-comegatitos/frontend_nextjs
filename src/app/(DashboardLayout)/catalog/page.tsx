@@ -269,7 +269,7 @@ export default function CatalogPage() {
               </Select>
               <TextField label='Nombre' name='name' defaultValue={selectedService.name} required />
               <TextField label='Descripción' name='description' defaultValue={selectedService.description} required />
-              <TextField label='Cantidad' name='quantity' type='number' defaultValue={selectedService.quantity ?? ''} />
+              <TextField label='Cantidad' name='quantity' type='number' defaultValue={selectedService.quantity ?? ''} inputProps={{ min: 1 }}/>
 
               {/* btn organizados cancelar a la izquierda acciones a la derecha */}
               <Box display='flex' justifyContent='space-between' alignItems='center' mt={2}>
