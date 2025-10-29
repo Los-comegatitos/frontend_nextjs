@@ -94,6 +94,15 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
     return new Date(date.getTime() - tzOffset).toISOString().slice(0, 19);
   };
 
+  // nueva funcion para mostrar correctamente la fecha y hora guardada en hora local
+  const toDatetimeLocal = (dateString?: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - offset * 60000);
+    return localDate.toISOString().slice(0, 16);
+  };
+
   const validateDates = async (dueDateStr?: string): Promise<boolean> => {
     const now = new Date();
 
@@ -306,32 +315,17 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
                 type="datetime-local"
                 label="Fecha límite para cotizaciones"
                 name="dueDate"
-                defaultValue={selectedService.dueDate ? new Date(selectedService.dueDate).toISOString().slice(0,16) : ''}
+                defaultValue={toDatetimeLocal(selectedService.dueDate)}
                 InputLabelProps={{ shrink: true }}
                 required
               />
 
-              <Box display="flex" justifyContent="center" gap={2}>
-                {modalMode === 'modify' && (
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={() => handleDelete(selectedService.name)}
-                    disabled={loading}
-                  >
-                    Eliminar
-                  </Button>
-                )}
-                <Button variant="contained" type="submit" disabled={
-                  loading ||
-                  event.status === 'canceled' ||
-                  event.status === 'finalized'}>
-                  {modalMode === 'add' ? 'Agregar' : 'Modificar'}
-                  {loading && <CircularProgress size="15px" className="ml-2" />}
-                </Button>
+              {/* botones ordenados cancelar a la izquierda, acciones a la derecha */}
+              <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
                 <Button onClick={handleClose} color="secondary" disabled={loading}>
                   Cancelar
                 </Button>
+
                 <Box display="flex" gap={2}>
                   {modalMode === 'modify' && (
                     <Button
@@ -343,7 +337,15 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
                       Eliminar
                     </Button>
                   )}
-                  <Button variant="contained" type="submit" disabled={loading}>
+                  <Button
+                    variant="contained"
+                    type="submit"
+                    disabled={
+                      loading ||
+                      event.status === 'canceled' ||
+                      event.status === 'finalized'
+                    }
+                  >
                     {modalMode === 'add' ? 'Agregar' : 'Modificar'}
                     {loading && <CircularProgress size="15px" className="ml-2" />}
                   </Button>

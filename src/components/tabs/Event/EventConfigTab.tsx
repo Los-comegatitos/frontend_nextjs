@@ -139,6 +139,12 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
       return;
     }
 
+    if (!formValues.description.trim()) {
+      showErrorAlert('La descripción del evento no puede estar vacía.');
+      setLoading(false);
+      return;
+    }
+
     const payload: Partial<Event> = {
       name: formValues.name,
       description: formValues.description,
@@ -233,6 +239,7 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
               label="Descripción"
               value={formValues.description}
               onChange={(e) => setFormValues({ ...formValues, description: e.target.value })}
+              required
             />
 
             <LocalizationProvider dateAdapter={AdapterDayjs}>
