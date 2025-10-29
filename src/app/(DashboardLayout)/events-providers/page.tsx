@@ -111,13 +111,24 @@ const EventsProvidersPage = () => {
       return;
     }
 
-    if (quoteService.quantity != null && parseInt(quantity) > quoteService.quantity) {
-      setSubmitError('Cantidad supera la disponible en tu catálogo');
+    const priceValue = parseFloat(price);
+    const quantityValue = parseInt(quantity);
+
+    if (isNaN(priceValue) || priceValue <= 0) {
+      setSubmitError('El precio debe ser un número mayor que 0');
       return;
-    } else if (quoteService.quantity != null && quantity == '') {
-      setSubmitError('Ingresa cantidad para este servicio');
-      return;
-    } else if (quoteService.quantity == null && quantity !== '') {
+    }
+
+    if (quoteService.quantity != null) {
+      if (isNaN(quantityValue) || quantityValue <= 0) {
+        setSubmitError('La cantidad debe ser un número mayor que 0');
+        return;
+      }
+      if (quantityValue > quoteService.quantity) {
+        setSubmitError('La cantidad supera la disponible en tu catálogo');
+        return;
+      }
+    } else if (quantity !== '') {
       setSubmitError('Este servicio no permite cantidades');
       return;
     }
@@ -137,7 +148,9 @@ const EventsProvidersPage = () => {
     try {
       setLoading(true);
       const res = await fetch(`/api/quote`, {
-        headers: { token: token as string },
+        headers: { 
+          'Content-Type': 'application/json',
+          token: token as string },
         method: 'POST',
         body: JSON.stringify(quote),
       });
@@ -254,7 +267,10 @@ const EventsProvidersPage = () => {
           {activeStep === 0 && (
             <Box display='flex' flexDirection='column' gap={2}>
               <Typography>Selecciona servicio a enviar cotización:</Typography>
-              <Select value={selectedSendService} onChange={(e) => setSelectedSendService(e.target.value)}>
+              <Select
+                value={selectedSendService}
+                onChange={(e) => setSelectedSendService(e.target.value)}
+              >
                 {selectedEvent?.services.map((s) => (
                   <MenuItem key={s.name} value={s.name}>
                     {s.name}
@@ -262,19 +278,32 @@ const EventsProvidersPage = () => {
                 ))}
               </Select>
 
-              {selectedSendService && (
-                <Box>
-                  <Typography variant='body2' color='text.secondary'>
-                    Descripción del servicio: {selectedEvent?.services.find((s) => s.name === selectedSendService)?.description}
-                  </Typography>
-                  <Typography variant='body2' color='text.secondary'>
-                    Cantidad requerida: {selectedEvent?.services.find((s) => s.name === selectedSendService)?.quantity}
-                  </Typography>
-                  <Typography variant='body2' color='text.secondary'>
-                    Hasta que fecha recibe cotizaciones: {showDate(selectedEvent?.services.find((s) => s.name === selectedSendService)?.dueDate as string)}
-                  </Typography>
-                </Box>
-              )}
+              {selectedSendService && (() => {
+                const selectedService = selectedEvent?.services.find(
+                  (s) => s.name === selectedSendService
+                );
+                const isExpired =
+                  selectedService?.dueDate && new Date(selectedService.dueDate) < new Date();
+
+                return (
+                  <Box>
+                    <Typography variant='body2' color='text.secondary'>
+                      Descripción del servicio: {selectedService?.description}
+                    </Typography>
+                    <Typography variant='body2' color='text.secondary'>
+                      Cantidad requerida: {selectedService?.quantity}
+                    </Typography>
+                    <Typography
+                      variant='body2'
+                      sx={{ color: isExpired ? 'error.main' : 'text.secondary' }}
+                    >
+                      Hasta qué fecha recibe cotizaciones:{' '}
+                      {showDate(selectedService?.dueDate as string)}
+                      {isExpired && ' (vencida)'}
+                    </Typography>
+                  </Box>
+                );
+              })()}
 
               <Box display='flex' justifyContent='flex-end' gap={2} mt={2}>
                 <Button
@@ -284,6 +313,24 @@ const EventsProvidersPage = () => {
                       setSubmitError('Selecciona un servicio antes de continuar');
                       return;
                     }
+
+                    const selectedSendServiceObject = selectedEvent?.services.find(
+                      (s) => s.name === selectedSendService
+                    );
+
+                    if (!selectedSendServiceObject) {
+                      setSubmitError('Servicio no encontrado');
+                      return;
+                    }
+
+                    const dueDate = selectedSendServiceObject.dueDate;
+                    if (dueDate && new Date(dueDate) < new Date()) {
+                      setSubmitError(
+                        'La fecha límite para enviar cotizaciones ha pasado'
+                      );
+                      return;
+                    }
+
                     setSubmitError(null);
                     setActiveStep(1);
                   }}
@@ -299,7 +346,7 @@ const EventsProvidersPage = () => {
               )}
             </Box>
           )}
-
+          
           {/* Paso 2 */}
           {activeStep === 1 && (
             <Box display='flex' flexDirection='column' gap={2}>
