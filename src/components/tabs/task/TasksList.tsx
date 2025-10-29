@@ -138,8 +138,8 @@ export default function TaskList({ tasks, onAdd, onView, onComment }: Props) {
             <TableRow>
               <TableCell>Nombre</TableCell>
               <TableCell>Descripción</TableCell>
-              <TableCell>Fecha límite</TableCell>
               <TableCell>Estado</TableCell>
+              <TableCell>Fecha límite</TableCell>
               <TableCell align='center'>Acciones</TableCell>
             </TableRow>
           </TableHead>

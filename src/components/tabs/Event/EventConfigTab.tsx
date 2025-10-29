@@ -139,8 +139,6 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
       return;
     }
 
-
-
     const payload: Partial<Event> = {
       name: formValues.name,
       description: formValues.description,
@@ -179,20 +177,36 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
     }
   };
 
-
-  
   return (
     <Stack>
       <Box display="flex" justifyContent="center" gap={4}>
-        <Button variant="outlined" color="primary" onClick={() => setOpenModal(true)} disabled={loading || event.status !== 'in progress'}>
+        {/* boton de Modificar evento - Deshabilitado si ya está finalizado o cancelado */}
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => setOpenModal(true)}
+          disabled={loading || event.status === 'finalized' || event.status === 'canceled'}
+        >
           Modificar evento
         </Button>
 
-        <Button variant="contained" color="success" onClick={() => handleAction('finalize')} disabled={loading || event.status !== 'in progress'}>
+        {/* boton de Finalizar evento - deshabilitado si ya esta finalizado o cancelado un evento*/}
+        <Button
+          variant="contained"
+          color="success"
+          onClick={() => handleAction('finalize')}
+          disabled={loading || event.status === 'finalized' || event.status === 'canceled'}
+        >
           Finalizar evento
         </Button>
 
-        <Button variant="contained" color="error" onClick={() => handleAction('cancel')} disabled={loading || event.status !== 'in progress'}>
+        {/* boton de Cancelar evento - deshabilitado si ya esta finalizado o cancelado el evento */}
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => handleAction('cancel')}
+          disabled={loading || event.status === 'finalized' || event.status === 'canceled'}
+        >
           Cancelar evento
         </Button>
       </Box>
@@ -201,7 +215,14 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
       <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Modificar Evento</DialogTitle>
         <DialogContent dividers>
-          <Box component="form" onSubmit={handleModify} display="flex" flexDirection="column" gap={2} mt={1}>
+          <Box
+            component="form"
+            onSubmit={handleModify}
+            display="flex"
+            flexDirection="column"
+            gap={2}
+            mt={1}
+          >
             <TextField
               label="Nombre"
               value={formValues.name}
@@ -265,7 +286,12 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
                 setFormValues(
                   formValues.clientTypeId === ''
                     ? { ...formValues, clientTypeId: e.target.value }
-                    : { ...formValues, clientTypeId: e.target.value, clientDescription: '', clientName: '' }
+                    : {
+                        ...formValues,
+                        clientTypeId: e.target.value,
+                        clientDescription: '',
+                        clientName: '',
+                      }
                 )
               }
             >
@@ -289,7 +315,9 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
             <TextField
               label="Descripción del cliente"
               value={formValues.clientDescription}
-              onChange={(e) => setFormValues({ ...formValues, clientDescription: e.target.value })}
+              onChange={(e) =>
+                setFormValues({ ...formValues, clientDescription: e.target.value })
+              }
               required={formValues.clientTypeId !== ''}
               disabled={formValues.clientTypeId === ''}
             />
