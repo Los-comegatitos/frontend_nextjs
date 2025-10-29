@@ -87,6 +87,49 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
     setOpenModal(true);
   };
 
+  // funciones de conversion de fechas para datetime-local
+  const toLocalISOString = (value: string) => {
+    const date = new Date(value);
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 19);
+  };
+
+  const validateDates = async (dueDateStr?: string): Promise<boolean> => {
+    const now = new Date();
+
+    if (!dueDateStr) {
+      showErrorAlert('La fecha límite para cotizaciones no puede estar vacía.');
+      return false;
+    }
+
+    const dueDate = new Date(dueDateStr);
+
+    if (isNaN(dueDate.getTime())) {
+      showErrorAlert('La fecha límite no es válida.');
+      return false;
+    }
+
+    if (dueDate < now) {
+      showErrorAlert('La fecha límite no puede ser anterior al momento actual.');
+      return false;
+    }
+
+    // Validar que la fecha no sea posterior a la fecha del evento
+    try {
+      if (event.eventDate) {
+        const eventDate = new Date(event.eventDate);
+        if (dueDate > eventDate) {
+          showErrorAlert('La fecha límite no puede ser posterior a la fecha del evento.');
+          return false;
+        }
+      }
+    } catch (err) {
+      console.warn('No se pudo validar contra la fecha del evento.', err);
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (eventReact: React.FormEvent<HTMLFormElement>) => {
     eventReact.preventDefault();
     setLoading(true);
@@ -98,6 +141,10 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
 
     const dueDate = formData.get('dueDate') as string;
 
+    if (!(await validateDates(dueDate))) {
+      setLoading(false);
+      return;
+    }
     const quantityValue = formData.get('quantity') === '' ? null : Number(formData.get('quantity'));
 
     if (quantityValue !== null && quantityValue < 0) {
@@ -128,10 +175,11 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
       serviceTypeId: selectedId,
       serviceTypeName: selectedType?.name ?? '',
       name: formData.get('name') as string,
-      dueDate: formData.get('dueDate') as string,
+      dueDate: toLocalISOString(dueDate),
       description: formData.get('description') as string,
       quantity: quantityValue,
     };
+
     try {
       let url = `/api/event/${event.eventId}/services`;
       let method = 'POST';
@@ -255,12 +303,11 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
               <TextField label="Cantidad" name="quantity" type="number" defaultValue={selectedService.quantity ?? ''} />
 
               <TextField
-                type="date"
+                type="datetime-local"
                 label="Fecha límite para cotizaciones"
                 name="dueDate"
-                defaultValue={selectedService.dueDate?.split('T')[0]}
+                defaultValue={selectedService.dueDate ? new Date(selectedService.dueDate).toISOString().slice(0,16) : ''}
                 InputLabelProps={{ shrink: true }}
-                inputProps={{ min: new Date().toISOString().split('T')[0] }}
                 required
               />
 
@@ -285,6 +332,22 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
                 <Button onClick={handleClose} color="secondary" disabled={loading}>
                   Cancelar
                 </Button>
+                <Box display="flex" gap={2}>
+                  {modalMode === 'modify' && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => handleDelete(selectedService.name)}
+                      disabled={loading}
+                    >
+                      Eliminar
+                    </Button>
+                  )}
+                  <Button variant="contained" type="submit" disabled={loading}>
+                    {modalMode === 'add' ? 'Agregar' : 'Modificar'}
+                    {loading && <CircularProgress size="15px" className="ml-2" />}
+                  </Button>
+                </Box>
               </Box>
             </Box>
           )}

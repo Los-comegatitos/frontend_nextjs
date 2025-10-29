@@ -24,6 +24,9 @@ const UsersPage = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [search, setSearch] = useState('');
 
+  // validacion de contraseña
+  const [password, setPassword] = useState('');
+
   // fetch client types (to table)
   const fetchClientTypes = React.useCallback(async () => {
     if (!token) return;
@@ -69,6 +72,7 @@ const UsersPage = () => {
   const handleAdd = () => {
     setUser({ id: 0, firstName: '', lastName: '', email: '', typeuser: {id:1, name:'', description: ''} });
     setModalMode('add');
+    setPassword('');
     setOpenModal(true);
   };
 
@@ -122,6 +126,7 @@ const UsersPage = () => {
   const handleRowClick = (user: User) => {
     setUser(user);
     setModalMode('modify');
+    setPassword('');
     setOpenModal(true);
   };
 
@@ -207,11 +212,24 @@ const UsersPage = () => {
               {modalMode === 'modify' && <TextField label='Telefono' name='telephone' defaultValue={user?.telephone} slotProps={{ input: { readOnly: true } }} />}
               {modalMode === 'modify' && <TextField label='Fecha de nacimiento' name='birthDate' defaultValue={user?.birthDate} slotProps={{ input: { readOnly: true } }} />}
               <TextField label='Email' name='email' defaultValue={user.email} required slotProps={{ input: { readOnly: modalMode === 'modify' } }}/>
-              <TextField label={modalMode === 'modify' ? 'Nueva contraseña' : 'Contraseña'} name='password' required />
+              
+              <TextField 
+                label={modalMode === 'modify' ? 'Nueva contraseña' : 'Contraseña'} 
+                name='password' 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                error={password.length > 0 && password.length < 8}
+                helperText={password.length > 0 && password.length < 8 ? 'Debe tener al menos 8 caracteres' : ''}
+              />
 
               <Box display='flex' justifyContent='center' gap={2}>
-
-                <Button variant='contained' type='submit' color='primary' disabled={loading}>
+                <Button 
+                  variant='contained' 
+                  type='submit' 
+                  color='primary' 
+                  disabled={loading || password.length < 8}
+                >
                   {modalMode === 'add' ? 'Registrar administrador' : 'Cambiar contraseña'}
                   {loading && <CircularProgress size='15px' className={'ml-2'} />}
                 </Button>

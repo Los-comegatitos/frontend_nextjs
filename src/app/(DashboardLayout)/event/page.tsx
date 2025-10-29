@@ -326,18 +326,18 @@ const EventsPage = () => {
               <TextField label='Descripción' value={eventData.description} onChange={(e) => setEventData({ ...eventData, description: e.target.value })} />
               <Box display='flex' justifyContent='flex-end' gap={2} mt={2}>
                 <Button
-                  variant='contained'
-                  onClick={() => {
-                    if (!eventData.name.trim()) {
-                      setSubmitError('Por favor completa los campos obligatorios');
-                      return;
-                    }
-                    setSubmitError(null);
-                    setActiveStep(1);
-                  }}
-                >
-                  Siguiente
-                </Button>
+                    variant='contained'
+                    onClick={() => {
+                      if (!eventData.name.trim() || !eventData.description.trim()) {
+                        setSubmitError('Por favor completa los campos obligatorios');
+                        return;
+                      }
+                      setSubmitError(null);
+                      setActiveStep(1);
+                    }}
+                  >
+                    Siguiente
+                  </Button>
               </Box>
               {submitError && (
                 <Typography color='error' fontSize={14} textAlign='center'>
