@@ -140,9 +140,7 @@ export default function TaskProvidersPage() {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            pb: 0,
-            backgroundColor: '#f5f5f5',
-            borderBottom: '1px solid #e0e0e0',
+            mb: 1,
           }}
         >
           <Typography fontSize={20} fontWeight={600}>

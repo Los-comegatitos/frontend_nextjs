@@ -88,6 +88,14 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
 
     const dueDate = formData.get('dueDate') as string;
 
+    const quantityValue = formData.get('quantity') === '' ? null : Number(formData.get('quantity'));
+
+    if (quantityValue !== null && quantityValue < 0) {
+      showErrorAlert('La cantidad no puede ser negativa.');
+      setLoading(false);
+      return;
+    }
+
     if (!dueDate) {
       showErrorAlert('Debe seleccionar una fecha límite para cotizaciones.');
       setLoading(false);
@@ -112,7 +120,7 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
       name: formData.get('name') as string,
       dueDate: formData.get('dueDate') as string,
       description: formData.get('description') as string,
-      quantity: formData.get('quantity') === '' ? null : Number(formData.get('quantity')),
+      quantity: quantityValue,
     };
     try {
       let url = `/api/event/${event.eventId}/services`;

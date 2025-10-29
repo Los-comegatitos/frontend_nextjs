@@ -14,6 +14,7 @@ import {
   Typography 
 } from '@mui/material';
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
+import { useRouter } from 'next/navigation';
 
 type Props = {
   token: string;
@@ -29,6 +30,7 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
   const [selectedProvider, setSelectedProvider] = useState<BackendProviderResponse | null>(null);
   const [rating, setRating] = useState<number | null>(0);
   const [hasScore, setHasScore] = useState(false);
+  const router = useRouter()
 
   useEffect(() => {
     async function fetchProviders() {
@@ -39,6 +41,8 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
         const data: { data: BackendProviderResponse[] } = await res.json();
 
         if (res.ok && data.data) {
+          console.log(data.data);
+          
           setProviders(data.data);
         }
       } catch (error) {
@@ -147,7 +151,7 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
     <>
       <ProviderList
         providers={providers}
-        onView={() => {}}
+        onView={(provider : BackendProviderResponse) => {router.push(`/catalog/${provider.providerId}`)}}
         onRate={handleRate}
       />
 
