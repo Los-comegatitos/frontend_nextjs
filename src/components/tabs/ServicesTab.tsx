@@ -67,6 +67,16 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
   };
 
   const handleAdd = () => {
+    if (event.status === 'canceled') {
+      showErrorAlert('No puedes agregar servicios en un evento cancelado.');
+      return;
+    }
+
+    if (event.status === 'finalized') {
+      showErrorAlert('No puedes agregar servicios en un evento finalizado.');
+      return;
+    }
+
     setSelectedService({
       serviceTypeId: '',
       name: '',
@@ -135,6 +145,31 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
       setLoading(false);
       return;
     }
+    const quantityValue = formData.get('quantity') === '' ? null : Number(formData.get('quantity'));
+
+    if (quantityValue !== null && quantityValue < 0) {
+      showErrorAlert('La cantidad no puede ser negativa.');
+      setLoading(false);
+      return;
+    }
+
+    if (!dueDate) {
+      showErrorAlert('Debe seleccionar una fecha límite para cotizaciones.');
+      setLoading(false);
+      return;
+    }
+
+    const today = new Date();
+    const selectedDate = new Date(dueDate);
+
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      showErrorAlert('La fecha límite no puede ser anterior al día de hoy.');
+      setLoading(false);
+      return;
+    }
 
     const payload = {
       serviceTypeId: selectedId,
@@ -142,7 +177,7 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
       name: formData.get('name') as string,
       dueDate: toLocalISOString(dueDate),
       description: formData.get('description') as string,
-      quantity: formData.get('quantity') === '' ? null : Number(formData.get('quantity')),
+      quantity: quantityValue,
     };
 
     try {
@@ -276,8 +311,24 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
                 required
               />
 
-              {/* btn ordenados cancelar a la izquierda, acciones principales a la derecha */}
-              <Box display="flex" justifyContent="space-between" mt={2}>
+              <Box display="flex" justifyContent="center" gap={2}>
+                {modalMode === 'modify' && (
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => handleDelete(selectedService.name)}
+                    disabled={loading}
+                  >
+                    Eliminar
+                  </Button>
+                )}
+                <Button variant="contained" type="submit" disabled={
+                  loading ||
+                  event.status === 'canceled' ||
+                  event.status === 'finalized'}>
+                  {modalMode === 'add' ? 'Agregar' : 'Modificar'}
+                  {loading && <CircularProgress size="15px" className="ml-2" />}
+                </Button>
                 <Button onClick={handleClose} color="secondary" disabled={loading}>
                   Cancelar
                 </Button>
