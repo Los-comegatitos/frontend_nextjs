@@ -184,15 +184,15 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
   return (
     <Stack>
       <Box display="flex" justifyContent="center" gap={4}>
-        <Button variant="outlined" color="primary" onClick={() => setOpenModal(true)} disabled={loading}>
+        <Button variant="outlined" color="primary" onClick={() => setOpenModal(true)} disabled={loading || event.status !== 'in progress'}>
           Modificar evento
         </Button>
 
-        <Button variant="contained" color="success" onClick={() => handleAction('finalize')} disabled={loading}>
+        <Button variant="contained" color="success" onClick={() => handleAction('finalize')} disabled={loading || event.status !== 'in progress'}>
           Finalizar evento
         </Button>
 
-        <Button variant="contained" color="error" onClick={() => handleAction('cancel')} disabled={loading}>
+        <Button variant="contained" color="error" onClick={() => handleAction('cancel')} disabled={loading || event.status !== 'in progress'}>
           Cancelar evento
         </Button>
       </Box>
