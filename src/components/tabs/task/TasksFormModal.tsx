@@ -34,7 +34,7 @@ interface EventService {
 
 interface EventResponse {
   message: { code: string; description: string };
-  data?: { services?: EventService[] };
+  data?: { services?: EventService[]; eventDate?: string };
 }
 
 export default function TaskFormModal({ open, onClose, initialData, eventId, onRefresh }: Props) {
@@ -49,7 +49,6 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
   const [loadingDesasignando, setLoadingDesasignando] = useState(false);
   const [loadingFinalize, setLoadingFinalize] = useState(false);
 
-
   const { token } = useAppContext();
 
   // opciones secundarias para no sobre cargar el modal :/
@@ -60,6 +59,26 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
   };
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  // funciones de conversion de fechas para datetime-local
+  const toInputDateTime = (value?: string) => {
+  if (!value) return '';
+  const date = new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+
+  const toLocalISOString = (value: string) => {
+    const date = new Date(value);
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 19);
   };
 
   //const isFinalized = initialData?.status === 'completed';
@@ -102,10 +121,9 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // validaciones para fechas no vacias y no anteriores a hoy
+  // validaciones para fechas no vacias, no anteriores a ahora y consistentes
   const validateDates = async (): Promise<boolean> => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
 
     if (!form.dueDate || !form.reminderDate) {
       showErrorAlert('Las fechas no pueden estar vacías.');
@@ -120,8 +138,8 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
       return false;
     }
 
-    if (dueDate < today || reminderDate < today) {
-      showErrorAlert('Las fechas no pueden ser anteriores a hoy.');
+    if (dueDate < now || reminderDate < now) {
+      showErrorAlert('Las fechas no pueden ser anteriores al momento actual.');
       return false;
     }
 
@@ -130,7 +148,7 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
       return false;
     }
 
-    // Validar que las fechas de recordatorio y límite no sean posteriores a la del evento
+    // Validar que las fechas no sean posteriores a la fecha del evento
     try {
       if (eventId && token) {
         const res = await fetch(`/api/event/${eventId}`, {
@@ -153,48 +171,17 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
     return true;
   };
 
-  //Crear tarea de un evento
+  // Crear tarea de un evento
   const handleCreate = async () => {
-    if (!validateDates()) return;
+    if (!await validateDates()) return;
 
     if (!eventId || !token) return;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (!form.dueDate) {
-      showErrorAlert('Debes ingresar una fecha límite para la tarea.');
-      return;
-    }
-
-    const dueDate = new Date(form.dueDate);
-    dueDate.setHours(0, 0, 0, 0);
-
-    if (dueDate < today) {
-      showErrorAlert('La fecha límite no puede ser anterior a hoy.');
-      return;
-    }
-
-    if (form.reminderDate) {
-      const reminderDate = new Date(form.reminderDate);
-      reminderDate.setHours(0, 0, 0, 0);
-
-      if (reminderDate < today) {
-        showErrorAlert('La fecha de recordatorio no puede ser anterior a hoy.');
-        return;
-      }
-
-      if (reminderDate > dueDate) {
-        showErrorAlert('La fecha de recordatorio no puede ser posterior a la fecha límite.');
-        return;
-      }
-    }
 
     const payload = {
       name: form.name,
       description: form.description,
-      dueDate: form.dueDate,
-      reminderDate: form.reminderDate,
+      dueDate: toLocalISOString(form.dueDate!),
+      reminderDate: toLocalISOString(form.reminderDate!),
     };
 
     try {
@@ -221,7 +208,7 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
     }
   };
 
-  //Eliminar tarea de un evento
+  // Eliminar tarea de un evento
   const handleDeleteConfirmed = async () => {
     if (!eventId || !initialData || !token) return;
 
@@ -247,7 +234,7 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
     }
   };
 
-  //Finalizar tarea de un evento
+  // Finalizar tarea de un evento
   const handleFinalize = async () => {
     if (!eventId || !initialData || !token) return;
 
@@ -284,46 +271,15 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
 
   // Modificar
   const handleUpdate = async () => {
-    if (!validateDates()) return;
+    if (!await validateDates()) return;
 
     if (!eventId || !initialData || !token) return;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (!form.dueDate) {
-      showErrorAlert('Debes ingresar una fecha límite para la tarea.');
-      return;
-    }
-
-    const dueDate = new Date(form.dueDate);
-    dueDate.setHours(0, 0, 0, 0);
-
-    if (dueDate < today) {
-      showErrorAlert('La fecha límite no puede ser anterior a hoy.');
-      return;
-    }
-
-    if (form.reminderDate) {
-      const reminderDate = new Date(form.reminderDate);
-      reminderDate.setHours(0, 0, 0, 0);
-
-      if (reminderDate < today) {
-        showErrorAlert('La fecha de recordatorio no puede ser anterior a hoy.');
-        return;
-      }
-
-      if (reminderDate > dueDate) {
-        showErrorAlert('La fecha de recordatorio no puede ser posterior a la fecha límite.');
-        return;
-      }
-    }
 
     const updatePayload = {
       name: form.name,
       description: form.description,
-      dueDate: form.dueDate,
-      reminderDate: form.reminderDate,
+      dueDate: toLocalISOString(form.dueDate!),
+      reminderDate: toLocalISOString(form.reminderDate!),
     };
 
     try {
@@ -434,11 +390,9 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
       } else {
         showErrorAlert(data.message?.description || 'No se pudo desasignar el proveedor.');
       }
-    setLoadingDesasignando(false);
-
+      setLoadingDesasignando(false);
     } catch (err) {
-    setLoadingDesasignando(false);
-
+      setLoadingDesasignando(false);
       console.error('Error al desasignar proveedor:', err);
       showErrorAlert('Ocurrió un error interno al desasignar el proveedor.');
     }
@@ -471,34 +425,32 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
         <DialogContent dividers>
           <TextField margin='normal' fullWidth label='Nombre' name='name' value={form.name || ''} onChange={handleChange} InputProps={{ readOnly: isCompleted }} />
           <TextField margin='normal' fullWidth label='Descripción' name='description' value={form.description || ''} onChange={handleChange} InputProps={{ readOnly: isCompleted }} />
+
+          {/* cambiado a datetime-local para permitir hora y fecha */}
           <TextField
             margin='normal'
             fullWidth
-            type='date'
+            type='datetime-local'
             label='Fecha límite'
             name='dueDate'
-            value={form.dueDate?.split('T')[0] || ''}
+            value={toInputDateTime(form.dueDate)}
             onChange={handleChange}
             InputLabelProps={{ shrink: true }}
             InputProps={{ readOnly: isCompleted }}
-            inputProps={{
-              min: new Date().toISOString().split('T')[0],
-            }}
           />
+
           <TextField
             margin='normal'
             fullWidth
-            type='date'
+            type='datetime-local'
             label='Fecha de recordatorio'
             name='reminderDate'
-            value={form.reminderDate?.split('T')[0] || ''}
+            value={toInputDateTime(form.reminderDate)}
             onChange={handleChange}
             InputLabelProps={{ shrink: true }}
             InputProps={{ readOnly: isCompleted }}
-            inputProps={{
-              min: new Date().toISOString().split('T')[0],
-            }}
           />
+
           <TextField margin='normal' fullWidth label='Proveedor' value={providerName} InputProps={{ readOnly: true }} />
         </DialogContent>
 
@@ -531,7 +483,7 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
         </DialogActions>
       </Dialog>
 
-      {/* Menú lateral elegante */}
+      {/* Menu lateral elegante */}
       <Menu
         anchorEl={anchorEl}
         open={openMenu}
