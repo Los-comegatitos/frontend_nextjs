@@ -185,7 +185,7 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
           variant="outlined"
           color="primary"
           onClick={() => setOpenModal(true)}
-          disabled={loading || event.status === 'finalized' || event.status === 'canceled'}
+          disabled={loading || event.status !== 'in progress'}
         >
           Modificar evento
         </Button>
@@ -195,7 +195,7 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
           variant="contained"
           color="success"
           onClick={() => handleAction('finalize')}
-          disabled={loading || event.status === 'finalized' || event.status === 'canceled'}
+          disabled={loading || event.status !== 'in progress'}
         >
           Finalizar evento
         </Button>
@@ -205,7 +205,7 @@ export default function EventConfigTab({ token, event, onRefresh }: EventConfigT
           variant="contained"
           color="error"
           onClick={() => handleAction('cancel')}
-          disabled={loading || event.status === 'finalized' || event.status === 'canceled'}
+          disabled={loading || event.status !== 'in progress'}
         >
           Cancelar evento
         </Button>

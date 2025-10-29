@@ -182,7 +182,7 @@ const ProfilePage = () => {
                     </Typography>
                     <Typography variant='h5'>{info ? userTypeMap[info.typeuser.name]?.description || info.typeuser.description : ''}</Typography>
 
-                    {/* 🔹 Promedio visible solo para proveedores */}
+                    {/*  Promedio visible solo para proveedores */}
                     {user?.role === 'provider' && (
                       <>
                         <Typography variant='body1' color='textSecondary'>
