@@ -48,6 +48,8 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
   const [loadingAsignando, setLoadingAsignando] = useState(false);
   const [loadingDesasignando, setLoadingDesasignando] = useState(false);
   const [loadingFinalize, setLoadingFinalize] = useState(false);
+  const [eventStatus, setEventStatus] = useState<string>('');
+
 
 
   const { token } = useAppContext();
@@ -63,6 +65,23 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
   };
 
   //const isFinalized = initialData?.status === 'completed';
+
+  useEffect(() => {
+    if (!open || !eventId || !token) return;
+
+    const fetchEventStatus = async () => {
+      try {
+        const res = await fetch(`/api/event/${eventId}`, { headers: { token } });
+        const data = await res.json();
+        setEventStatus(data.data?.status ?? '');
+      } catch (err) {
+        console.error('No se pudo obtener el estado del evento:', err);
+        setEventStatus('');
+      }
+    };
+
+    fetchEventStatus();
+  }, [open, eventId, token]);
 
   useEffect(() => {
     setForm(initialData || {});
@@ -158,6 +177,28 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
     if (!validateDates()) return;
 
     if (!eventId || !token) return;
+
+    let eventStatus = '';
+    try {
+      const res = await fetch(`/api/event/${eventId}`, { headers: { token } });
+      if (!res.ok) throw new Error('No se pudo obtener el evento');
+      const data = await res.json();
+      eventStatus = data.data?.status ?? '';
+    } catch (err) {
+      console.error(err);
+      showErrorAlert('No se pudo obtener el estado del evento.');
+      return;
+    }
+
+    if (eventStatus === 'finalized') {
+      showErrorAlert('No puedes crear tareas en un evento finalizado.');
+      return;
+    }
+
+    if (eventStatus === 'canceled') {
+      showErrorAlert('No puedes crear tareas en un evento cancelado.');
+      return;
+    }
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -521,7 +562,7 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
             <>
               {/* si la tarea no esta finalizada que se muestren los botones */}
               {!isCompleted && (
-                <Button variant='contained' color='primary' onClick={handleUpdate} sx={{ borderRadius: 2 }}>
+                <Button variant='contained' color='primary' onClick={handleUpdate} sx={{ borderRadius: 2 }} disabled={eventStatus === 'canceled' || eventStatus === 'finalized'}>
                   Modificar
                 </Button>
               )}

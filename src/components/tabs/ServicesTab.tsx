@@ -67,6 +67,16 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
   };
 
   const handleAdd = () => {
+    if (event.status === 'canceled') {
+      showErrorAlert('No puedes agregar servicios en un evento cancelado.');
+      return;
+    }
+
+    if (event.status === 'finalized') {
+      showErrorAlert('No puedes agregar servicios en un evento finalizado.');
+      return;
+    }
+
     setSelectedService({
       serviceTypeId: '',
       name: '',
@@ -265,7 +275,10 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
                     Eliminar
                   </Button>
                 )}
-                <Button variant="contained" type="submit" disabled={loading}>
+                <Button variant="contained" type="submit" disabled={
+                  loading ||
+                  event.status === 'canceled' ||
+                  event.status === 'finalized'}>
                   {modalMode === 'add' ? 'Agregar' : 'Modificar'}
                   {loading && <CircularProgress size="15px" className="ml-2" />}
                 </Button>
