@@ -188,7 +188,7 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
       const data = await res.json();
       if (data.message?.code === '000') {
         setVisible(false);
-        await showSucessAlert('El archivo se adjuntó exitosamente.');
+        showSucessAlert('El archivo se adjuntó exitosamente.');
         await fetchComments();
       } else {
         showErrorAlert(data.message?.description || 'Error al subir archivo.');
@@ -254,14 +254,16 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
             style={{ display: 'none' }}
             onChange={async (e) => {
               if (e.target.files?.length) {
-                await showSucessAlert(`Archivo "${e.target.files[0].name}" cargado correctamente.`);
+                // :'v
+                // await showSucessAlert(`Archivo "${e.target.files[0].name}" cargado correctamente.`);
                 setVisible(true);
+                (e.target.parentElement as HTMLFormElement)?.requestSubmit();
               } else {
                 setVisible(false);
               }
             }}
           />
-          {visible && <Button type="submit" sx={{ mt: 2 }}>Subir archivo</Button>}
+          {/* {visible && <Button type="submit" sx={{ mt: 2 }}>Subir archivo</Button>} */}
         </form>
       </Paper>
 
