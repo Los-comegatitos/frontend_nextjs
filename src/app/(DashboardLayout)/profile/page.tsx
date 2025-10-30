@@ -9,6 +9,7 @@ import { User } from '@/interfaces/User';
 import { showDateInput } from '@/utils/Formats';
 import CustomTextField from '../components/forms/theme-elements/CustomTextField';
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
+import { UpdateProfilePayload } from '@/interfaces/UpdateProfilePayload';
 
 const ProfilePage = () => {
   const { token, user } = useAppContext();
@@ -109,7 +110,22 @@ const ProfilePage = () => {
       return;
     }
 
-    formData.birthDate = new Date(formData.birthDate).toISOString();
+
+    const payload: UpdateProfilePayload = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      telephone: formData.telephone || null,
+    };
+
+
+    if (formData.birthDate) {
+      // Envía solo la parte YYYY-MM-DD sin zona horaria
+      payload.birthDate = formData.birthDate;
+    }
+
+    if (formData.email) {
+      payload.email = formData.email;
+    }
 
     const response = await fetch(`/api/profile/${user?.id}`, {
       method: 'PUT',
@@ -117,7 +133,7 @@ const ProfilePage = () => {
         'Content-Type': 'application/json',
         token: token as string,
       },
-      body: JSON.stringify(formData),
+      body: JSON.stringify(payload),
     });
 
     if (response.status === 200) {
@@ -182,7 +198,7 @@ const ProfilePage = () => {
                     </Typography>
                     <Typography variant='h5'>{info ? userTypeMap[info.typeuser.name]?.description || info.typeuser.description : ''}</Typography>
 
-                    {/* 🔹 Promedio visible solo para proveedores */}
+                    {/*  Promedio visible solo para proveedores */}
                     {user?.role === 'provider' && (
                       <>
                         <Typography variant='body1' color='textSecondary'>
