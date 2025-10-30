@@ -54,64 +54,6 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
     setModalOpen(false);
   };
 
-  const handleAproveModal = React.useCallback(async () => {
-    if (!token || !selectedQuote) return
-    // console.log(selectedQuote);
-    setLoadingTable(true);
-    try {
-      const res = await fetch(`/api/quote/${selectedQuote.id}?${new URLSearchParams({
-        state: 'accept'
-      })}`, 
-        { 
-          method: 'POST', 
-          headers: { token } 
-        }
-      );
-      if (!res.ok) {
-        const errorData = await res.json();
-        showErrorAlert(errorData.message?.description || 'Error al aceptar cotizacións');
-        return;
-      }
-
-      await showSucessAlert('Se aceptó la cotización exitosamente')
-    } catch (error) {
-      console.error(error);
-      await showErrorAlert('Error interno al aceptar cotización');
-    } finally {
-      handleCloseModal()
-      setLoadingTable(false);
-    }
-  }, [token, selectedQuote]);
-
-  const handleDisaproveModal = React.useCallback(async () => {
-    if (!token || !selectedQuote) return
-    // console.log(selectedQuote);
-    setLoadingTable(true);
-    try {
-      const res = await fetch(`/api/quote/${selectedQuote.id}?${new URLSearchParams({
-        state: 'reject'
-      })}`, 
-        { 
-          method: 'POST', 
-          headers: { token } 
-        }
-      );
-      if (!res.ok) {
-        const errorData = await res.json();
-        await showErrorAlert(errorData.message?.description || 'Error al rechazar cotización');
-        return;
-      }
-
-      await showSucessAlert('Se rechazó la cotización exitosamente')
-    } catch (error) {
-      console.error(error);
-      await showErrorAlert('Error interno al rechazar cotizaciones');
-    } finally {
-      handleCloseModal()
-      setLoadingTable(false);
-    }
-  }, [token, selectedQuote]);
-
   const fetchQuotes = React.useCallback(async () => {
     if (!token || !user?.id || !eventId) return;
 
@@ -147,6 +89,66 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
       setLoadingTable(false);
     }
   }, [token, user?.id, eventId]);
+
+  const handleAproveModal = React.useCallback(async () => {
+    if (!token || !selectedQuote) return
+    // console.log(selectedQuote);
+    setLoadingTable(true);
+    try {
+      const res = await fetch(`/api/quote/${selectedQuote.id}?${new URLSearchParams({
+        state: 'accept'
+      })}`, 
+        { 
+          method: 'POST', 
+          headers: { token } 
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        showErrorAlert(errorData.message?.description || 'Error al aceptar cotizacións');
+        return;
+      }
+
+      await showSucessAlert('Se aceptó la cotización exitosamente')
+    } catch (error) {
+      console.error(error);
+      await showErrorAlert('Error interno al aceptar cotización');
+    } finally {
+      handleCloseModal();
+      await fetchQuotes();
+      setLoadingTable(false);
+    }
+  }, [token, selectedQuote, fetchQuotes]);
+
+  const handleDisaproveModal = React.useCallback(async () => {
+    if (!token || !selectedQuote) return
+    // console.log(selectedQuote);
+    setLoadingTable(true);
+    try {
+      const res = await fetch(`/api/quote/${selectedQuote.id}?${new URLSearchParams({
+        state: 'reject'
+      })}`, 
+        { 
+          method: 'POST', 
+          headers: { token } 
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        await showErrorAlert(errorData.message?.description || 'Error al rechazar cotización');
+        return;
+      }
+
+      await showSucessAlert('Se rechazó la cotización exitosamente')
+    } catch (error) {
+      console.error(error);
+      await showErrorAlert('Error interno al rechazar cotizaciones');
+    } finally {
+      handleCloseModal();
+      await fetchQuotes();
+      setLoadingTable(false);
+    }
+  }, [token, selectedQuote, fetchQuotes]);
 
   useEffect(() => {
     fetchQuotes();
