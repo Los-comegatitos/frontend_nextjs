@@ -149,11 +149,13 @@ export default function ProviderTab({ token, event, onRefresh }: Props) {
 
   return (
     <>
-      <ProviderList
-        providers={providers}
-        onView={(provider : BackendProviderResponse) => {router.push(`/catalog/${provider.providerId}`)}}
-        onRate={handleRate}
-      />
+    <ProviderList
+      providers={providers}
+      eventStatus={event.status}
+      onView={(provider: BackendProviderResponse) => router.push(`/catalog/${provider.providerId}`)}
+      onRate={handleRate}
+    />
+
 
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Calificar proveedor</DialogTitle>
