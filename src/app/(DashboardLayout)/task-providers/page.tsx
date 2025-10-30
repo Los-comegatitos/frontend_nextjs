@@ -32,6 +32,18 @@ export default function TaskProvidersPage() {
   const filteredTasks = tasks.filter((task) => task.eventName.toLowerCase().includes(search.toLowerCase()));
   const paginatedTasks = filteredTasks.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
+  // funcion auxiliar para traducir el estado al español
+  const translateStatus = (status: string): string => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Pendiente';
+      case 'completed':
+        return 'Completado';
+      default:
+        return status;
+    }
+  };
+
   // fetch task provider
   const fetchTaskProvider = React.useCallback(async () => {
     if (!token) return;
@@ -99,7 +111,7 @@ export default function TaskProvidersPage() {
                       ? new Date(t.task.dueDate).toLocaleDateString()
                       : 'Sin fecha'}
                   </TableCell>
-                  <TableCell>{t.task.status}</TableCell>
+                  <TableCell>{translateStatus(t.task.status)}</TableCell>
                   <TableCell
                     align='center'
                     onClick={(e) => {
@@ -122,7 +134,16 @@ export default function TaskProvidersPage() {
               ))}
             </TableBody>
           </Table>
-          <TablePagination labelRowsPerPage={'Filas a mostrar'} component='div' count={filteredTasks.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 25, { value: -1, label: 'Todos' }]} />
+          <TablePagination
+            labelRowsPerPage={'Filas a mostrar'}
+            component='div'
+            count={filteredTasks.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 25, { value: -1, label: 'Todos' }]}
+          />
         </>
       )}
 
@@ -171,7 +192,7 @@ export default function TaskProvidersPage() {
               <Typography variant='subtitle1' fontWeight={600}>
                 Estado:
               </Typography>
-              <Typography>{selectedTask.task.status}</Typography>
+              <Typography>{translateStatus(selectedTask.task.status)}</Typography>
             </Box>
           )}
         </DialogContent>
