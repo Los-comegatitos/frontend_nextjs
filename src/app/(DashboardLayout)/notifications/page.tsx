@@ -1,5 +1,5 @@
 'use client';
-import { Typography, Grid, CardContent, Checkbox, Container } from '@mui/material';
+import { Typography, Grid, CardContent, Checkbox, Container, Button } from '@mui/material';
 import PageContainer from '@/app/(DashboardLayout)/components/container/PageContainer';
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import BlankCard from '@/app/(DashboardLayout)/components/shared/BlankCard';
@@ -93,9 +93,12 @@ const NotificationsPage = () => {
                                     <Typography>{e.description}</Typography>
                                     <Typography variant='caption'>{showFormalDate(e.date)}</Typography>
                                 </Container>
-                                <Checkbox onChange={() => {
+                                <Button onClick={(a) => {
+                                    a.currentTarget.disabled = true
                                     setSelectedId(e.id)
-                                }} />
+                                }}>
+                                    Eliminar
+                                </Button>
                             </CardContent>
                         </BlankCard>
                     ))
