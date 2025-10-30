@@ -61,7 +61,7 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const [comment, setComment] = useState('');
-  const [visible, setVisible] = useState(false);
+  // const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingComment, setLoadingComment] = useState(false);
 
@@ -187,7 +187,7 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
 
       const data = await res.json();
       if (data.message?.code === '000') {
-        setVisible(false);
+        // setVisible(false);
         showSucessAlert('El archivo se adjuntó exitosamente.');
         await fetchComments();
       } else {
@@ -256,10 +256,10 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
               if (e.target.files?.length) {
                 // :'v
                 // await showSucessAlert(`Archivo "${e.target.files[0].name}" cargado correctamente.`);
-                setVisible(true);
+                // setVisible(true);
                 (e.target.parentElement as HTMLFormElement)?.requestSubmit();
               } else {
-                setVisible(false);
+                // setVisible(false);
               }
             }}
           />
