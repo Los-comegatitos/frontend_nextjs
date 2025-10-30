@@ -10,19 +10,18 @@ import {
   Typography,
   Button,
 } from '@mui/material';
-//import { ProviderWithService } from '@/interfaces/Provider';
 import { BackendProviderResponse } from '@/interfaces/ProviderResponse';
 
 type Props = {
   providers: (BackendProviderResponse & { score?: number })[];
   onView: (provider: BackendProviderResponse) => void;
   onRate: (provider: BackendProviderResponse) => void;
+  eventStatus: string;
 };
 
-export default function ProviderList({ providers, onView, onRate }: Props) {
-  // console.log('TODOS LOS PROVEEDORES');
-  // console.log(providers);
-  
+export default function ProviderList({ providers, onView, onRate, eventStatus }: Props) {
+  const isFinalized = eventStatus === 'finalized';
+
   return (
     <Box>
       {providers.length === 0 ? (
@@ -51,9 +50,10 @@ export default function ProviderList({ providers, onView, onRate }: Props) {
                   <Button
                     variant="contained"
                     size="small"
+                    disabled={!isFinalized}
                     onClick={(e) => {
                       e.stopPropagation();
-                      onRate(provider);
+                      if (isFinalized) onRate(provider); 
                     }}
                   >
                     {provider.score ? 'Editar calificación' : 'Calificar'}

@@ -67,6 +67,16 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
   };
 
   const handleAdd = () => {
+    if (event.status === 'canceled') {
+      showErrorAlert('No puedes agregar servicios en un evento cancelado.');
+      return;
+    }
+
+    if (event.status === 'finalized') {
+      showErrorAlert('No puedes agregar servicios en un evento finalizado.');
+      return;
+    }
+
     setSelectedService({
       serviceTypeId: '',
       name: '',
@@ -75,6 +85,58 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
     } as Service);
     setModalMode('add');
     setOpenModal(true);
+  };
+
+  // funciones de conversion de fechas para datetime-local
+  const toLocalISOString = (value: string) => {
+    const date = new Date(value);
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 19);
+  };
+
+  // nueva funcion para mostrar correctamente la fecha y hora guardada en hora local
+  const toDatetimeLocal = (dateString?: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - offset * 60000);
+    return localDate.toISOString().slice(0, 16);
+  };
+
+  const validateDates = async (dueDateStr?: string): Promise<boolean> => {
+    const now = new Date();
+
+    if (!dueDateStr) {
+      showErrorAlert('La fecha límite para cotizaciones no puede estar vacía.');
+      return false;
+    }
+
+    const dueDate = new Date(dueDateStr);
+
+    if (isNaN(dueDate.getTime())) {
+      showErrorAlert('La fecha límite no es válida.');
+      return false;
+    }
+
+    if (dueDate < now) {
+      showErrorAlert('La fecha límite no puede ser anterior al momento actual.');
+      return false;
+    }
+
+    // Validar que la fecha no sea posterior a la fecha del evento
+    try {
+      if (event.eventDate) {
+        const eventDate = new Date(event.eventDate);
+        if (dueDate > eventDate) {
+          showErrorAlert('La fecha límite no puede ser posterior a la fecha del evento.');
+          return false;
+        }
+      }
+    } catch (err) {
+      console.warn('No se pudo validar contra la fecha del evento.', err);
+    }
+
+    return true;
   };
 
   const handleSubmit = async (eventReact: React.FormEvent<HTMLFormElement>) => {
@@ -87,6 +149,18 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
     const selectedType = serviceTypesSelect.find(t => parseInt(t.id) === parseInt(selectedId));
 
     const dueDate = formData.get('dueDate') as string;
+
+    if (!(await validateDates(dueDate))) {
+      setLoading(false);
+      return;
+    }
+    const quantityValue = formData.get('quantity') === '' ? null : Number(formData.get('quantity'));
+
+    if (quantityValue !== null && quantityValue < 0) {
+      showErrorAlert('La cantidad no puede ser negativa.');
+      setLoading(false);
+      return;
+    }
 
     if (!dueDate) {
       showErrorAlert('Debe seleccionar una fecha límite para cotizaciones.');
@@ -110,10 +184,11 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
       serviceTypeId: selectedId,
       serviceTypeName: selectedType?.name ?? '',
       name: formData.get('name') as string,
-      dueDate: formData.get('dueDate') as string,
+      dueDate: toLocalISOString(dueDate),
       description: formData.get('description') as string,
-      quantity: formData.get('quantity') === '' ? null : Number(formData.get('quantity')),
+      quantity: quantityValue,
     };
+
     try {
       let url = `/api/event/${event.eventId}/services`;
       let method = 'POST';
@@ -237,33 +312,44 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
               <TextField label="Cantidad" name="quantity" type="number" defaultValue={selectedService.quantity ?? ''} />
 
               <TextField
-                type="date"
+                type="datetime-local"
                 label="Fecha límite para cotizaciones"
                 name="dueDate"
-                defaultValue={selectedService.dueDate?.split('T')[0]}
+                defaultValue={toDatetimeLocal(selectedService.dueDate)}
                 InputLabelProps={{ shrink: true }}
-                inputProps={{ min: new Date().toISOString().split('T')[0] }}
                 required
               />
 
-              <Box display="flex" justifyContent="center" gap={2}>
-                {modalMode === 'modify' && (
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={() => handleDelete(selectedService.name)}
-                    disabled={loading}
-                  >
-                    Eliminar
-                  </Button>
-                )}
-                <Button variant="contained" type="submit" disabled={loading}>
-                  {modalMode === 'add' ? 'Agregar' : 'Modificar'}
-                  {loading && <CircularProgress size="15px" className="ml-2" />}
-                </Button>
+              {/* botones ordenados cancelar a la izquierda, acciones a la derecha */}
+              <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
                 <Button onClick={handleClose} color="secondary" disabled={loading}>
                   Cancelar
                 </Button>
+
+                <Box display="flex" gap={2}>
+                  {modalMode === 'modify' && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => handleDelete(selectedService.name)}
+                      disabled={loading}
+                    >
+                      Eliminar
+                    </Button>
+                  )}
+                  <Button
+                    variant="contained"
+                    type="submit"
+                    disabled={
+                      loading ||
+                      event.status === 'canceled' ||
+                      event.status === 'finalized'
+                    }
+                  >
+                    {modalMode === 'add' ? 'Agregar' : 'Modificar'}
+                    {loading && <CircularProgress size="15px" className="ml-2" />}
+                  </Button>
+                </Box>
               </Box>
             </Box>
           )}

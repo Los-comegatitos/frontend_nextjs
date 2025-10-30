@@ -6,7 +6,6 @@ import PageContainer from '@/app/(DashboardLayout)/components/container/PageCont
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { showErrorAlert } from '@/app/lib/swal';
 import { Event } from '@/interfaces/Event';
-// import ExampleTabContent from '@/components/tabs/Event/ExampleTabContent';
 import EventOverviewTab from '@/components/tabs/Event/EventOverviewTab';
 import { useAppContext } from '@/context/AppContext';
 import ServicesTab from '@/components/tabs/ServicesTab';
@@ -119,10 +118,6 @@ const EventPage = () => {
             <Tab label='Cotizaciones' {...a11yProps(3)} />
             <Tab label='Proveedores' {...a11yProps(4)} />
             <Tab label='Configuración' {...a11yProps(5)} />
-
-            {eventData?.status === 'finalized' && (
-                <Tab label='Calificar proveedores' {...a11yProps(6)} />
-            )}
           </Tabs>
         </Box>
 
@@ -151,11 +146,6 @@ const EventPage = () => {
         <CustomTabPanel value={tabValue} index={5} loading={loadingEvent} eventData={eventData}>
           <EventConfigTab token={token as string} event={eventData!} onRefresh={fetchEvent}/>
         </CustomTabPanel>
-
-        <CustomTabPanel value={tabValue} index={6} loading={loadingEvent} eventData={eventData}>
-          {/* <ExampleTabContent event={eventData!} /> */}
-        </CustomTabPanel>
-
         
       </DashboardCard>
     </PageContainer>

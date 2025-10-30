@@ -63,6 +63,8 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
   const [comment, setComment] = useState('');
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingComment, setLoadingComment] = useState(false);
+
   const UploadIcon = '/images/icons/upload.png';
   // console.log('LA INTERFAZ DE COMENTARIOS');
   
@@ -129,6 +131,8 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
       return;
     }
 
+    setLoadingComment(true);
+
     try {
       const url = `/api/event/${eventId}/task/${taskId}/comments/${role}`;
       const res = await fetch(url, {
@@ -144,13 +148,16 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
 
       if (!res.ok) {
         showErrorAlert(data.message || 'Error al enviar comentario.');
+        setLoadingComment(false);
+
         return;
       }
 
+      setLoadingComment(false);
       setComment('');
-      await showSucessAlert('Comentario enviado con éxito.');
       fetchComments();
     } catch (err) {
+        setLoadingComment(false);
       console.error(err);
       showErrorAlert('Error al enviar comentario.');
     }
@@ -270,6 +277,7 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
 
       <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={handleSendComment}>
         Enviar comentario
+        {loadingComment && <CircularProgress size='15px' className={'ml-2'} color="secondary" />}
       </Button>
 
       <Box mt={4}>
