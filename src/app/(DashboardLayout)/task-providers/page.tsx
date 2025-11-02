@@ -5,7 +5,7 @@ import { Box, Table, TableBody, TableCell, TableHead, TableRow, Typography, Butt
 import CloseIcon from '@mui/icons-material/Close';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { showErrorAlert } from '@/app/lib/swal';
+//import { showErrorAlert } from '@/app/lib/swal';
 import { useAppContext } from '@/context/AppContext';
 import { ProviderTask } from '@/interfaces/ProviderTask';
 
@@ -45,7 +45,7 @@ export default function TaskProvidersPage() {
   };
 
   // fetch task provider
-  const fetchTaskProvider = React.useCallback(async () => {
+  /*const fetchTaskProvider = React.useCallback(async () => {
     if (!token) return;
     try {
       setLoadingTable(true);
@@ -57,6 +57,31 @@ export default function TaskProvidersPage() {
       } else {
         showErrorAlert(data.message.description);
       }
+      setLoadingTable(false);
+    } catch (err) {
+      setLoadingTable(false);
+      console.error('error:', err);
+    }
+  }, [token]);*/
+
+  // fetch task provider
+  const fetchTaskProvider = React.useCallback(async () => {
+    if (!token) return;
+
+    const showErrorAlert = (_msg?: string) => { void _msg; };
+
+
+    try {
+      setLoadingTable(true);
+      const res = await fetch(`/api/task/provider`, { headers: { token: token as string } });
+      const data = await res.json();
+
+      if (data.message.code === '000') {
+        setTasks(data.data.data);
+      } else {
+        showErrorAlert( data.message.description);
+      }
+
       setLoadingTable(false);
     } catch (err) {
       setLoadingTable(false);
@@ -175,10 +200,18 @@ export default function TaskProvidersPage() {
         <DialogContent dividers>
           {selectedTask && (
             <Box>
+              {/* Nombre de la tarea */}
               <Typography variant='subtitle1' fontWeight={600}>
                 Nombre de la tarea:
               </Typography>
-              <Typography mb={2}>{selectedTask.task.name}</Typography>
+              <Typography mb={1}>{selectedTask.task.name}</Typography>
+
+              {/* Separación y descripción */}
+              <Divider sx={{ mb: 1 }} />
+              <Typography variant='subtitle1' fontWeight={600}>
+                Descripción:
+              </Typography>
+              <Typography mb={2}>{selectedTask.task.description || 'Sin descripción'}</Typography>
 
               <Divider sx={{ my: 2 }} />
 
