@@ -90,8 +90,13 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
   // funciones de conversion de fechas para datetime-local
   const toLocalISOString = (value: string) => {
     const date = new Date(value);
-    const tzOffset = date.getTimezoneOffset() * 60000;
-    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 19);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   };
 
   // nueva funcion para mostrar correctamente la fecha y hora guardada en hora local
@@ -154,10 +159,19 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
       setLoading(false);
       return;
     }
-    const quantityValue = formData.get('quantity') === '' ? null : Number(formData.get('quantity'));
 
-    if (quantityValue !== null && quantityValue < 0) {
-      showErrorAlert('La cantidad no puede ser negativa.');
+    const quantityRaw = formData.get('quantity') as string;
+    const quantityValue = quantityRaw === '' ? null : Number(quantityRaw);
+
+    // Validar cantidad
+    if (quantityValue === null || isNaN(quantityValue)) {
+      showErrorAlert('Debe ingresar una cantidad válida mayor a 0.');
+      setLoading(false);
+      return;
+    }
+
+    if (quantityValue <= 0) {
+      showErrorAlert('La cantidad debe ser mayor a 0.');
       setLoading(false);
       return;
     }
@@ -248,7 +262,11 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
   return (
     <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
       <Box sx={{ display: 'flex', mb: 3, justifyContent: 'flex-end' }}>
-        <Button variant="contained" onClick={handleAdd}>
+        <Button
+          variant="contained"
+          onClick={handleAdd}
+          disabled={event.status === 'canceled' || event.status === 'finalized'}
+        >
           Añadir servicio
         </Button>
       </Box>
@@ -300,6 +318,7 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
                 name="serviceTypeId"
                 defaultValue={selectedService.serviceTypeId || ''}
                 required
+                disabled={event.status === 'canceled' || event.status === 'finalized'}
               >
                 {serviceTypesSelect.map((t) => (
                   <MenuItem key={t.id} value={t.id}>
@@ -307,9 +326,28 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
                   </MenuItem>
                 ))}
               </Select>
-              <TextField label="Nombre" name="name" defaultValue={selectedService.name} required />
-              <TextField label="Descripción" name="description" defaultValue={selectedService.description} required />
-              <TextField label="Cantidad" name="quantity" type="number" defaultValue={selectedService.quantity ?? ''} />
+              <TextField
+                label="Nombre"
+                name="name"
+                defaultValue={selectedService.name}
+                required
+                InputProps={{ readOnly: event.status === 'canceled' || event.status === 'finalized' }}
+              />
+              <TextField
+                label="Descripción"
+                name="description"
+                defaultValue={selectedService.description}
+                required
+                InputProps={{ readOnly: event.status === 'canceled' || event.status === 'finalized' }}
+              />
+              <TextField
+                label="Cantidad"
+                name="quantity"
+                type="number"
+                defaultValue={selectedService.quantity ?? ''}
+                inputProps={{ min: 1, readOnly: event.status === 'canceled' || event.status === 'finalized' }}
+                required
+              />
 
               <TextField
                 type="datetime-local"
@@ -318,6 +356,7 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
                 defaultValue={toDatetimeLocal(selectedService.dueDate)}
                 InputLabelProps={{ shrink: true }}
                 required
+                InputProps={{ readOnly: event.status === 'canceled' || event.status === 'finalized' }}
               />
 
               {/* botones ordenados cancelar a la izquierda, acciones a la derecha */}
@@ -332,7 +371,7 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
                       variant="outlined"
                       color="error"
                       onClick={() => handleDelete(selectedService.name)}
-                      disabled={loading}
+                      disabled={loading || event.status === 'canceled' || event.status === 'finalized'} // deshabilitado si cancelado o finalizado
                     >
                       Eliminar
                     </Button>
