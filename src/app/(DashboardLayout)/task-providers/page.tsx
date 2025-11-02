@@ -5,7 +5,7 @@ import { Box, Table, TableBody, TableCell, TableHead, TableRow, Typography, Butt
 import CloseIcon from '@mui/icons-material/Close';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-//import { showErrorAlert } from '@/app/lib/swal';
+import { showErrorAlert } from '@/app/lib/swal';
 import { useAppContext } from '@/context/AppContext';
 import { ProviderTask } from '@/interfaces/ProviderTask';
 
@@ -45,7 +45,7 @@ export default function TaskProvidersPage() {
   };
 
   // fetch task provider
-  /*const fetchTaskProvider = React.useCallback(async () => {
+  const fetchTaskProvider = React.useCallback(async () => {
     if (!token) return;
     try {
       setLoadingTable(true);
@@ -62,10 +62,10 @@ export default function TaskProvidersPage() {
       setLoadingTable(false);
       console.error('error:', err);
     }
-  }, [token]);*/
+  }, [token]);
 
   // fetch task provider
-  const fetchTaskProvider = React.useCallback(async () => {
+  /*const fetchTaskProvider = React.useCallback(async () => {
     if (!token) return;
 
     const showErrorAlert = (_msg?: string) => { void _msg; };
@@ -87,7 +87,7 @@ export default function TaskProvidersPage() {
       setLoadingTable(false);
       console.error('error:', err);
     }
-  }, [token]);
+  }, [token]);*/
 
   useEffect(() => {
     fetchTaskProvider();
