@@ -22,6 +22,7 @@ export default function CatalogView() {
     const [loadingTable, setLoadingTable] = useState(true);
     const [catalog, setCatalog] = useState<Catalog | null>(null);
     const [userInfo, setUserInfo] = useState<User | null>(null);
+    const [stars, setStars] = useState('')
 
     const obtainInfo = React.useCallback(async () => {
         if (!token || !providerId) return;
@@ -42,8 +43,24 @@ export default function CatalogView() {
                 setLoadingTable(false);
                 router.push('/')
             }
+            const response = await fetch(`/api/event/provider/${providerId}/average`, {
+                headers: {
+                'Content-Type': 'application/json',
+                    token: token as string,
+                },
+            });
+            const info = await response.json();
+            if (info.message.code === '000') {
+                console.log('algo');
+                console.log(info);
+                setStars('⭐'.repeat(info.data.average));
+            } else {
+                showErrorAlert(info.message.description);
+                setLoadingTable(false);
+                router.push('/')
+            }
         } catch (error) {
-            showErrorAlert('Ha sucedido un error al obtener el catálogo.');
+            showErrorAlert('Ha sucedido un error al obtener la puntuación del proveedor.');
             setLoadingTable(false);
             console.error(error);
             router.push('/')
@@ -56,9 +73,9 @@ export default function CatalogView() {
 
     return (
         <PageContainer title='Catálogo' description='Página de catálogo'>
-            <DashboardCard title={`Catálogo ${(!userInfo) ? '' : `de ${userInfo?.firstName} ${userInfo?.lastName}`}`}>
+            <DashboardCard title={`Catálogo ${(!userInfo) ? '' : `de ${userInfo?.firstName} ${userInfo?.lastName} - ${(stars) ? stars : 'No tiene calificaciones aún'}`}`}>
                 <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
-        
+
                     <Typography variant='h6' fontWeight={600} mb={2}>
                         Descripción
                     </Typography>
@@ -66,7 +83,17 @@ export default function CatalogView() {
                         <Typography color='gray' mb={3}>
                             {catalog.description ? catalog.description : 'Este proveedor aún no ha añadido su descripción'}
                         </Typography>
-                )}
+                    )}
+                    {userInfo?.telephone && (
+                        <>
+                            <Typography variant='h6' fontWeight={600} mb={2}>
+                                Teléfono
+                            </Typography>
+                            <Typography color='gray' mb={3}>
+                                {userInfo.telephone}
+                            </Typography>
+                        </>
+                    )}
         
                     {loadingTable ? (
                         <Box sx={{ overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>

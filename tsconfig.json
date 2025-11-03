@@ -32,8 +32,10 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
-, "src/components/chatbot/TheChatBot.js"  ],
+    ".next/types/**/*.ts",
+    "src/components/chatbot/TheChatBot.js",
+    ".next/dev/types/**/*.ts"
+  ],
   "exclude": [
     "node_modules"
   ]
