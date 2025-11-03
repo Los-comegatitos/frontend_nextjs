@@ -16,6 +16,7 @@ import {
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { useAppContext } from '@/context/AppContext';
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
+import { useRouter } from 'next/navigation';
 
 type Quote = {
   id?: number;
@@ -26,7 +27,7 @@ type Quote = {
   date?: string;
   eventId?: number;
   eventName?: string;
-  provider?: { email: string, userId: number, firstName: string, lastName: string };
+  provider?: { email: string, id: number, firstName: string, lastName: string };
   status?: string;
 };
 
@@ -43,9 +44,26 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
 
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [stars, setStars] = useState('')
 
-  const handleOpenModal = (quote: Quote) => {
+  const router = useRouter()
+
+  const handleOpenModal = async (quote: Quote) => {
+    const response = await fetch(`/api/event/provider/${quote.provider?.id}/average`, {
+        headers: {
+        'Content-Type': 'application/json',
+            token: token as string,
+        },
+    });
+    const info = await response.json();
+    if (info.message.code === '000') {
+        setStars('⭐'.repeat(info.data.average));
+    } else {
+        showErrorAlert(info.message.description);
+    }
     setSelectedQuote(quote);
+    console.log(quote);
+    
     setModalOpen(true);
   };
 
@@ -282,8 +300,16 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
                   {selectedQuote.date ? new Date(selectedQuote.date).toLocaleString() : '-'}
                 </Typography>
 
-                <Typography>
+                <Typography sx={{
+                    ":hover": {
+                        textDecorationLine: 'underline', 
+                        cursor: 'pointer'
+                    }
+                }} onClick={() => {
+                    router.push(`/catalog/${selectedQuote.provider?.id}`)
+                }}>
                   <strong>Proveedor:</strong> {selectedQuote.provider?.firstName} {selectedQuote.provider?.lastName}
+                  {(stars) && ` - ${stars}`}
                 </Typography>
 
 
