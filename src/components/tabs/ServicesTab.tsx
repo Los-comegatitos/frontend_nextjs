@@ -193,6 +193,19 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
       return;
     }
 
+    const name = (formData.get('name') as string)?.trim();
+
+    if (modalMode === 'add') {
+      const existingService = event.services?.find(
+        (s) => s.name.toLowerCase() === name.toLowerCase()
+      );
+      if (existingService) {
+        showErrorAlert('Ya existe un servicio con ese nombre. Por favor, elija otro.');
+        setLoading(false);
+        return;
+      }
+    }
+
     const payload = {
       serviceTypeId: selectedId,
       serviceTypeName: selectedType?.name ?? '',
