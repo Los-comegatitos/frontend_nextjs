@@ -87,6 +87,62 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
     setOpenModal(true);
   };
 
+  // funciones de conversion de fechas para datetime-local
+  const toLocalISOString = (value: string) => {
+    if (!value) return '';
+    const [datePart, timePart] = value.split('T');
+    if (!datePart || !timePart) return '';
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute] = timePart.split(':').map(Number);
+    const localDate = new Date(year, month - 1, day, hour, minute);
+    return localDate.toISOString();
+  };
+
+  // nueva funcion para mostrar correctamente la fecha y hora guardada en hora local
+  const toDatetimeLocal = (dateString?: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - offset * 60000);
+    return localDate.toISOString().slice(0, 16);
+  };
+
+  const validateDates = async (dueDateStr?: string): Promise<boolean> => {
+    const now = new Date();
+
+    if (!dueDateStr) {
+      showErrorAlert('La fecha límite para cotizaciones no puede estar vacía.');
+      return false;
+    }
+
+    const dueDate = new Date(dueDateStr);
+
+    if (isNaN(dueDate.getTime())) {
+      showErrorAlert('La fecha límite no es válida.');
+      return false;
+    }
+
+    if (dueDate < now) {
+      showErrorAlert('La fecha límite no puede ser anterior al momento actual.');
+      return false;
+    }
+
+    // Validar que la fecha no sea posterior a la fecha del evento
+    try {
+      if (event.eventDate) {
+        const eventDate = new Date(event.eventDate);
+        if (dueDate > eventDate) {
+          showErrorAlert('La fecha límite no puede ser posterior a la fecha del evento.');
+          return false;
+        }
+      }
+    } catch (err) {
+      console.warn('No se pudo validar contra la fecha del evento.', err);
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (eventReact: React.FormEvent<HTMLFormElement>) => {
     eventReact.preventDefault();
     setLoading(true);
@@ -98,10 +154,23 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
 
     const dueDate = formData.get('dueDate') as string;
 
-    const quantityValue = formData.get('quantity') === '' ? null : Number(formData.get('quantity'));
+    if (!(await validateDates(dueDate))) {
+      setLoading(false);
+      return;
+    }
 
-    if (quantityValue !== null && quantityValue < 0) {
-      showErrorAlert('La cantidad no puede ser negativa.');
+    const quantityRaw = formData.get('quantity') as string;
+    const quantityValue = quantityRaw === '' ? null : Number(quantityRaw);
+
+    // Validar cantidad
+    if (quantityValue === null || isNaN(quantityValue)) {
+      showErrorAlert('Debe ingresar una cantidad válida mayor a 0.');
+      setLoading(false);
+      return;
+    }
+
+    if (quantityValue <= 0) {
+      showErrorAlert('La cantidad debe ser mayor a 0.');
       setLoading(false);
       return;
     }
@@ -128,10 +197,11 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
       serviceTypeId: selectedId,
       serviceTypeName: selectedType?.name ?? '',
       name: formData.get('name') as string,
-      dueDate: formData.get('dueDate') as string,
+      dueDate: toLocalISOString(dueDate),
       description: formData.get('description') as string,
       quantity: quantityValue,
     };
+
     try {
       let url = `/api/event/${event.eventId}/services`;
       let method = 'POST';
@@ -191,7 +261,11 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
   return (
     <Box sx={{ overflow: 'auto', width: { xs: '280px', sm: 'auto' } }}>
       <Box sx={{ display: 'flex', mb: 3, justifyContent: 'flex-end' }}>
-        <Button variant="contained" onClick={handleAdd}>
+        <Button
+          variant="contained"
+          onClick={handleAdd}
+          disabled={event.status === 'canceled' || event.status === 'finalized'}
+        >
           Añadir servicio
         </Button>
       </Box>
@@ -243,6 +317,7 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
                 name="serviceTypeId"
                 defaultValue={selectedService.serviceTypeId || ''}
                 required
+                disabled={event.status === 'canceled' || event.status === 'finalized'}
               >
                 {serviceTypesSelect.map((t) => (
                   <MenuItem key={t.id} value={t.id}>
@@ -250,41 +325,69 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
                   </MenuItem>
                 ))}
               </Select>
-              <TextField label="Nombre" name="name" defaultValue={selectedService.name} required />
-              <TextField label="Descripción" name="description" defaultValue={selectedService.description} required />
-              <TextField label="Cantidad" name="quantity" type="number" defaultValue={selectedService.quantity ?? ''} />
-
               <TextField
-                type="date"
-                label="Fecha límite para cotizaciones"
-                name="dueDate"
-                defaultValue={selectedService.dueDate?.split('T')[0]}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ min: new Date().toISOString().split('T')[0] }}
+                label="Nombre"
+                name="name"
+                defaultValue={selectedService.name}
+                required
+                InputProps={{ readOnly: event.status === 'canceled' || event.status === 'finalized' }}
+              />
+              <TextField
+                label="Descripción"
+                name="description"
+                defaultValue={selectedService.description}
+                required
+                InputProps={{ readOnly: event.status === 'canceled' || event.status === 'finalized' }}
+              />
+              <TextField
+                label="Cantidad"
+                name="quantity"
+                type="number"
+                defaultValue={selectedService.quantity ?? ''}
+                inputProps={{ min: 1, readOnly: event.status === 'canceled' || event.status === 'finalized' }}
                 required
               />
 
-              <Box display="flex" justifyContent="center" gap={2}>
-                {modalMode === 'modify' && (
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={() => handleDelete(selectedService.name)}
-                    disabled={loading}
-                  >
-                    Eliminar
-                  </Button>
-                )}
-                <Button variant="contained" type="submit" disabled={
-                  loading ||
-                  event.status === 'canceled' ||
-                  event.status === 'finalized'}>
-                  {modalMode === 'add' ? 'Agregar' : 'Modificar'}
-                  {loading && <CircularProgress size="15px" className="ml-2" />}
-                </Button>
+              <TextField
+                type="datetime-local"
+                label="Fecha límite para cotizaciones"
+                name="dueDate"
+                defaultValue={toDatetimeLocal(selectedService.dueDate)}
+                InputLabelProps={{ shrink: true }}
+                required
+                InputProps={{ readOnly: event.status === 'canceled' || event.status === 'finalized' }}
+              />
+
+              {/* botones ordenados cancelar a la izquierda, acciones a la derecha */}
+              <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
                 <Button onClick={handleClose} color="secondary" disabled={loading}>
                   Cancelar
                 </Button>
+
+                <Box display="flex" gap={2}>
+                  {modalMode === 'modify' && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => handleDelete(selectedService.name)}
+                      disabled={loading || event.status === 'canceled' || event.status === 'finalized'} // deshabilitado si cancelado o finalizado
+                    >
+                      Eliminar
+                    </Button>
+                  )}
+                  <Button
+                    variant="contained"
+                    type="submit"
+                    disabled={
+                      loading ||
+                      event.status === 'canceled' ||
+                      event.status === 'finalized'
+                    }
+                  >
+                    {modalMode === 'add' ? 'Agregar' : 'Modificar'}
+                    {loading && <CircularProgress size="15px" className="ml-2" />}
+                  </Button>
+                </Box>
               </Box>
             </Box>
           )}

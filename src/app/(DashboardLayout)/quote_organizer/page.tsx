@@ -16,6 +16,7 @@ import {
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { useAppContext } from '@/context/AppContext';
 import { showErrorAlert, showSucessAlert } from '@/app/lib/swal';
+import { useRouter } from 'next/navigation';
 
 type Quote = {
   id?: number;
@@ -26,7 +27,7 @@ type Quote = {
   date?: string;
   eventId?: number;
   eventName?: string;
-  provider?: { email: string, userId: number, firstName: string, lastName: string };
+  provider?: { email: string, id: number, firstName: string, lastName: string };
   status?: string;
 };
 
@@ -43,9 +44,26 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
 
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [stars, setStars] = useState('')
 
-  const handleOpenModal = (quote: Quote) => {
+  const router = useRouter()
+
+  const handleOpenModal = async (quote: Quote) => {
+    const response = await fetch(`/api/event/provider/${quote.provider?.id}/average`, {
+        headers: {
+        'Content-Type': 'application/json',
+            token: token as string,
+        },
+    });
+    const info = await response.json();
+    if (info.message.code === '000') {
+        setStars('⭐'.repeat(info.data.average));
+    } else {
+        showErrorAlert(info.message.description);
+    }
     setSelectedQuote(quote);
+    console.log(quote);
+    
     setModalOpen(true);
   };
 
@@ -53,64 +71,6 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
     setSelectedQuote(null);
     setModalOpen(false);
   };
-
-  const handleAproveModal = React.useCallback(async () => {
-    if (!token || !selectedQuote) return
-    // console.log(selectedQuote);
-    setLoadingTable(true);
-    try {
-      const res = await fetch(`/api/quote/${selectedQuote.id}?${new URLSearchParams({
-        state: 'accept'
-      })}`, 
-        { 
-          method: 'POST', 
-          headers: { token } 
-        }
-      );
-      if (!res.ok) {
-        const errorData = await res.json();
-        showErrorAlert(errorData.message?.description || 'Error al aceptar cotizacións');
-        return;
-      }
-
-      await showSucessAlert('Se aceptó la cotización exitosamente')
-    } catch (error) {
-      console.error(error);
-      await showErrorAlert('Error interno al aceptar cotización');
-    } finally {
-      handleCloseModal()
-      setLoadingTable(false);
-    }
-  }, [token, selectedQuote]);
-
-  const handleDisaproveModal = React.useCallback(async () => {
-    if (!token || !selectedQuote) return
-    // console.log(selectedQuote);
-    setLoadingTable(true);
-    try {
-      const res = await fetch(`/api/quote/${selectedQuote.id}?${new URLSearchParams({
-        state: 'reject'
-      })}`, 
-        { 
-          method: 'POST', 
-          headers: { token } 
-        }
-      );
-      if (!res.ok) {
-        const errorData = await res.json();
-        await showErrorAlert(errorData.message?.description || 'Error al rechazar cotización');
-        return;
-      }
-
-      await showSucessAlert('Se rechazó la cotización exitosamente')
-    } catch (error) {
-      console.error(error);
-      await showErrorAlert('Error interno al rechazar cotizaciones');
-    } finally {
-      handleCloseModal()
-      setLoadingTable(false);
-    }
-  }, [token, selectedQuote]);
 
   const fetchQuotes = React.useCallback(async () => {
     if (!token || !user?.id || !eventId) return;
@@ -147,6 +107,66 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
       setLoadingTable(false);
     }
   }, [token, user?.id, eventId]);
+
+  const handleAproveModal = React.useCallback(async () => {
+    if (!token || !selectedQuote) return
+    // console.log(selectedQuote);
+    setLoadingTable(true);
+    try {
+      const res = await fetch(`/api/quote/${selectedQuote.id}?${new URLSearchParams({
+        state: 'accept'
+      })}`, 
+        { 
+          method: 'POST', 
+          headers: { token } 
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        showErrorAlert(errorData.message?.description || 'Error al aceptar cotizacións');
+        return;
+      }
+
+      await showSucessAlert('Se aceptó la cotización exitosamente')
+    } catch (error) {
+      console.error(error);
+      await showErrorAlert('Error interno al aceptar cotización');
+    } finally {
+      handleCloseModal();
+      await fetchQuotes();
+      setLoadingTable(false);
+    }
+  }, [token, selectedQuote, fetchQuotes]);
+
+  const handleDisaproveModal = React.useCallback(async () => {
+    if (!token || !selectedQuote) return
+    // console.log(selectedQuote);
+    setLoadingTable(true);
+    try {
+      const res = await fetch(`/api/quote/${selectedQuote.id}?${new URLSearchParams({
+        state: 'reject'
+      })}`, 
+        { 
+          method: 'POST', 
+          headers: { token } 
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        await showErrorAlert(errorData.message?.description || 'Error al rechazar cotización');
+        return;
+      }
+
+      await showSucessAlert('Se rechazó la cotización exitosamente')
+    } catch (error) {
+      console.error(error);
+      await showErrorAlert('Error interno al rechazar cotizaciones');
+    } finally {
+      handleCloseModal();
+      await fetchQuotes();
+      setLoadingTable(false);
+    }
+  }, [token, selectedQuote, fetchQuotes]);
 
   useEffect(() => {
     fetchQuotes();
@@ -280,8 +300,16 @@ const OrganizerQuotesPage = ({ eventId }: OrganizerQuotesPageProps) => {
                   {selectedQuote.date ? new Date(selectedQuote.date).toLocaleString() : '-'}
                 </Typography>
 
-                <Typography>
+                <Typography sx={{
+                    ":hover": {
+                        textDecorationLine: 'underline', 
+                        cursor: 'pointer'
+                    }
+                }} onClick={() => {
+                    router.push(`/catalog/${selectedQuote.provider?.id}`)
+                }}>
                   <strong>Proveedor:</strong> {selectedQuote.provider?.firstName} {selectedQuote.provider?.lastName}
+                  {(stars) && ` - ${stars}`}
                 </Typography>
 
 

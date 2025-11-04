@@ -6,7 +6,6 @@ import PageContainer from '@/app/(DashboardLayout)/components/container/PageCont
 import DashboardCard from '@/app/(DashboardLayout)/components/shared/DashboardCard';
 import { showErrorAlert } from '@/app/lib/swal';
 import { Event } from '@/interfaces/Event';
-// import ExampleTabContent from '@/components/tabs/Event/ExampleTabContent';
 import EventOverviewTab from '@/components/tabs/Event/EventOverviewTab';
 import { useAppContext } from '@/context/AppContext';
 import ServicesTab from '@/components/tabs/ServicesTab';
