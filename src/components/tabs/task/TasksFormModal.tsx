@@ -418,10 +418,10 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
       }
 
       const providersWithNames = data.data.services
-        .filter((s: EventService) => !!s.quote?.providerId && !!s.serviceTypeName)
+        .filter((s: EventService) => !!s.quote?.providerId && !!s.name)
         .map((s: EventService) => ({
           id: s.quote!.providerId,
-          name: s.serviceTypeName,
+          name: s.name,
         }));
 
       setProviders(providersWithNames);
@@ -666,7 +666,7 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
 
       {/* Modal para asignar proveedor */}
       <Dialog open={assignOpen} onClose={() => setAssignOpen(false)} maxWidth='xs' fullWidth>
-        <DialogTitle>Asignar proveedor</DialogTitle>
+        <DialogTitle>Selecciona el servicio del proveedor que quieras asignar</DialogTitle>
         <DialogContent dividers>
           <FormControl fullWidth sx={{marginBottom: 1}}>
             <InputLabel>Proveedor</InputLabel>
