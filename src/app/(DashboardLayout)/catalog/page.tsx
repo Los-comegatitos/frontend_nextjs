@@ -267,7 +267,8 @@ export default function CatalogPage() {
                   </MenuItem>
                 ))}
               </Select>
-              <TextField label='Nombre' name='name' defaultValue={selectedService.name} required />
+              
+              <TextField inputProps={{ pattern: '^\\S.*$|^.*\\S$' }} label='Nombre' name='name' defaultValue={selectedService.name} required />
               <TextField label='Descripción' name='description' defaultValue={selectedService.description} required />
               <TextField label='Cantidad' name='quantity' type='number' defaultValue={selectedService.quantity ?? ''} inputProps={{ min: 1 }}/>
 

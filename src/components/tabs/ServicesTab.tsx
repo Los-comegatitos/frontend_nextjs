@@ -89,14 +89,13 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
 
   // funciones de conversion de fechas para datetime-local
   const toLocalISOString = (value: string) => {
-    const date = new Date(value);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    if (!value) return '';
+    const [datePart, timePart] = value.split('T');
+    if (!datePart || !timePart) return '';
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute] = timePart.split(':').map(Number);
+    const localDate = new Date(year, month - 1, day, hour, minute);
+    return localDate.toISOString();
   };
 
   // nueva funcion para mostrar correctamente la fecha y hora guardada en hora local
@@ -192,6 +191,19 @@ export default function ServicesTab({ token, event, onRefresh }: ServicesTabProp
       showErrorAlert('La fecha límite no puede ser anterior al día de hoy.');
       setLoading(false);
       return;
+    }
+
+    const name = (formData.get('name') as string)?.trim();
+
+    if (modalMode === 'add') {
+      const existingService = event.services?.find(
+        (s) => s.name.toLowerCase() === name.toLowerCase()
+      );
+      if (existingService) {
+        showErrorAlert('Ya existe un servicio con ese nombre. Por favor, elija otro.');
+        setLoading(false);
+        return;
+      }
     }
 
     const payload = {
