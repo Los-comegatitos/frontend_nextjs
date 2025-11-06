@@ -163,6 +163,18 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
     }
   };
 
+  const handleDragFile = async (event : React.DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+      if (event.dataTransfer.files?.length) {
+        const input = document.getElementById('file') as HTMLInputElement;
+        const info = new DataTransfer();
+        info.items.add(event.dataTransfer.files[0]);
+        input.files = info.files;
+        const changing = new Event('change', { bubbles: true });
+        input.dispatchEvent(changing);
+    }
+  }
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
@@ -242,7 +254,9 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
 
       <Paper elevation={0} className="dropzone">
         <form onSubmit={handleSubmit}>
-          <label htmlFor="file" style={{ cursor: 'pointer' }}>
+          <label htmlFor="file" style={{ cursor: 'pointer' }} 
+            onDragOver={handleDragFile} onDrop={handleDragFile}
+          >
             <Image src={UploadIcon} alt="Subir archivo" width={50} height={50} />
             <Typography variant="body1" mt={1}>
               Haz clic o arrastra un archivo aquí para subirlo
@@ -257,7 +271,8 @@ export default function CommentsInterface({ eventId, taskId, role }: Props) {
                 // :'v
                 // await showSucessAlert(`Archivo "${e.target.files[0].name}" cargado correctamente.`);
                 // setVisible(true);
-                (e.target.parentElement as HTMLFormElement)?.requestSubmit();
+                // (e.target.parentElement as HTMLFormElement)?.requestSubmit();
+                (e.target.closest('form') as HTMLFormElement)?.requestSubmit();
               } else {
                 // setVisible(false);
               }
