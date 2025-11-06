@@ -544,6 +544,11 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
             onChange={handleChange}
             InputLabelProps={{ shrink: true }}
             InputProps={{ readOnly: isCompleted }}
+            inputRef={(input) => {
+              if (input) {
+                input.min = new Date().toISOString().slice(0, 16);
+              }
+            }}
           />
 
           <TextField
@@ -556,6 +561,11 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
             onChange={handleChange}
             InputLabelProps={{ shrink: true }}
             InputProps={{ readOnly: isCompleted }}
+            inputRef={(input) => {
+              if (input) {
+                input.min = new Date().toISOString().slice(0, 16);
+              }
+            }}
           />
 
           <TextField margin='normal' fullWidth label='Proveedor' value={providerName} InputProps={{ readOnly: true }} />
