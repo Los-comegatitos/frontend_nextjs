@@ -42,7 +42,7 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
   const [providerName, setProviderName] = useState<string>('Cargando...');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
-  const [providers, setProviders] = useState<{ id: string; name: string }[]>([]);
+  const [providers, setProviders] = useState<{ id: string; name: string, providersName: string }[]>([]);
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [loadingAsignando, setLoadingAsignando] = useState(false);
@@ -412,16 +412,35 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
         headers: { token: token as string },
       });
       const data: EventResponse = await res.json();
+      console.log(data);
+      console.log(data.data?.services);
+
+      for (const service of data.data?.services || []) {
+        console.log('Servicio:', service.quote?.providerId);
+      }
 
       if (data?.message?.code !== '000' || !data.data?.services) {
         throw new Error('No se pudieron obtener los servicios del evento');
       }
 
+      const providersNamesList : string[] = []
+
+      for (const service of data.data?.services || []) {
+        if (service.quote?.providerId) {
+          const response = await fetch(`/api/catalog/${service.quote.providerId}`, { headers: { token: token as string } });
+          const info = await response.json();
+          console.log(info);
+
+          providersNamesList.push(`${info.data?.user?.firstName} ${info.data?.user?.lastName}`);
+        }
+      }
+
       const providersWithNames = data.data.services
         .filter((s: EventService) => !!s.quote?.providerId && !!s.name)
-        .map((s: EventService) => ({
+        .map((s: EventService, i: number) => ({
           id: s.quote!.providerId,
           name: s.name,
+          providersName: providersNamesList[i] || ''
         }));
 
       setProviders(providersWithNames);
@@ -683,7 +702,7 @@ export default function TaskFormModal({ open, onClose, initialData, eventId, onR
             <Select value={selectedProvider} label='Proveedor' onChange={(e) => setSelectedProvider(e.target.value as string)} disabled={isCompleted}>
               {providers.map((p) => (
                 <MenuItem key={p.id} value={p.id}>
-                  {p.name}
+                  {p.name} - {p.providersName}
                 </MenuItem>
               ))}
             </Select>
